@@ -592,8 +592,36 @@ namespace HoTroDuLichAI.API
                         return response;
                     }
                     var token = await _userManager.GeneratePasswordResetTokenAsync(user: userExist);
-                    var confirmationLink = LinkHelper.GenerateEmailConfirmationUrl(endpoint: RuntimeContext.AppSettings.ClientApp.ClientEndpoint ?? string.Empty,
-                            relatedUrl: RuntimeContext.LinkHelper?.AppEndpoint ?? string.Empty,
+                    var clientEndpoint = RuntimeContext.LinkHelper?.ClientAppEndpoint;
+                    var appEndpoint = RuntimeContext.LinkHelper?.AppEndpoint;
+                    if (string.IsNullOrEmpty(clientEndpoint))
+                    {
+                        await dbTransaction.RollbackAsync();
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = "Không tìm thấy Client Endpoint để gửi Email.",
+                            ErrorScope = CErrorScope.PageSumarry
+                        });
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                        response.Result.Success = false;
+                        response.Result.Errors = errors;
+                        return response;
+                    }
+                    if (string.IsNullOrEmpty(appEndpoint))
+                    {
+                        await dbTransaction.RollbackAsync();
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = "Không tìm thấy Server Endpoint để gửi Email.",
+                            ErrorScope = CErrorScope.PageSumarry
+                        });
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                        response.Result.Success = false;
+                        response.Result.Errors = errors;
+                        return response;
+                    }
+                    var confirmationLink = LinkHelper.GenerateEmailConfirmationUrl(endpoint: clientEndpoint,
+                            relatedUrl: appEndpoint,
                             userId: userExist.Id.ToString(), token: token).ToString();
                     var appInfo = RuntimeContext.AppSettings.ClientApp;
                     var emailReplaceProperty = new ResetPasswordEmailTemplateModel()

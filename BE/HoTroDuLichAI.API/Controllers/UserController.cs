@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HoTroDuLichAI.API
 {
     [ApiController]
-    [Route("/api/v1/cet/user")]
+    [Route("/api/v1/admin/user")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;

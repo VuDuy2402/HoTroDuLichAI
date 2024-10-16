@@ -81,6 +81,7 @@ namespace HoTroDuLichAI.API
     public class LinkHelperRequestDto
     {
         public string AppEndpoint { get; set; } = string.Empty;
+        public string ClientAppEndpoint { get; set; } = string.Empty;
         public string ConfirmResetPasswordRoute { get; set; } = string.Empty;
     }
 }

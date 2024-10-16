@@ -54,4 +54,5 @@ Data/Migrations
 Migrations
 
 config.Development.json
-appsettings.json
+# Ignore appsettings.json
+BE/HoTroDuLichAI.API/appsettings.json

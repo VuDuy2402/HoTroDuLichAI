@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HoTroDuLichAI.API
 {
     [ApiController]
-    [Route("/api/v1/cet/auth")]
+    [Route("/api/v1/admin/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -61,7 +61,7 @@ namespace HoTroDuLichAI.API
             var clientEndpoint = RuntimeContext.AppSettings.ClientApp.ClientEndpoint;
             var resultMessage = await _authService.ConfirmRegisterAsync(confirmEmailDto: confirmEmailDto, modelState: ModelState);
             var queryString = LinkHelper.ToQueryString<ResultMessage>(obj: resultMessage);
-            var url = $"{clientEndpoint.TrimEnd('/')}/notification-summary/?{queryString}";
+            var url = $"{clientEndpoint.TrimEnd('/')}/thongbao/?{queryString}";
             return Redirect(url: url);
         }
 
