@@ -51,6 +51,7 @@ dist-ssr
 
 # Migrations
 Data/Migrations
+BE/HoTroDuLichAI.API/Migrations
 Migrations
 
 config.Development.json

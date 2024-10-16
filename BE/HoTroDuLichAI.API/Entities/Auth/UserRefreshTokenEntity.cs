@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HoTroDuLichAI.API
 {
-    [Table(name: "CET_UserRefreshToken")]
+    [Table(name: "Admin_UserRefreshToken")]
     public class UserRefreshTokenEntity
     {
         [Key]
