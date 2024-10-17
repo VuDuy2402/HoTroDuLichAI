@@ -1,0 +1,46 @@
+.spinner {
+  margin: 0 auto;
+  width: 70px;
+  text-align: center;
+
+  div {
+    width: 15px;
+    height: 15px;
+    background-color: #333;
+    border-radius: 100%;
+    display: inline-block;
+    animation: sk-dotsdelay 1.2s infinite ease-in-out both;
+  }
+
+  .dots1 {
+    animation-delay: -0.32s;
+  }
+
+  .dots2 {
+    animation-delay: -0.16s;
+  }
+}
+
+@-webkit-keyframes sk-dotsdelay {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+
+  40% {
+    transform: scale(1);
+  }
+}
+
+@keyframes sk-dotsdelay {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+
+  40% {
+    transform: scale(1);
+  }
+}

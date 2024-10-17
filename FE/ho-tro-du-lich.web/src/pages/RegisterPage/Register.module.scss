@@ -1,0 +1,63 @@
+.loginpage {
+  width: 100vw;
+  height: 100vh;
+}
+
+.loginpage__card {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  // max-width: 400px;
+  height: 100%;
+  // max-height: 500px;
+  background-color: rgba(29, 29, 29, 0.692);
+  transform: translate(-50%, -50%);
+}
+
+.loginpage__background {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  // filter: blur(10px) brightness(130%);
+  // backdrop-filter: blur(50px);
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #000;
+}
+
+.btn {
+  box-sizing: border-box;
+  border: 0 !important;
+  border-bottom: 1px solid white !important;
+
+  &:active {
+    border: 0 !important;
+    border-bottom: 1px solid white !important;
+  }
+}
+
+.btndeactive {
+  &:hover {
+    background-color: rgba(92, 92, 92, 0.116) !important;
+  }
+}
+
+.input {
+  width: 100%;
+  display: block;
+  background-color: rgba(255, 255, 255, 0);
+  border: 0;
+  border-bottom: 1px solid rgba(148, 148, 148, 0.562);
+  margin-bottom: 5px;
+
+  &:focus-visible {
+    border: 0 !important;
+    outline: none;
+    border-bottom: 1px solid rgba(206, 205, 205, 0.562) !important;
+  }
+}
+
+.btnsubmit {
+  width: 100%;
+}

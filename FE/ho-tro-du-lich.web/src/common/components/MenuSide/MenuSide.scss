@@ -1,0 +1,14 @@
+.menu-side {
+  &.hide {
+    .btn-toggle {
+      top: 5px;
+      left: 100%;
+    }
+  }
+  &.open {
+    .btn-toggle {
+      right: 5px;
+      top: 5px;
+    }
+  }
+}

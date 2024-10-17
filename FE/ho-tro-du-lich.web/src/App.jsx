@@ -1,35 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useSelector } from "react-redux";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import { renderRouter } from "./router";
+import { getPromptLoading } from "./redux/selectors/systemSelector";
+import PromptLoading from "./common/components/PromptLoading/PromptLoading";
+import { IKContext } from "imagekitio-react";
+import { imageKitService } from "./services/imageKitService";
 
-function App() {
-  const [count, setCount] = useState(0)
+const router = createBrowserRouter(renderRouter());
+const App = () => {
+  const promptLoading = useSelector(getPromptLoading);
+  const authenticator = async () => {
+    try {
+      const response = await imageKitService.getAuth();
+      const { signature, expire, token } = response;
 
+      return { signature, expire, token };
+    } catch (error) {
+      throw new Error(`Authentication request failed: ${error.message}`);
+    }
+  };
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <IKContext
+        publicKey={`${import.meta.env.VITE_PUBLIC_KEY_IMAGEKIT}`}
+        urlEndpoint={`${import.meta.env.VITE_URL_ENDPOINT_IMAGEKIT}`}
+        authenticator={authenticator}
+      >
+        <RouterProvider router={router} />
+      </IKContext>
+      <ToastContainer />
+      {promptLoading && <PromptLoading />}
     </>
-  )
-}
-
-export default App
+  );
+};
+export default App;

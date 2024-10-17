@@ -1,0 +1,23 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    height: 50px;
+    z-index: 999;
+
+}
+
+.navbar_logo {
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.navbar_btn {
+    height: 100%;
+}
+
+.navbar_btn_dangnhap {
+    &:hover {
+        background-color: #4B4B4B !important;
+    }
+}

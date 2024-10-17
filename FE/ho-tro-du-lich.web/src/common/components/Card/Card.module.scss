@@ -1,0 +1,15 @@
+.card {
+    width: 100%;
+    min-width: none;
+    max-width: 300px;
+    height: 430px !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.cardTitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 60px;
+    cursor: pointer;
+}
