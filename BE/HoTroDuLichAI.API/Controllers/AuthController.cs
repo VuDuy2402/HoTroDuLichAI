@@ -34,6 +34,13 @@ namespace HoTroDuLichAI.API
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
+        [HttpPost("googlelogin")]
+        public async Task<IActionResult> GoogleLogin(LoginWithGoogleRequestDto requestDto)
+        {
+            var result = await _authService.LoginWithGoogleAsync(requestDto: requestDto, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
         [HttpPost("confirmtwofactor")]
         public async Task<IActionResult> ConfirmTwoFactor(ConfirmTwoFactorAuthenticationRequestDto twoFactorDto)
         {

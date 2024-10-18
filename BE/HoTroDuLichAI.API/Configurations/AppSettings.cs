@@ -6,5 +6,6 @@ namespace HoTroDuLichAI.API
         public ClientApp ClientApp { get; set; } = null!;
         public EmailSetting EmailSetting { get; set; } = null!;
         public JwtSetting JwtSetting { get; set; } = null!;
+        public GoogleSetting GoogleSetting { get; set; } = null!;
     }
 }

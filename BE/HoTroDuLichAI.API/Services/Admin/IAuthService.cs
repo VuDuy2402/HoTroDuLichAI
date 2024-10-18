@@ -5,6 +5,8 @@ namespace HoTroDuLichAI.API
     public interface IAuthService
     {
         Task<ApiResponse<LoginResponseDto>> SystemLoginAsync(LoginRequestDto loginDto, ModelStateDictionary? modelState = null);
+        Task<ApiResponse<LoginResponseDto>> LoginWithGoogleAsync(
+            LoginWithGoogleRequestDto requestDto, ModelStateDictionary? modelState = null);
         Task<ApiResponse<LoginResponseDto>> ConfirmTwoFactorAuthenticationAsync(
             ConfirmTwoFactorAuthenticationRequestDto twoFactorDto, ModelStateDictionary? modelState = null);
         Task<ApiResponse<LoginResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto refreshTokenDto,

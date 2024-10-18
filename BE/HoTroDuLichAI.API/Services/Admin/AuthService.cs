@@ -1,3 +1,5 @@
+using Google.Apis.Auth;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -64,6 +66,15 @@ namespace HoTroDuLichAI.API
                         // send email
                         try
                         {
+                            var appEndpoint = RuntimeContext.LinkHelper?.AppEndpoint;
+                            if (string.IsNullOrEmpty(appEndpoint))
+                            {
+                                errors.Add(new ErrorDetail() { Error = $"Không tìm thấy Server Endpoint để gửi Email. Bạn có thể thêm Server Endpoint ở phần API LinkHelper", ErrorScope = CErrorScope.PageSumarry });
+                                response.StatusCode = StatusCodes.Status404NotFound;
+                                response.Result.Success = false;
+                                response.Result.Errors = errors;
+                                return response;
+                            }
                             await SendEmailConfirmRegistrationAsync(userExist: userExist);
                         }
                         catch (Exception ex)
@@ -178,6 +189,187 @@ namespace HoTroDuLichAI.API
             return response;
         }
         #endregion Login
+
+
+        #region Login with google
+        public async Task<ApiResponse<LoginResponseDto>> LoginWithGoogleAsync(
+            LoginWithGoogleRequestDto requestDto, ModelStateDictionary? modelState = null)
+        {
+            var response = new ApiResponse<LoginResponseDto>();
+            var errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            try
+            {
+                var userInfoFromAccessTokenGoogle = await GetUserInfoFromGoogleTokenAsync(
+                    googleToken: requestDto.IdToken);
+                // If email is not exists on system
+                var userExist = await _userManager.FindByEmailAsync(userInfoFromAccessTokenGoogle.Email);
+                if (userExist == null)
+                {
+                    var imageProperties = new List<ImageProperty>();
+                    imageProperties.Add(new ImageProperty()
+                    {
+                        BlobType = CBlobType.Google,
+                        FileExtensionType = CFileExtensionType.JPEG,
+                        IsDefault = true,
+                        ImageType = CImageType.Avatar,
+                        Url = userInfoFromAccessTokenGoogle.Picture,
+                    });
+                    userExist = new UserEntity()
+                    {
+                        Email = userInfoFromAccessTokenGoogle.Email,
+                        FullName = userInfoFromAccessTokenGoogle.Name,
+                        ImageProperty = imageProperties.ToJson(),
+                        UserName = userInfoFromAccessTokenGoogle.Email,
+                        EmailConfirmed = true
+                    };
+                    // If create user success
+                    using var transaction = await _dbContext.Database.BeginTransactionAsync();
+                    var createUserResult = await _userManager.CreateAsync(user: userExist);
+                    if (createUserResult.Succeeded)
+                    {
+                        // assign role
+                        var addRoleResult = await _userManager.AddToRoleAsync(user: userExist, role: CRoleType.NormalUser.ToString());
+                        if (!addRoleResult.Succeeded)
+                        {
+                            await transaction.RollbackAsync();
+                            errors.Add(new ErrorDetail()
+                            {
+                                Error = addRoleResult.Errors.Select(err => err.Description).ToList().ToMultilineString(),
+                                ErrorScope = CErrorScope.PageSumarry,
+                            });
+                            response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                            response.Result.Success = false;
+                            response.Result.Errors = errors;
+                            return response;
+                        }
+                        // Generate token
+                        var jwtTokenModelNew = await _jwtService.GenerateJwtTokenAsync(userEntity: userExist,
+                            ipAddress: RuntimeContext.CurrentIpAddress ?? string.Empty);
+                        response.StatusCode = StatusCodes.Status200OK;
+                        response.Result.Data = new LoginResponseDto()
+                        {
+                            AccessToken = jwtTokenModelNew.AccessToken,
+                            RefreshToken = jwtTokenModelNew.RefreshToken,
+                            TwoFactorEnabled = false,
+                            Message = "Đăng nhập thành công!"
+                        };
+                        response.Result.Success = true;
+                        await transaction.CommitAsync();
+                        return response;
+                    }
+                    else
+                    {
+                        _logger.LogError("An internal server error occurred while creating the user");
+                        await transaction.RollbackAsync();
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = createUserResult.Errors.Select(err => err.Description).ToList().ToMultilineString(),
+                            ErrorScope = CErrorScope.PageSumarry,
+                        });
+                        response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                        response.Result.Success = false;
+                        response.Result.Errors = errors;
+                        return response;
+                    }
+
+                }
+                if (userExist.ImageProperties.IsNullOrEmpty())
+                {
+                    var imageProperties = new List<ImageProperty>();
+                    imageProperties.Add(new ImageProperty()
+                    {
+                        BlobType = CBlobType.Google,
+                        FileExtensionType = CFileExtensionType.JPEG,
+                        IsDefault = true,
+                        ImageType = CImageType.Avatar,
+                        Url = userInfoFromAccessTokenGoogle.Picture,
+                    });
+                    userExist.ImageProperty = imageProperties.ToJson();
+                    await _userManager.UpdateAsync(user: userExist);
+                }
+                var jwtTokenModel = await _jwtService.GenerateJwtTokenAsync(userEntity: userExist,
+                    ipAddress: RuntimeContext.CurrentIpAddress ?? string.Empty);
+                response.StatusCode = StatusCodes.Status200OK;
+                response.Result.Data = new LoginResponseDto()
+                {
+                    AccessToken = jwtTokenModel.AccessToken,
+                    RefreshToken = jwtTokenModel.RefreshToken,
+                    TwoFactorEnabled = false,
+                    Message = "Đăng nhập thành công!"
+                };
+                response.Result.Success = true;
+                return response;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<UserInfoFromIdTokenGoogle> GetUserInfoFromGoogleTokenAsync(string googleToken)
+        {
+            var googleSetting = RuntimeContext.AppSettings.GoogleSetting ?? new();
+            if (string.IsNullOrEmpty(googleSetting.ClientSecret) || string.IsNullOrEmpty(googleSetting.WebClientId)
+                || string.IsNullOrEmpty(googleSetting.TokenInfoUrl) || string.IsNullOrEmpty(googleSetting.UserInfoUrl))
+            {
+                throw new Exception($"Không tìm thấy thông tin xác thực của Google.");
+            }
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new List<string>() { googleSetting.WebClientId },
+                };
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(googleToken, settings);
+                return payload.Adapt<UserInfoFromIdTokenGoogle>();
+            }
+            catch (Exception ex)
+            {
+                // Try to get user info from access token if ID token fails
+                try
+                {
+                    HttpClient client = new HttpClient();
+                    HttpResponseMessage response = await client.GetAsync($"{googleSetting.TokenInfoUrl}{googleToken}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        var tokenInfo = content.FromJson<TokenInfoRequestDto>() ?? new();
+
+                        if (tokenInfo.Audience == googleSetting.WebClientId)
+                        {
+                            HttpResponseMessage userInfoResponse = await client.GetAsync($"{googleSetting.UserInfoUrl}{googleToken}");
+
+                            if (userInfoResponse.IsSuccessStatusCode)
+                            {
+                                var userInfoContent = await userInfoResponse.Content.ReadAsStringAsync();
+                                var userInfo = userInfoContent.FromJson<GoogleUserInfoRequestDto>();
+                                var user = new UserInfoFromIdTokenGoogle()
+                                {
+                                    Email = userInfo?.Email ?? string.Empty,
+                                    Name = userInfo?.Name ?? string.Empty,
+                                    Picture = userInfo?.Picture ?? string.Empty
+                                };
+                                return user;
+                            }
+                        }
+                    }
+
+                    _logger.LogError($"Internal Server Error : Failed to verify Google Access token.\nTrace Log : {ex.Message}");
+                    throw new Exception("Failed to verify Google Access token", ex);
+                }
+                // If idtoken and accesstoken was failed
+                catch (Exception ex1)
+                {
+                    _logger.LogError($"Internal Server Error : Failed to get user info from Google Access token.\nTrace Log : {ex.Message}");
+                    throw new Exception("Failed to get user info from Google Access token", ex1);
+                }
+            }
+        }
+        #endregion Login with google
 
         #region refresh token
         public async Task<ApiResponse<LoginResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto refreshTokenDto,
@@ -435,6 +627,15 @@ namespace HoTroDuLichAI.API
                 // send email to user:
                 try
                 {
+                    var appEndpoint = RuntimeContext.LinkHelper?.AppEndpoint;
+                    if (string.IsNullOrEmpty(appEndpoint))
+                    {
+                        errors.Add(new ErrorDetail() { Error = $"Không tìm thấy Server Endpoint để gửi Email. Bạn có thể thêm Server Endpoint ở phần API LinkHelper", ErrorScope = CErrorScope.PageSumarry });
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                        response.Result.Success = false;
+                        response.Result.Errors = errors;
+                        return response;
+                    }
                     await SendEmailConfirmRegistrationAsync(userExist: userExist);
                     await dbTransaction.CommitAsync();
                     response.StatusCode = StatusCodes.Status202Accepted;

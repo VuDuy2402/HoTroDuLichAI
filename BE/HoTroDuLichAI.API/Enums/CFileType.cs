@@ -39,6 +39,7 @@ namespace HoTroDuLichAI.API
         None = 0,
         AzureBlob = 1,
         ImageKit = 2,
-        Local = 3
+        Local = 3,
+        Google = 4
     }
 }
