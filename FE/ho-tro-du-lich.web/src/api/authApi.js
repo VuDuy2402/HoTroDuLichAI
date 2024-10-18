@@ -1,5 +1,6 @@
 export const authApi = {
   CET_Auth_System_Login: "api/v1/admin/auth/systemlogin",
+  CET_Auth_Google_Login: "api/v1/admin/auth/googlelogin",
   CET_Auth_RefreshToken: "api/v1/admin/auth/refreshtoken",
   CET_Auth_ConfirmTwoFactor: "api/v1/admin/auth/confirmtwofactor",
   CET_Auth_LogOut: "api/v1/admin/auth/logout",

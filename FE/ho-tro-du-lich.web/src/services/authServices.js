@@ -48,6 +48,16 @@ export const authService = {
     }
     return true;
   },
+  googlelogin: async (data) => {
+    const token = localStorageService.getToken();
+    if (!token && token !== "undefined") {
+      const response = await reqApi.post(authApi.CET_Auth_Google_Login, data);
+      if (response) {
+        return response;
+      }
+    }
+    return true;
+  },
   logout: async () => {
     const token = localStorageService.getToken();
     if (token) {
