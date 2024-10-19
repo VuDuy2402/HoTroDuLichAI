@@ -21,12 +21,6 @@ namespace HoTroDuLichAI.API
 
         [Column(name: "Address")]
         public string Address { get; set; } = string.Empty;
-        // [NotMapped]
-        // public List<AddressProperty> AddressProperties
-        // {
-        //     get => AddressProperty.FromJson<List<AddressProperty>>() ?? new();
-        //     set => AddressProperty = value.ToJson();
-        // }
         #endregion Json property
         public string ModifiedBy { get; set; } = string.Empty;
         private DateTimeOffset _createdDate = DateTimeOffset.UtcNow;
@@ -48,6 +42,25 @@ namespace HoTroDuLichAI.API
         public virtual ICollection<UserTokenEntity> UserTokens { get; set; } = new List<UserTokenEntity>();
         [InverseProperty(property: "User")]
         public virtual ICollection<UserRefreshTokenEntity> UserRefreshTokens { get; set; } = new List<UserRefreshTokenEntity>();
+
+        [InverseProperty(property: "User")]
+        public virtual ICollection<PlaceEntity> Places { get; set; } = new List<PlaceEntity>();
+        [InverseProperty(property: "User")]
+        public virtual ICollection<ReviewPlaceEntity> ReviewPlaces { get; set; } = new List<ReviewPlaceEntity>();
+        [InverseProperty(property: "User")]
+        public virtual ICollection<ItineraryEntity> Itineraries { get; set; } = new List<ItineraryEntity>();
+        [InverseProperty(property: "User")]
+        public virtual ICollection<BusinessEntity> Businesses { get; set; } = new List<BusinessEntity>();
+
+
+        [InverseProperty(property: "Sender")]
+        public virtual ICollection<MessageEntity> SentMessages { get; set; } = new List<MessageEntity>();
+        [InverseProperty(property: "Receiver")]
+        public virtual ICollection<MessageEntity> ReceivedMessages { get; set; } = new List<MessageEntity>();
+        [InverseProperty(property: "User")]
+        public virtual ICollection<ArticleEntity> Articles { get; set; } = new List<ArticleEntity>();
+        [InverseProperty(property: "User")]
+        public virtual ICollection<AITrainingDataEntity> AITrainingDatas { get; set; } = new List<AITrainingDataEntity>();
         #endregion Inverse property
     }
 }

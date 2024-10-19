@@ -13,6 +13,12 @@ namespace HoTroDuLichAI.API
         public DbSet<LinkHelperEntity> LinkHelpers { get; set; }
         public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; }
         public new DbSet<UserTokenEntity> UserTokens { get; set; }
+        public DbSet<MessageEntity> Messages { get; set; }
+        public DbSet<PlaceEntity> Places { get; set; }
+        public DbSet<ItineraryDetailEntity> ItineraryDetails { get; set; }
+        public DbSet<ItineraryEntity> Itineraries { get; set; }
+        public DbSet<BusinessEntity> Businesses { get; set; }
+        public DbSet<ReviewPlaceEntity> ReviewPlaces { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -32,6 +38,42 @@ namespace HoTroDuLichAI.API
                     entityType.SetTableName($"Admin_{entityType.GetTableName()?.Substring(6).TrimEnd('s')}");
                 }
             }
-        }
+
+            builder.Entity<MessageEntity>()
+                .HasOne(m => m.Sender)
+                .WithMany(u => u.SentMessages)
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<MessageEntity>()
+                .HasOne(m => m.Receiver)
+                .WithMany(u => u.ReceivedMessages)
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ReviewPlaceEntity>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.ReviewPlaces)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ReviewPlaceEntity>()
+                .HasOne(r => r.Place)
+                .WithMany(p => p.ReviewPlaces)
+                .HasForeignKey(r => r.PlaceId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<ItineraryDetailEntity>()
+                .HasOne(id => id.Itinerary)
+                .WithMany(i => i.ItineraryDetails)
+                .HasForeignKey(id => id.ItineraryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ItineraryDetailEntity>()
+                .HasOne(id => id.Place)
+                .WithMany(p => p.ItineraryDetails)
+                .HasForeignKey(id => id.PlaceId)
+                .OnDelete(DeleteBehavior.Restrict);
+            }
     }
 }
