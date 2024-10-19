@@ -15,7 +15,10 @@ import LinkCustom from "../LinkCustom/LinkCustom";
 
 const contentItem = [
   { title: "Trang Chủ", url: "/" },
-  { title: "Khoá Học", url: "/khoahoc" },
+  { title: "Tour trong nước", url: "/tourtrongnuoc" },
+  { title: "Tour nước ngoài", url: "/tournuocngoai" },
+  { title: "Tin tức", url: "/tintuc" },
+  { title: "Liên hệ", url: "/liên hệ" },
 ];
 
 const Navbar = ({ className }) => {
@@ -81,7 +84,7 @@ const Navbar = ({ className }) => {
                 className={
                   item.url === location.pathname
                     ? "text-warning fw-bold"
-                    : "text-black fw-bold"
+                    : "text-white fw-bold"
                 }
               />
             ))}
