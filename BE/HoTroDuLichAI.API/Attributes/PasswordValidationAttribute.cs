@@ -52,4 +52,32 @@ namespace HoTroDuLichAI.API
             return ValidationResult.Success;
         }
     }
+
+
+    public class PasswordTypeAttribute : ValidationAttribute
+    {
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        {
+            if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
+            {
+                // Cho phép trường mật khẩu để trống
+                return ValidationResult.Success;
+            }
+
+            string password = value.ToString() ?? string.Empty;
+            // Kiểm tra điều kiện mật khẩu mạnh
+            var hasMinimum8Chars = new Regex(@".{8,}").IsMatch(password);
+            var hasUpperChar = new Regex(@"[A-Z]").IsMatch(password);
+            var hasLowerChar = new Regex(@"[a-z]").IsMatch(password);
+            var hasNumericChar = new Regex(@"[0-9]").IsMatch(password);
+            var hasSpecialChar = new Regex(@"[!@#$%^&*(),.?""':{}|<>]").IsMatch(password);
+
+            if (!hasMinimum8Chars || !hasUpperChar || !hasLowerChar || !hasNumericChar || !hasSpecialChar)
+            {
+                return new ValidationResult("Mật khẩu phải có ít nhất 8 ký tự và chứa chữ hoa, chữ thường, số và ký tự đặc biệt.");
+            }
+
+            return ValidationResult.Success;
+        }
+    }
 }

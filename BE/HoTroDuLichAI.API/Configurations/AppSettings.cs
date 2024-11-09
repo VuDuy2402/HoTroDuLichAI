@@ -7,5 +7,8 @@ namespace HoTroDuLichAI.API
         public EmailSetting EmailSetting { get; set; } = null!;
         public JwtSetting JwtSetting { get; set; } = null!;
         public GoogleSetting GoogleSetting { get; set; } = null!;
+
+        public CloudSetting CloudSetting { get; set; } = null!;
+        public AdminSetting AdminSetting { get; set; } = null!;
     }
 }

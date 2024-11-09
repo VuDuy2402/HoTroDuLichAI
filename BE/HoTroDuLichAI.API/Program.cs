@@ -54,7 +54,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -86,7 +85,6 @@ builder.Services.AddSwaggerGen(options =>
     // options.IncludeXmlComments(path);
 });
 
-
 builder.Services.AddServices();
 
 builder.Services.AddDbContext<HoTroDuLichAIDbContext>(db =>
@@ -110,6 +108,9 @@ builder.Services.Configure<ApiBehaviorOptions>(opt =>
 {
     opt.SuppressModelStateInvalidFilter = true;
 });
+
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
@@ -121,7 +122,8 @@ app.UseCors(cor =>
 {
     cor.AllowAnyHeader()
         .AllowAnyMethod()
-        .AllowAnyOrigin();
+        .WithOrigins("http://localhost:5173") // Specify the allowed origin
+        .AllowCredentials(); // Allow credentials
 });
 
 app.UseHttpsRedirection();
@@ -135,5 +137,7 @@ app.MapJwtRevocation();
 app.UseAuthorization();
 
 app.MapRuntimeContext();
+
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

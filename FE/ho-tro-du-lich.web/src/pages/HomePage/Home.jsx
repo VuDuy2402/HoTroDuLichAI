@@ -11,6 +11,7 @@ import LinkCustom from "../../common/components/LinkCustom/LinkCustom";
 import { useNavigate } from "react-router-dom";
 import bgMain from "@/assets/img/bgMain.jpg";
 import bgKH from "@/assets/img/bgkh.webp";
+import ChatComponent from "../../common/components/Chat/ChatComponent";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const Home = () => {
   // }, []);
   return (
     <>
+      {/* <ChatComponent /> */}
       <div
         className="container-fluid p-5"
         style={{
@@ -76,7 +78,7 @@ const Home = () => {
               <div className="mt-3">
                 <h3 className="fs-5 text-left">Cầu Vàng Đà Nẵng</h3>
               </div>
-              <button type="button" class="btn btn-primary">Xem chi tiết</button>
+              <button type="button" className="btn btn-primary">Xem chi tiết</button>
             </div>
             <div className="">
               <div className="">
@@ -85,7 +87,7 @@ const Home = () => {
               <div className="mt-3">
                 <h3 className="fs-5 text-left">Phố Cổ Hội An</h3>
               </div>
-              <button type="button" class="btn btn-primary">Xem chi tiết</button>
+              <button type="button" className="btn btn-primary">Xem chi tiết</button>
             </div>
             < div className="">
               <div className="">
@@ -94,7 +96,7 @@ const Home = () => {
               <div className="mt-3">
                 <h3 className="fs-5 text-left">Cố đô Huế</h3>
               </div>
-              <button type="button" class="btn btn-primary">Xem chi tiết</button>
+              <button type="button" className="btn btn-primary">Xem chi tiết</button>
             </div>
           </div>
         </div>

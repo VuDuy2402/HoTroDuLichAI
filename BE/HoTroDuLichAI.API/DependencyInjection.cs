@@ -13,6 +13,10 @@ namespace HoTroDuLichAI.API
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IMyService, MyService>();
+            services.AddScoped<IImageKitIOService, ImageKitIOService>();
+
+            services.AddScoped<IChatService, ChatService>();
             return services;
         }
 

@@ -6,6 +6,7 @@ import RegisterPage from "../pages/RegisterPage";
 
 import NotificationSummary from "../pages/NotificationSummaryPage/NotificationSummary";
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
+import ChatUI from "../common/components/Chat/ChatUI";
 
 export const routes = [
   {
@@ -13,8 +14,16 @@ export const routes = [
     component: <Home />,
     checkAuth: false,
     roles: [],
-    errorElement: <Navigate to="/error" />,
+    // errorElement: <Navigate to="/error" />,
     layout: <MainLayout />,
+  },
+  {
+    path: "/chat",
+    component: <ChatUI />,
+    checkAuth: false,
+    roles: [],
+    errorElement: <Navigate to="/error" />,
+    // layout: <MainLayout />,
   },
   {
     path: "/dangnhap",

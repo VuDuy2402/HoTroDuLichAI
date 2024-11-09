@@ -1,3 +1,4 @@
+import { toast } from "react-toastify";
 import { userApi } from "../api/userApi";
 import { reqApi } from "../axios/httpRequest";
 import { localStorageService } from "./localstorageService";
@@ -65,4 +66,28 @@ export const userService = {
       return null;
     }
   },
+  getAdminUser: async () => {
+    const token = localStorageService.getToken();
+    if (token)
+    {
+      const response = await reqApi.get(userApi.User_GetAdminUsers);
+      if (response)
+      {
+        return response;
+      }
+      toast.error("Không thể kết nối đến server.");
+    }
+  },
+  getNormalUser: async () => {
+    const token = localStorageService.getToken();
+    if (token)
+    {
+      const response = await reqApi.get(userApi.User_GetAdminUsers);
+      if (response)
+      {
+        return response;
+      }
+      toast.error("Không thể kết nối đến server.");
+    }
+  }
 };

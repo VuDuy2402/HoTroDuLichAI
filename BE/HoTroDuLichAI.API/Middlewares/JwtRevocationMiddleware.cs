@@ -27,7 +27,7 @@ namespace HoTroDuLichAI.API
             {
                 // Lấy access token từ header "Authorization".
                 var accessToken = GetAccessToken(context);
-                if (accessToken == null)
+                if (string.IsNullOrEmpty(accessToken))
                 {
                     // Nếu access token không hợp lệ hoặc bị thiếu, trả về lỗi.
                     await WriteErrorResponseAsync(context, StatusCodes.Status401Unauthorized, "Token không hợp lệ hoặc bị thiếu.");
@@ -69,7 +69,7 @@ namespace HoTroDuLichAI.API
         }
 
         // Phương thức này lấy access token từ header "Authorization".
-        private string? GetAccessToken(HttpContext context)
+        private string GetAccessToken(HttpContext context)
         {
             // Lấy token từ header "Authorization"
             if (context.Request.Headers.TryGetValue("Authorization", out var accessTokenValue)
@@ -86,7 +86,7 @@ namespace HoTroDuLichAI.API
             }
 
             // Nếu không tìm thấy token trong cả header "Authorization" và query string, trả về null.
-            return null;
+            return string.Empty;
         }
 
         // Phương thức này lấy claim UserID từ access token.

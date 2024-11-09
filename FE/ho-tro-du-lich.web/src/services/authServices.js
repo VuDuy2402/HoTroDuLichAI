@@ -1,3 +1,4 @@
+import { toast } from "react-toastify";
 import { authApi } from "../api/authApi";
 import { reqApi } from "../axios/httpRequest";
 import { localStorageService } from "./localstorageService";
@@ -16,9 +17,10 @@ export const authService = {
   refreshToken: async () => {
     const token = localStorageService.getToken();
     if (token) {
-      const userSession = JSON.parse(token);
+      const userSession = token;
       const response = await reqApi.post(authApi.CET_Auth_RefreshToken, {
         refreshToken: userSession.refreshToken,
+        accessToken: userSession.accessToken
       });
       if (response && response.success) {
         localStorageService.setToken(JSON.stringify(response.data));
@@ -75,14 +77,38 @@ export const authService = {
     }
     return null;
   },
+  requestResetPassword: async (data) => {
+    const response = await reqApi.post(authApi.CET_Auth_RequestResetPassword, data);
+    if (response) {
+      return response;
+    }
+    toast.error("Không thể kết nối đến Server.")
+    return null;
+  },
+  confirmResetPassword: async (data) => {
+    const response = await reqApi.post(authApi.CET_Auth_ConfirmPasswordReset, data);
+    if (response) {
+      return response;
+    }
+    toast.error("Không thể kết nối đến Server.")
+    return null;
+  },
   getAuthAndRole: async () => {
     let isAuthenticated = false;
     let listRoles = [];
-    const isAuth = await authService.isAuthenticated();
+    try {
+      const isAuth = await authService.isAuthenticated();
 
-    if (isAuth) {
-      isAuthenticated = true;
-    } else {
+      if (isAuth) {
+        isAuthenticated = true;
+      } else {
+        const isRefresh = await authService.refreshToken();
+        if (isRefresh) {
+          isAuthenticated = isRefresh;
+        }
+      }
+    }
+    catch {
       const isRefresh = await authService.refreshToken();
       if (isRefresh) {
         isAuthenticated = isRefresh;

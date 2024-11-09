@@ -5,4 +5,8 @@ export const userApi = {
   User_MyIntakeFavorite: "api/v1/me/myfavoritecourseintake",
   User_AddIntakeFavorite: "api/v1/me/myfavoritecourseintake",
   User_CancelIntakeFavorite: "api/v1/me/myfavoritecourseintake",
+
+
+  User_GetAdminUsers: "api/v1/admin/user/getadminusers",
+  User_GetNormalUsers: "api/v1/admin/user/getnormalusers"
 };

@@ -14,12 +14,12 @@ namespace HoTroDuLichAI.API
             return await Task.FromResult(response);
         }
 
-        public static async Task<ApiResponse<T>> InternalServerErrorAsync<T>(List<ErrorDetail> errors, ApiResponse<T> response, Exception ex)
+        public static async Task<ApiResponse<T>> InternalServerErrorAsync<T>(List<ErrorDetail> errors, ApiResponse<T> response, Exception ex, string? customMessage = null)
         {
             errors.Add(new ErrorDetail()
             {
                 ErrorScope = CErrorScope.PageSumarry,
-                Error = $"Đã có lỗi xảy ra. {ex.Message}"
+                Error = string.IsNullOrEmpty(customMessage) ? $"Đã có lỗi xảy ra. {ex.Message}" : customMessage
             });
             response.Result.Errors.AddRange(errors);
             response.Result.Success = false;
@@ -27,11 +27,11 @@ namespace HoTroDuLichAI.API
             return await Task.FromResult(response);
         }
 
-        public static async Task<ApiResponse<T>> NotFoundErrorAsync<T>(List<ErrorDetail> errors, ApiResponse<T> response)
+        public static async Task<ApiResponse<T>> NotFoundErrorAsync<T>(List<ErrorDetail> errors, ApiResponse<T> response, string? customMessage = null)
         {
             errors.Add(new ErrorDetail()
             {
-                Error = $"Không tìm thấy.",
+                Error = $"Không tìm thấy {customMessage}.",
                 ErrorScope = CErrorScope.PageSumarry
             });
             response.Result.Success = false;
