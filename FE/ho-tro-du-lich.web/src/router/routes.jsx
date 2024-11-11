@@ -7,6 +7,7 @@ import RegisterPage from "../pages/RegisterPage";
 import NotificationSummary from "../pages/NotificationSummaryPage/NotificationSummary";
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
 import ChatUI from "../common/components/Chat/ChatUI";
+import AHomePage from "../pages/admin/AHomePage/AHomePage";
 
 export const routes = [
   {

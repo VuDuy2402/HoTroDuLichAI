@@ -18,14 +18,22 @@ const LoginForm = () => {
 
   const handleSubmitForm = async (data) => {
     dispatch(systemAction.enableLoading());
-    const result = await authService.login(data);
-    if (result && result.success) {
-      localStorageService.setToken(JSON.stringify(result.data));
-      navigate("/");
-    } else {
-      if (result.errors) {
-        setErrorList(result.errors);
+    try {
+      const result = await authService.login(data);
+      if (result && result.success) {
+        localStorageService.setToken(JSON.stringify(result.data));
+        navigate("/");
+      } else {
+        if (result.errors) {
+          setErrorList(result.errors);
+        }
+        else {
+          toast.error("Đã có lỗi xảy ra. Error : " + result);
+        }
       }
+    }
+    catch (e) {
+      toast.error("Đã có lỗi xảy ra. Error : " + e);
     }
     dispatch(systemAction.disableLoading());
   };
@@ -33,14 +41,22 @@ const LoginForm = () => {
   const handleGoogleLogin = async (credentialResponse) => {
     const { credential } = credentialResponse;
     dispatch(systemAction.enableLoading());
-    const result = await authService.googlelogin({ idToken: credential });
-    if (result && result.success) {
-      localStorageService.setToken(JSON.stringify(result.data));
-      navigate("/");
-    } else {
-      if (result.errors) {
-        setErrorList(result.errors);
+    try {
+      const result = await authService.googlelogin({ idToken: credential });
+      if (result && result.success) {
+        localStorageService.setToken(JSON.stringify(result.data));
+        navigate("/");
+      } else {
+        if (result.errors) {
+          setErrorList(result.errors);
+        }
+        else {
+          toast.error("Đã có lỗi xảy ra. Error : " + result);
+        }
       }
+    }
+    catch (e) {
+      toast.error("Đã có lỗi xảy ra. Error : " + e);
     }
     dispatch(systemAction.disableLoading());
   };

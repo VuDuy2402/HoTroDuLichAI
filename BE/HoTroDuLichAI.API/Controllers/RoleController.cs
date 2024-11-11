@@ -17,7 +17,7 @@ namespace HoTroDuLichAI.API.Controllers
         }
 
         [HttpPost("paging")]
-        public async Task<IActionResult> GetAllRoles(RoleFilterParams param)
+        public async Task<IActionResult> GetAllRoles(RolePagingAndFilterParams param)
         {
             var result = await _roleService.GetAllRolesAsync(param: param);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);

@@ -34,45 +34,11 @@ export const userService = {
       return null;
     }
   },
-  getIntakeFavorite: async () => {
-    const token = localStorageService.getToken();
-    if (token) {
-      const response = await reqApi.get(userApi.User_MyIntakeFavorite);
-      if (response) {
-        return response;
-      }
-      return null;
-    }
-  },
-  postIntakeFavorite: async (data) => {
-    const token = localStorageService.getToken();
-    if (token) {
-      const response = await reqApi.post(userApi.User_AddIntakeFavorite, data);
-      if (response) {
-        return response;
-      }
-      return null;
-    }
-  },
-  cancelIntakeFavorite: async (data) => {
-    const token = localStorageService.getToken();
-    if (token) {
-      const response = await reqApi.delete(
-        userApi.User_CancelIntakeFavorite + "/" + data
-      );
-      if (response) {
-        return response;
-      }
-      return null;
-    }
-  },
   getAdminUser: async () => {
     const token = localStorageService.getToken();
-    if (token)
-    {
+    if (token) {
       const response = await reqApi.get(userApi.User_GetAdminUsers);
-      if (response)
-      {
+      if (response) {
         return response;
       }
       toast.error("Không thể kết nối đến server.");
@@ -80,14 +46,69 @@ export const userService = {
   },
   getNormalUser: async () => {
     const token = localStorageService.getToken();
-    if (token)
-    {
+    if (token) {
       const response = await reqApi.get(userApi.User_GetAdminUsers);
-      if (response)
-      {
+      if (response) {
         return response;
       }
       toast.error("Không thể kết nối đến server.");
     }
-  }
+  },
+
+
+
+  // admin
+  getWithPaging: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(userApi.User_GetWithPaging, data);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+  deleteUser: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.delete(userApi.User_Delete + "/" + data);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  getById: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.get(userApi.User_GetById + "/" + data);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  createUser: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(userApi.User_Create, data);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  updateUser: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.put(userApi.User_Delete, data);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
 };

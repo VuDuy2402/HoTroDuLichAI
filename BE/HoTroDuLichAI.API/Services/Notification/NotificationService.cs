@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 
 namespace HoTroDuLichAI.API
 {
@@ -18,6 +19,29 @@ namespace HoTroDuLichAI.API
             _dbContext = dbContext;
             _userManager = userManager;
             _logger = logger;
+        }
+
+        public async Task<ApiResponse<int>> CountNotificationUnReadAsync()
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<int>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var data = await _dbContext.Notifications.Where(nt => nt.UserId == currentUser.Id && !nt.IsRead).CountAsync();
+                response.Result.Data = data;
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch(Exception ex)
+            {
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
         }
 
         public async Task<ApiResponse<BasePagedResult<NotificationDetailResponseDto>>> GetWithPagingAsync(

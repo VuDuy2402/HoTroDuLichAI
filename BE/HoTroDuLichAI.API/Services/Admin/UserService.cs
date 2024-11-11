@@ -24,7 +24,7 @@ namespace HoTroDuLichAI.API
 
         #region Manage user
         #region Get with paging
-        public async Task<ApiResponse<BasePagedResult<UserDetailResponseDto>>> GetWithPagingAsync(UserFilterParams param,
+        public async Task<ApiResponse<BasePagedResult<UserDetailResponseDto>>> GetWithPagingAsync(UserPagingAndFilterParams param,
             ModelStateDictionary? modelState = null)
         {
             var errors = ErrorHelper.GetModelStateError(modelState: modelState);
@@ -36,9 +36,9 @@ namespace HoTroDuLichAI.API
             try
             {
                 IQueryable<UserEntity> collection = _dbContext.Users;
-                if (!string.IsNullOrEmpty(param.Query))
+                if (!string.IsNullOrEmpty(param.SearchQuery))
                 {
-                    collection = collection.Where(us => (us.FullName + " " + us.Email + " " + us.DateOfBirth).ToLower().Contains(param.Query.ToLower()));
+                    collection = collection.Where(us => (us.FullName + " " + us.Email + " " + us.DateOfBirth).ToLower().Contains(param.SearchQuery.ToLower()));
                 }
                 var pagedList = await PagedList<UserEntity>.ToPagedListAsync(source: collection,
                     pageNumber: param.PageNumber,
@@ -90,7 +90,7 @@ namespace HoTroDuLichAI.API
                     PageSize = pagedList.PageSize,
                     TotalItems = pagedList.TotalCount,
                     TotalPages = pagedList.TotalPages,
-                    ObjFilterProperties = param.UserFilterProperties,
+                    ObjFilterProperties = param.UserFilterProperty,
                 };
                 response.Result.Data = data;
                 response.StatusCode = StatusCodes.Status200OK;

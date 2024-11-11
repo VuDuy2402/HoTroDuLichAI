@@ -2,7 +2,7 @@ import IntroduceCol from "./Introduce";
 
 const listIntroduce = [
   {
-    title: "ABOUT",
+    title: "About",
     items: [
       { text: "About", url: "/" },
       { text: "Submit an issue", url: "/" },
@@ -18,8 +18,8 @@ const listIntroduce = [
       { text: "Usage", url: "/" },
       { text: "Globals", url: "/" },
       { text: "Elements", url: "/" },
-      // { text: "Collections", url: "/" },
-      // { text: "Themes", url: "/" },
+      { text: "Collections", url: "/" },
+      { text: "Themes", url: "/" },
     ],
   },
   {
@@ -35,11 +35,11 @@ const listIntroduce = [
 
 const Footer = () => {
   return (
-    <div className="container-fluid footer m-0 pt-3 bg-body-tertiary">
+    <div className="container-fluid footer m-0 pt-3 bg-white">
       <div className="container">
-        {/* <div className="footer__header">
+        <div className="footer__header">
           <p>COURSE WEBSITE</p>
-        </div> */}
+        </div>
         <div className="footer__body d-flex gap-2 justify-content-between">
           {listIntroduce.map((introduce, idx) => (
             <IntroduceCol
@@ -49,9 +49,9 @@ const Footer = () => {
             />
           ))}
         </div>
-        {/* <div className="footer__end border-1 border-top mt-3">
+        <div className="footer__end border-1 border-top mt-3">
           <p className="m-0">COURSE WEBSITE</p>
-        </div> */}
+        </div>
       </div>
     </div>
   );

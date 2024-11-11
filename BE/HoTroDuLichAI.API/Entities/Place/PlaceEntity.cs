@@ -7,19 +7,31 @@ namespace HoTroDuLichAI.API
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
+        public int Rating { get; set; }
+        public int TotalView { get; set; }
         public string Description { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public long Latitude { get; set; }
-        public long Longtitude { get; set; }
+        public long Longitude { get; set; }
+        public string Thumbnail { get; set; } = string.Empty;
         public CPlaceType PlaceType { get; set; }
         public bool IsNew { get; set; }
-        public bool Appoved { get; set; }
+        public CApprovalType Appoved { get; set; }
         private DateTimeOffset _createdDate = DateTimeOffset.UtcNow;
         public DateTimeOffset CreatedDate
         {
             get => _createdDate.ToLocalTime();
             private set => _createdDate = value;
         }
+
+        public string ImageGallery { get; set; } = string.Empty;
+        [NotMapped]
+        public List<ImageProperty> ImageProperties
+        {
+            get => ImageGallery.FromJson<List<ImageProperty>>();
+            set => ImageGallery = value.ToJson(); 
+        }
+
 
         #region inverse property
         public Guid UserId { get; set; }

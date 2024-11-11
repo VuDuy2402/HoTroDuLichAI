@@ -1,9 +1,6 @@
 import CardTag from "./component/CardTag/CardTag";
 import mainimg from "../../assets/img/—Pngtree—big isolated cartoon character vector_7256413.png";
-import Card from "../../common/components/Card/Card";
 import { useEffect, useState } from "react";
-import { courseIntakeService } from "../../services/courseIntakeService";
-import { CourseIntakePagingDto } from "../../common/dtos/CourseIntakePagingDto";
 import { useDispatch } from "react-redux";
 import { systemAction } from "../../redux/slices/systemSlice";
 import { FaSearch } from "react-icons/fa";
@@ -11,7 +8,6 @@ import LinkCustom from "../../common/components/LinkCustom/LinkCustom";
 import { useNavigate } from "react-router-dom";
 import bgMain from "@/assets/img/bgMain.jpg";
 import bgKH from "@/assets/img/bgkh.webp";
-import ChatComponent from "../../common/components/Chat/ChatComponent";
 
 const Home = () => {
   const navigate = useNavigate();

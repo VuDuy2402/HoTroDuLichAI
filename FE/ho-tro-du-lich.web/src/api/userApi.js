@@ -8,5 +8,14 @@ export const userApi = {
 
 
   User_GetAdminUsers: "api/v1/admin/user/getadminusers",
-  User_GetNormalUsers: "api/v1/admin/user/getnormalusers"
+  User_GetNormalUsers: "api/v1/admin/user/getnormalusers",
+
+
+  // admin
+  User_GetWithPaging: "api/v1/admin/user/paging",
+  User_Delete: "api/v1/admin/user",
+  User_Create: "api/v1/admin/user",
+  User_Update: "api/v1/admin/user",
+  User_GetById: "api/v1/admin/user",
+  // admin
 };

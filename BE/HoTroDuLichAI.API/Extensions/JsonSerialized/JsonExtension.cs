@@ -9,9 +9,9 @@ namespace HoTroDuLichAI.API
             return JsonConvert.SerializeObject(obj, Formatting.Indented);
         }
 
-        public static T? FromJson<T>(this string json)
+        public static T FromJson<T>(this string json) where T : new()
         {
-            return JsonConvert.DeserializeObject<T>(json);
+            return JsonConvert.DeserializeObject<T>(json) ?? new();
         }
     }
 }

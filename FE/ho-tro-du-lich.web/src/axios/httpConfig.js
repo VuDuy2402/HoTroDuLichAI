@@ -8,7 +8,6 @@ const axiosRequest = axios.create({
 
 axiosRequest.interceptors.request.use(
   (config) => {
-    console.log(`${import.meta.env.VITE_BASE_URL}`);
     const token = localStorage.getItem("Authentication-GOC-App-Token");
     if (token) {
       const userSession = JSON.parse(token);

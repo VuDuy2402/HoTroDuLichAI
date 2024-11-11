@@ -1,28 +1,28 @@
 .framePrompt {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 99999;
 }
 
 .frameBox {
-    width: 50%;
-    max-width: 400px;
-    min-width: 300px;
-    height: 30%;
-    max-height: 200px;
-    min-height: 100px;
-    background-color: white;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  width: 50%;
+  max-width: 400px;
+  min-width: 300px;
+  height: 30%;
+  max-height: 200px;
+  min-height: 100px;
+  background-color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .frameBg {
-    width: 100%;
-    height: 100%;
-    background-color: rgba(45, 45, 45, 0.408);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(45, 45, 45, 0.408);
 }

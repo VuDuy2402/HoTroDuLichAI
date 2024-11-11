@@ -62,9 +62,7 @@ const NotificationSummary = () => {
         return;
       }
 
-      const templateKey = `${typeKey}_Notification_Template_${levelKey}`;
-      console.log(templateKey);
-      
+      const templateKey = `${typeKey}_Notification_Template_${levelKey}`;      
 
       // Lấy dữ liệu hoạt hình từ bản đồ
       const animation = animationMap[templateKey];

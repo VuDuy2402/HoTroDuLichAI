@@ -63,7 +63,7 @@ namespace HoTroDuLichAI.API
 
 
         [HttpPost("paging")]
-        public async Task<IActionResult> GetWithPaging(UserFilterParams param)
+        public async Task<IActionResult> GetWithPaging(UserPagingAndFilterParams param)
         {
             ApiResponse<BasePagedResult<UserDetailResponseDto>> result = await _userService.GetWithPagingAsync(param: param);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);

@@ -39,149 +39,157 @@ namespace HoTroDuLichAI.API
             var response = new ApiResponse<LoginResponseDto>();
             if (errors.IsNullOrEmpty())
             {
-                var userExist = await _dbContext.Users.FirstOrDefaultAsync(us => us.Email == loginDto.Email || us.UserName == loginDto.Email);
-                if (userExist == null)
+                try
                 {
-                    errors.Add(new ErrorDetail() { Error = $"UserName hoặc Email '{loginDto.Email}' không tồn tại.", Field = $"{nameof(LoginRequestDto.Email)}_Error", ErrorScope = CErrorScope.Field });
-                    response.StatusCode = StatusCodes.Status404NotFound;
-                    response.Result.Success = false;
-                    response.Result.Errors = errors;
-                    return response;
-                }
-                if (!await _userManager.CheckPasswordAsync(user: userExist, password: loginDto.Password))
-                {
-
-                    errors.Add(new ErrorDetail() { Error = $"Mật khẩu không đúng.", Field = $"{nameof(LoginRequestDto.Password)}_Error", ErrorScope = CErrorScope.Field });
-                    response.StatusCode = StatusCodes.Status404NotFound;
-                    response.Result.Success = false;
-                    response.Result.Errors = errors;
-                    return response;
-                }
-                if (!userExist.EmailConfirmed)
-                {
-                    var userToken = await _dbContext.UserTokens.Where(ut => ut.UserId == userExist.Id
-                        && ut.Type == CTokenType.EmailConfirmation).OrderByDescending(ut => ut.TokenExpiration).FirstOrDefaultAsync();
-                    if (userToken == null || (userToken != null && (userToken.TokenExpiration < DateTimeOffset.UtcNow || userToken.IsTokenInvoked)))
+                    var userExist = await _dbContext.Users.FirstOrDefaultAsync(us => us.Email == loginDto.Email || us.UserName == loginDto.Email);
+                    if (userExist == null)
                     {
-                        // send email
-                        try
-                        {
-                            var appEndpoint = RuntimeContext.LinkHelper?.AppEndpoint;
-                            if (string.IsNullOrEmpty(appEndpoint))
-                            {
-                                errors.Add(new ErrorDetail() { Error = $"Không tìm thấy Server Endpoint để gửi Email. Bạn có thể thêm Server Endpoint ở phần API LinkHelper", ErrorScope = CErrorScope.PageSumarry });
-                                response.StatusCode = StatusCodes.Status404NotFound;
-                                response.Result.Success = false;
-                                response.Result.Errors = errors;
-                                return response;
-                            }
-                            await SendEmailConfirmRegistrationAsync(userExist: userExist);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex.Message);
-                            errors.Add(new ErrorDetail()
-                            {
-                                Error = "Đã xảy ra lỗi khi gửi email đến tài khoản xác nhận.",
-                                ErrorScope = CErrorScope.PageSumarry
-                            });
-                            response.StatusCode = StatusCodes.Status500InternalServerError;
-                            response.Result.Errors = errors;
-                            response.Result.Success = false;
-                            return response;
-                        }
-                    }
-                    errors.Add(new ErrorDetail()
-                    {
-                        Error = $"Người dùng '{loginDto.Email}' vẫn chưa xác nhận email. Vui lòng kiểm tra email của bạn để xác nhận tài khoản của bạn.",
-                        ErrorScope = CErrorScope.FormSummary
-                    });
-                    response.StatusCode = StatusCodes.Status403Forbidden;
-                    response.Result.Errors = errors;
-                    return response;
-                }
-                if (userExist.LockoutEnabled && userExist.LockoutEnd.HasValue
-                    && userExist.LockoutEnd.Value <= DateTimeOffset.UtcNow)
-                {
-                    errors.Add(new ErrorDetail()
-                    {
-                        Error = $"Người dùng '{loginDto.Email}' hiện đang bị khóa. Vui lòng thử lại sau {userExist.LockoutEnd.Value.LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")}",
-                        ErrorScope = CErrorScope.FormSummary
-                    });
-                }
-                if (userExist.TwoFactorEnabled)
-                {
-                    // send request to verify two factor.
-                    try
-                    {
-                        var token = await _userManager.GenerateTwoFactorTokenAsync(user: userExist, tokenProvider: CTokenProviderType.Email.ToString());
-                        var clientInfo = RuntimeContext.AppSettings.ClientApp;
-                        var emailReplaceProperty = new TwoFactorAuthenticationEmailTemplateModel()
-                        {
-                            Address = clientInfo.Address,
-                            CompanyName = clientInfo.CompanyName,
-                            OwnerName = clientInfo.OwnerName,
-                            Email = clientInfo.Email,
-                            ReceiverEmail = userExist.Email ?? string.Empty,
-                            OwnerPhone = clientInfo.OwnerPhone,
-                            Token = token,
-                            CustomerName = userExist.FullName ?? string.Empty
-                        };
-                        await _emailService.SendEmailAsync(email: userExist.Email ?? string.Empty, subject: "2FA Authentication Code",
-                            htmlTemplate: string.Empty,
-                            fileTemplateName: "TwoFactorAuthenticationCode.html",
-                            replaceProperty: emailReplaceProperty,
-                            emailProviderType: CEmailProviderType.Gmail);
-
-                        var userTokenEntity = new UserTokenEntity()
-                        {
-                            Name = CTokenType.TwoFactor.ToDescription(),
-                            Token = token,
-                            IsTokenInvoked = false,
-                            TokenExpiration = DateTimeOffset.UtcNow.AddMinutes(5),
-                            Type = CTokenType.TwoFactor,
-                            UserId = userExist.Id,
-                            TokenProviderName = CTokenProviderType.Email.ToString(),
-                            TokenProviderType = CTokenProviderType.Email
-                        };
-                        await _dbContext.UserTokens.AddAsync(entity: userTokenEntity);
-                        await _dbContext.SaveChangesAsync();
-                        response.StatusCode = StatusCodes.Status203NonAuthoritative;
-                        response.Result.Data = new LoginResponseDto()
-                        {
-                            TwoFactorEnabled = true,
-                            Message = $"Yêu cầu xác thực hai yếu tố. Vui lòng nhập mã đã được gửi đến email '{userExist.Email}'. Mã sẽ hết hạn sau 5 phút."
-                        };
-                        response.Result.Success = true;
-                        return response;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError($"{ex.Message}");
-                        errors.Add(new ErrorDetail()
-                        {
-                            Error = $"Đã xảy ra lỗi khi tạo mã thông báo để xác thực hai yếu tố và gửi email.",
-                            ErrorScope = CErrorScope.FormSummary,
-                        });
-                        response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                        errors.Add(new ErrorDetail() { Error = $"UserName hoặc Email '{loginDto.Email}' không tồn tại.", Field = $"{nameof(LoginRequestDto.Email)}_Error", ErrorScope = CErrorScope.Field });
+                        response.StatusCode = StatusCodes.Status404NotFound;
                         response.Result.Success = false;
                         response.Result.Errors = errors;
                         return response;
                     }
+                    if (!await _userManager.CheckPasswordAsync(user: userExist, password: loginDto.Password))
+                    {
+
+                        errors.Add(new ErrorDetail() { Error = $"Mật khẩu không đúng.", Field = $"{nameof(LoginRequestDto.Password)}_Error", ErrorScope = CErrorScope.Field });
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                        response.Result.Success = false;
+                        response.Result.Errors = errors;
+                        return response;
+                    }
+                    if (!userExist.EmailConfirmed)
+                    {
+                        var userToken = await _dbContext.UserTokens.Where(ut => ut.UserId == userExist.Id
+                            && ut.Type == CTokenType.EmailConfirmation).OrderByDescending(ut => ut.TokenExpiration).FirstOrDefaultAsync();
+                        if (userToken == null || (userToken != null && (userToken.TokenExpiration < DateTimeOffset.UtcNow || userToken.IsTokenInvoked)))
+                        {
+                            // send email
+                            try
+                            {
+                                var appEndpoint = RuntimeContext.LinkHelper?.AppEndpoint;
+                                if (string.IsNullOrEmpty(appEndpoint))
+                                {
+                                    errors.Add(new ErrorDetail() { Error = $"Không tìm thấy Server Endpoint để gửi Email. Bạn có thể thêm Server Endpoint ở phần API LinkHelper", ErrorScope = CErrorScope.PageSumarry });
+                                    response.StatusCode = StatusCodes.Status404NotFound;
+                                    response.Result.Success = false;
+                                    response.Result.Errors = errors;
+                                    return response;
+                                }
+                                await SendEmailConfirmRegistrationAsync(userExist: userExist);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex.Message);
+                                errors.Add(new ErrorDetail()
+                                {
+                                    Error = "Đã xảy ra lỗi khi gửi email đến tài khoản xác nhận.",
+                                    ErrorScope = CErrorScope.PageSumarry
+                                });
+                                response.StatusCode = StatusCodes.Status500InternalServerError;
+                                response.Result.Errors = errors;
+                                response.Result.Success = false;
+                                return response;
+                            }
+                        }
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = $"Người dùng '{loginDto.Email}' vẫn chưa xác nhận email. Vui lòng kiểm tra email của bạn để xác nhận tài khoản của bạn.",
+                            ErrorScope = CErrorScope.FormSummary
+                        });
+                        response.StatusCode = StatusCodes.Status403Forbidden;
+                        response.Result.Errors = errors;
+                        return response;
+                    }
+                    if (userExist.LockoutEnabled && userExist.LockoutEnd.HasValue
+                        && userExist.LockoutEnd.Value <= DateTimeOffset.UtcNow)
+                    {
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = $"Người dùng '{loginDto.Email}' hiện đang bị khóa. Vui lòng thử lại sau {userExist.LockoutEnd.Value.LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")}",
+                            ErrorScope = CErrorScope.FormSummary
+                        });
+                    }
+                    if (userExist.TwoFactorEnabled)
+                    {
+                        // send request to verify two factor.
+                        try
+                        {
+                            var token = await _userManager.GenerateTwoFactorTokenAsync(user: userExist, tokenProvider: CTokenProviderType.Email.ToString());
+                            var clientInfo = RuntimeContext.AppSettings.ClientApp;
+                            var emailReplaceProperty = new TwoFactorAuthenticationEmailTemplateModel()
+                            {
+                                Address = clientInfo.Address,
+                                CompanyName = clientInfo.CompanyName,
+                                OwnerName = clientInfo.OwnerName,
+                                Email = clientInfo.Email,
+                                ReceiverEmail = userExist.Email ?? string.Empty,
+                                OwnerPhone = clientInfo.OwnerPhone,
+                                Token = token,
+                                CustomerName = userExist.FullName ?? string.Empty
+                            };
+                            await _emailService.SendEmailAsync(email: userExist.Email ?? string.Empty, subject: "2FA Authentication Code",
+                                htmlTemplate: string.Empty,
+                                fileTemplateName: "TwoFactorAuthenticationCode.html",
+                                replaceProperty: emailReplaceProperty,
+                                emailProviderType: CEmailProviderType.Gmail);
+
+                            var userTokenEntity = new UserTokenEntity()
+                            {
+                                Name = CTokenType.TwoFactor.ToDescription(),
+                                Token = token,
+                                IsTokenInvoked = false,
+                                TokenExpiration = DateTimeOffset.UtcNow.AddMinutes(5),
+                                Type = CTokenType.TwoFactor,
+                                UserId = userExist.Id,
+                                TokenProviderName = CTokenProviderType.Email.ToString(),
+                                TokenProviderType = CTokenProviderType.Email
+                            };
+                            await _dbContext.UserTokens.AddAsync(entity: userTokenEntity);
+                            await _dbContext.SaveChangesAsync();
+                            response.StatusCode = StatusCodes.Status203NonAuthoritative;
+                            response.Result.Data = new LoginResponseDto()
+                            {
+                                TwoFactorEnabled = true,
+                                Message = $"Yêu cầu xác thực hai yếu tố. Vui lòng nhập mã đã được gửi đến email '{userExist.Email}'. Mã sẽ hết hạn sau 5 phút."
+                            };
+                            response.Result.Success = true;
+                            return response;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"{ex.Message}");
+                            errors.Add(new ErrorDetail()
+                            {
+                                Error = $"Đã xảy ra lỗi khi tạo mã thông báo để xác thực hai yếu tố và gửi email.",
+                                ErrorScope = CErrorScope.FormSummary,
+                            });
+                            response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                            response.Result.Success = false;
+                            response.Result.Errors = errors;
+                            return response;
+                        }
+                    }
+                    // need generate accesstoken and refreshtoken here
+                    var jwtTokenModel = await _jwtService.GenerateJwtTokenAsync(userEntity: userExist,
+                        ipAddress: RuntimeContext.CurrentIpAddress ?? string.Empty);
+                    response.StatusCode = StatusCodes.Status200OK;
+                    response.Result.Data = new LoginResponseDto()
+                    {
+                        AccessToken = jwtTokenModel.AccessToken,
+                        RefreshToken = jwtTokenModel.RefreshToken,
+                        TwoFactorEnabled = false,
+                        Message = "Đăng nhập thành công!"
+                    };
+                    response.Result.Success = true;
+                    return response;
                 }
-                // need generate accesstoken and refreshtoken here
-                var jwtTokenModel = await _jwtService.GenerateJwtTokenAsync(userEntity: userExist,
-                    ipAddress: RuntimeContext.CurrentIpAddress ?? string.Empty);
-                response.StatusCode = StatusCodes.Status200OK;
-                response.Result.Data = new LoginResponseDto()
+                catch (Exception ex)
                 {
-                    AccessToken = jwtTokenModel.AccessToken,
-                    RefreshToken = jwtTokenModel.RefreshToken,
-                    TwoFactorEnabled = false,
-                    Message = "Đăng nhập thành công!"
-                };
-                response.Result.Success = true;
-                return response;
+                    _logger.LogError(ex.Message);
+                    return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+                }
             }
             response.StatusCode = StatusCodes.Status400BadRequest;
             response.Result.Success = false;
@@ -220,7 +228,8 @@ namespace HoTroDuLichAI.API
                         FullName = userInfoFromAccessTokenGoogle.Name,
                         ImageProperty = imageProperties.ToJson(),
                         UserName = userInfoFromAccessTokenGoogle.Email,
-                        EmailConfirmed = true
+                        EmailConfirmed = true,
+                        Avatar = userInfoFromAccessTokenGoogle.Picture
                     };
                     // If create user success
                     using var transaction = await _dbContext.Database.BeginTransactionAsync();
@@ -285,6 +294,7 @@ namespace HoTroDuLichAI.API
                         Url = userInfoFromAccessTokenGoogle.Picture,
                     });
                     userExist.ImageProperty = imageProperties.ToJson();
+                    userExist.Avatar = userInfoFromAccessTokenGoogle.Picture;
                     await _userManager.UpdateAsync(user: userExist);
                 }
                 var jwtTokenModel = await _jwtService.GenerateJwtTokenAsync(userEntity: userExist,

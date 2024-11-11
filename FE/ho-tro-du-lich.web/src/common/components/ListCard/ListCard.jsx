@@ -33,7 +33,7 @@ const ListCard = ({
       <div className="tool-frame">
         <form
           onSubmit={handleSubmit(handleSubmitForm)}
-          className="d-flex justify-content-between flex-wrap"
+          className="d-flex justify-content-start flex-wrap gap-2"
         >
           <div className="tool-frame__search w-50 d-flex gap-2">
             <input
@@ -56,7 +56,7 @@ const ListCard = ({
           </div>
         </form>
       </div>
-      <div className="list-item row g-2">
+      <div className="list-item row g-2 pt-3">
         {items &&
           items.map((item) =>
             React.cloneElement(rowTemplate, {
@@ -67,7 +67,7 @@ const ListCard = ({
       </div>
       <Panel
         title={titlePanel}
-        status={status ? "" : "hide"}
+        status={status ? true : false}
         bodyContent={filter}
         onClose={() => onChangeStatusPanel("close")}
       />

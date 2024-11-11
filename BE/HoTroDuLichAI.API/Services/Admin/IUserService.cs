@@ -13,7 +13,7 @@ namespace HoTroDuLichAI.API
         Task<ApiResponse<List<UserChatBaseInfo>>> GetUserAdminInfosAsync();
 
 
-        Task<ApiResponse<BasePagedResult<UserDetailResponseDto>>> GetWithPagingAsync(UserFilterParams param,
+        Task<ApiResponse<BasePagedResult<UserDetailResponseDto>>> GetWithPagingAsync(UserPagingAndFilterParams param,
             ModelStateDictionary? modelState = null);
         Task<ApiResponse<UserDetailResponseDto>> GetByIdAsync(Guid userId);
         Task<ApiResponse<ResultMessage>> DeleteAsync(Guid userId);

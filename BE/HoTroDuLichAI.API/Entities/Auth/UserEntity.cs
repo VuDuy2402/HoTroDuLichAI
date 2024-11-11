@@ -9,13 +9,13 @@ namespace HoTroDuLichAI.API
         public DateOnly? DateOfBirth { get; set; }
         public string PIN { get; set; } = string.Empty;
         // public CPINType PINType { get; set; }
-
+        public string Avatar { get; set; } = string.Empty;
         #region Json property
         public string ImageProperty { get; set; } = string.Empty;
         [NotMapped]
         public List<ImageProperty> ImageProperties
         {
-            get => ImageProperty.FromJson<List<ImageProperty>>() ?? new();
+            get => ImageProperty.FromJson<List<ImageProperty>>();
             set => ImageProperty = value.ToJson();
         }
 

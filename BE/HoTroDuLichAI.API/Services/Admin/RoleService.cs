@@ -105,7 +105,7 @@ namespace HoTroDuLichAI.API
             }
         }
 
-        public async Task<ApiResponse<BasePagedResult<RoleDetailResponseDto>>> GetAllRolesAsync(RoleFilterParams param)
+        public async Task<ApiResponse<BasePagedResult<RoleDetailResponseDto>>> GetAllRolesAsync(RolePagingAndFilterParams param)
         {
             var response = new ApiResponse<BasePagedResult<RoleDetailResponseDto>>();
             IQueryable<RoleEntity> collection = _dbContext.Roles;

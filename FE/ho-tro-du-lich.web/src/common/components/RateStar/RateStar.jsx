@@ -7,15 +7,17 @@ const RateStar = ({ rate, maxRate, color }) => {
   const halfStar = rate - fullStar > 0;
   const remainStar = maxRate - fullStar - (halfStar ? 1 : 0);
   const renderStar = [];
+
   for (let i = 0; i < fullStar; i++) {
-    renderStar.push(<FaStar color={color} />);
+    renderStar.push(<FaStar key={`full-${i}`} color={color} />);
   }
   if (halfStar) {
-    renderStar.push(<FaStarHalfAlt color={color} />);
+    renderStar.push(<FaStarHalfAlt key="half" color={color} />);
   }
   for (let i = 0; i < remainStar; i++) {
-    renderStar.push(<FaRegStar color={color} />);
+    renderStar.push(<FaRegStar key={`empty-${i}`} color={color} />);
   }
+
   return <div className="rate-star">{renderStar}</div>;
 };
 
