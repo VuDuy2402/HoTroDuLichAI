@@ -4,12 +4,15 @@ namespace HoTroDuLichAI.API
 {
     public enum CNotificationType
     {
+        [Description(description: "Không xác định")]
         None = 0,
+        [Description(description: "Thông báo chung")]
         Normal = 1,
-        [Description(description: "Send email")]
+        [Description(description: "Gửi email")]
         Email = 2,
+        [Description(description: "Đặt phòng / lập lịch chuyến đi")]
         Order = 3,
-        [Description(description: "Registration account")]
+        [Description(description: "Đăng ký tài khoản")]
         Register = 4,
     }
 

@@ -14,6 +14,7 @@ namespace HoTroDuLichAI.API
         public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; }
         public new DbSet<UserTokenEntity> UserTokens { get; set; }
         public DbSet<MessageEntity> Messages { get; set; }
+        public DbSet<NotificationEntity> Notifications { get; set; }
         public DbSet<PlaceEntity> Places { get; set; }
         public DbSet<ItineraryDetailEntity> ItineraryDetails { get; set; }
         public DbSet<ItineraryEntity> Itineraries { get; set; }
