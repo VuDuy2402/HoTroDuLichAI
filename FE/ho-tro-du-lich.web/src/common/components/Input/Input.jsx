@@ -1,19 +1,30 @@
-import { useEffect } from "react";
-
-const Input = ({ id, label, register, name, col, className, ...others }) => {
+const Input = ({
+  id,
+  label,
+  register,
+  name,
+  col,
+  className,
+  classLabel,
+  validate,
+  ...others
+}) => {
   return (
     <>
       {register && (
         <div className={`${col}`}>
           {label && (
-            <label className="fw-bold" htmlFor={id}>
+            <label
+              className={`${classLabel ? classLabel : "fw-bold"}`}
+              htmlFor={id}
+            >
               {label}
             </label>
           )}
           <input
             id={id}
             className={`form-control ${className}`}
-            {...register(name)}
+            {...register(name, validate)}
             {...others}
           />
         </div>
@@ -21,7 +32,10 @@ const Input = ({ id, label, register, name, col, className, ...others }) => {
       {!register && (
         <div className={`${col}`}>
           {label && (
-            <label className="fw-bold" htmlFor={id}>
+            <label
+              className={`${classLabel ? classLabel : "fw-bold"}`}
+              htmlFor={id}
+            >
               {label}
             </label>
           )}

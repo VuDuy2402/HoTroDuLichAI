@@ -9,7 +9,7 @@ const MainLayout = ({ children, containerFluid }) => {
     >
       <Navbar className={!containerFluid ? "container" : "container-fluid"} />
       <div
-        className="container-fluid bg-success-subtle px-0 h-100 d-flex flex-column"
+        className="container-fluid bg-white px-0 h-100 d-flex flex-column"
         style={{ paddingTop: "50px", flex: 1 }}
       >
         {children}

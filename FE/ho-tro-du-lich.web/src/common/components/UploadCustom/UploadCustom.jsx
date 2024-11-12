@@ -21,6 +21,7 @@ const UploadCustom = ({
   onChangeFile,
   onSuccess,
   resetDelete,
+  multiple,
   ...others
 }) => {
   const uploadRef = useRef();
@@ -37,7 +38,6 @@ const UploadCustom = ({
     }
   };
   useEffect(() => {
-
     if (!fileInfo && !uploadClone) {
       setDeleteFile(true);
     } else {
@@ -63,6 +63,7 @@ const UploadCustom = ({
               ? "image/*"
               : ""
           }
+          multiple={multiple}
           onSuccess={handleChangeFile}
           {...others}
         />
