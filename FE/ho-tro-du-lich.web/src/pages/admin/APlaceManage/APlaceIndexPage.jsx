@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Button, Form, Modal } from "react-bootstrap";
+import { Button, Form, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { placeService } from "../../../services/placeService";
 import { FaSearch } from "react-icons/fa";
@@ -12,6 +12,8 @@ import ACreatePlacePage from "./ACreatePlacePage";
 import ConfirmModalPage from "../../commonpage/ModalPage/ConfirmModalPage";
 import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
+import { PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";
+import { ApprovalTypeDescriptions, CApprovalType } from "../../../enum/approvalTypeEnum";
 
 const APlaceIndexPlace = () => {
     const initColumn = [
@@ -47,7 +49,7 @@ const APlaceIndexPlace = () => {
                 searchQuery: query,
                 filterProperty: {},
                 sortProperty: sort,
-            });            
+            });
 
             if (result && result.success) {
                 setDataPlaces(result.data.items);
@@ -170,6 +172,92 @@ const TableRowTemplate = ({ data, onDelete, onEdit }) => {
         setShowModal(false);
     };
 
+    const renderApprovalStatus = (approvalType) => {
+        let statusLabel = ApprovalTypeDescriptions[approvalType] || "Không xác định";
+        let statusColor = "gray";
+
+        switch (approvalType) {
+            case CApprovalType.Accepted:
+                statusColor = "success";
+                break;
+            case CApprovalType.Rejected:
+                statusColor = "danger";
+                break;
+            case CApprovalType.PendingAprroval:
+                statusColor = "warning";
+                break;
+            case CApprovalType.None:
+                statusColor = "secondary";
+                break;
+            default:
+                statusColor = "gray";
+        }
+
+        return (
+            <div className="d-flex align-items-center">
+                <div
+                    className={`rounded-circle bg-${statusColor}`}
+                    style={{ width: "10px", height: "10px" }}
+                ></div>
+                <span className="ms-2">{statusLabel}</span>
+            </div>
+        );
+    }
+
+    const renderOwner = (owner) => {
+        if (owner?.avatar) {
+            return (
+                <OverlayTrigger
+                    placement="top"
+                    overlay={
+                        <Tooltip id="tooltip-owner">
+                            {`${owner.fullName} (${owner.email})`}
+                        </Tooltip>
+                    }
+                >
+                    <img
+                        src={owner.avatar}
+                        alt={owner.fullName}
+                        style={{
+                            width: "30px",
+                            height: "30px",
+                            borderRadius: "50%",
+                            cursor: "pointer",
+                        }}
+                    />
+                </OverlayTrigger>
+            );
+        } else {
+            return (
+                <OverlayTrigger
+                    placement="top"
+                    overlay={
+                        <Tooltip id="tooltip-owner">
+                            {`${owner.fullName} (${owner.email})`}
+                        </Tooltip>
+                    }
+                >
+                    <div
+                        style={{
+                            width: "30px",
+                            height: "30px",
+                            borderRadius: "50%",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                        }}
+                    >
+                        {getInitials(owner.fullName)}
+                    </div>
+                </OverlayTrigger>
+            );
+        }
+    };
+
     return (
         <>
             <tr>
@@ -199,11 +287,11 @@ const TableRowTemplate = ({ data, onDelete, onEdit }) => {
                     )}
                 </td>
                 <td className="fw-bold">{data.name}</td>
-                <td>{data.placeType}</td>
+                <td>{PlaceTypeDescriptions[data.placeType] || "Không xác định"}</td>
                 <td>{new Date(data.createdDate).toLocaleDateString("vi-VN")}</td>
-                <td>{data.approvalType}</td>
+                <td>{renderApprovalStatus(data.approvalType)}</td>
                 <td>{data.totalView}</td>
-                <td>{data.ownerProperty?.fullName || "Chưa có thông tin"}</td>
+                <td>{renderOwner(data.ownerProperty)}</td>
                 <td>
                     <Button
                         variant="outline-warning"
