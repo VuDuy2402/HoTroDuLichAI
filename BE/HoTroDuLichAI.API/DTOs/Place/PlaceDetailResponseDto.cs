@@ -15,4 +15,21 @@ namespace HoTroDuLichAI.API
         public CApprovalType ApprovalType { get; set; }
         public OwnerProperty OwnerProperty { get; set; } = null!;
     }
+
+    public class PlaceMoreInfoResponseDto : PlaceDetailResponseDto
+    {
+        public List<ImageDetailProperty> ImageDetailProperties { get; set; } = new List<ImageDetailProperty>();
+        public int TotalReview { get; set; }
+        public int TotalUseItinerary { get; set; }
+
+    }
+
+    public class ImageDetailProperty
+    {
+        public string FileId { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        public CImageType Type { get; set; }
+        public bool IsDefault { get; set; }
+    }
 }

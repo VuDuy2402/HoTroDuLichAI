@@ -31,5 +31,12 @@ namespace HoTroDuLichAI.API
             var result = await _placeService.GetWithPagingAsync(param: param, modelState: ModelState);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
+        
+        [HttpGet("{placeId}")]
+        public async Task<IActionResult> GetPlaceById(Guid placeId)
+        {
+            var result = await _placeService.GetPlaceDetailByIdAsync(placeId: placeId);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
     }
 }

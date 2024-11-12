@@ -1,3 +1,4 @@
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ namespace HoTroDuLichAI.API
             _userManager = userManager;
         }
 
+        #region get place with paging
         public async Task<ApiResponse<BasePagedResult<PlaceDetailResponseDto>>> GetWithPagingAsync(
             PlacePagingAndFilterParams param, ModelStateDictionary? modelState = null)
         {
@@ -145,6 +147,68 @@ namespace HoTroDuLichAI.API
                     TotalPages = pagedList.TotalPages,
                     ObjFilterProperties = param.FilterProperty,
                 };
+                response.Result.Success = true;
+                response.Result.Data = data;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+        #endregion get place with paging
+
+
+        public async Task<ApiResponse<PlaceMoreInfoResponseDto>> GetPlaceDetailByIdAsync(Guid placeId)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<PlaceMoreInfoResponseDto>();
+            try
+            {
+                var placeEntity = await _dbContext.Places
+                    .Include(pl => pl.User)
+                    .Include(pl => pl.ReviewPlaces)
+                    .Include(pl => pl.ItineraryDetails)
+                    .Where(pl => pl.Id == placeId)
+                    .Select(pl => new
+                    {
+                        PlaceId = pl.Id,
+                        Name = pl.Name,
+                        IsNew = pl.IsNew,
+                        Latitude = pl.Latitude,
+                        Longtitude = pl.Longitude,
+                        TotalView = pl.TotalView,
+                        Rating = pl.Rating,
+                        PlaceType = pl.PlaceType,
+                        Thumbnail = pl.Thumbnail,
+                        ApprovalType = pl.Appoved,
+                        OwnerProperty = new OwnerProperty()
+                        {
+                            Avatar = pl.User.Avatar,
+                            Email = pl.User.Email ?? string.Empty,
+                            FullName = pl.User.FullName,
+                            UserId = pl.UserId
+                        },
+                        ImageGallery = pl.ImageGallery,
+                        TotalReview = pl.ReviewPlaces.Count,
+                        TotalUseItinerary = pl.ItineraryDetails.Count
+                    }).FirstOrDefaultAsync();
+                if (placeEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var data = placeEntity.Adapt<PlaceMoreInfoResponseDto>();
+                data.ImageDetailProperties = placeEntity.ImageGallery.FromJson<List<ImageProperty>>()
+                    .Select(img => new ImageDetailProperty()
+                    {
+                        FileId = img.BlobId,
+                        FileName = img.FileName,
+                        IsDefault = img.IsDefault,
+                        Type = img.ImageType,
+                        Url = img.Url
+                    }).ToList();
                 response.Result.Success = true;
                 response.Result.Data = data;
                 response.StatusCode = StatusCodes.Status200OK;
