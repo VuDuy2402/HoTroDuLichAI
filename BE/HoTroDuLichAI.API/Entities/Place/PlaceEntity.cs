@@ -11,8 +11,8 @@ namespace HoTroDuLichAI.API
         public int TotalView { get; set; }
         public string Description { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public long Latitude { get; set; }
-        public long Longitude { get; set; }
+        public float Latitude { get; set; }
+        public float Longitude { get; set; }
         public string Thumbnail { get; set; } = string.Empty;
         public CPlaceType PlaceType { get; set; }
         public bool IsNew { get; set; }

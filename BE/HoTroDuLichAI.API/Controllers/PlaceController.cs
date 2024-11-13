@@ -32,10 +32,18 @@ namespace HoTroDuLichAI.API
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
         
-        [HttpGet("{placeId}")]
+        [HttpGet("manage/{placeId}")]
         public async Task<IActionResult> GetPlaceById(Guid placeId)
         {
             var result = await _placeService.GetPlaceDetailByIdAsync(placeId: placeId);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpPost("manage")]
+        [Authorize]
+        public async Task<IActionResult> CreatePlace(CreatePlaceRequestDto requestDto)
+        {
+            var result = await _placeService.CreatePlaceAsync(requestDto: requestDto, modelState: ModelState);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
     }

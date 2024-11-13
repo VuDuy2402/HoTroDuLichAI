@@ -56,6 +56,7 @@ const ImageUploadGallery = ({ onImagesUploaded }) => {
                     className={styles.uploadButton}
                     onClick={() => ikUploadRef.current?.click()}
                     disabled={uploading}
+                    type="button"
                 >
                     {uploading ? "Đang tải..." : "Tải lên ảnh"}
                 </button>
@@ -63,7 +64,7 @@ const ImageUploadGallery = ({ onImagesUploaded }) => {
 
             {uploading && (
                 <div className={styles.progressBarContainer}>
-                    <div className={styles.progressBar}></div> {/* Thanh tiến độ (sử dụng CSS để tạo hiệu ứng) */}
+                    <div className={styles.progressBar}></div>
                 </div>
             )}
 

@@ -36,4 +36,26 @@ export const placeService = {
             return null;
         }
     },
+
+    getPlaceById: async (placeId) => {
+        const token = localStorageService.getToken();
+        if (token) {
+            const response = await reqApi.get(`${placeApi.Place_Admin_GetPlaceById}/${placeId}`);
+            if (response) {
+                return response;
+            }
+            return null;
+        }
+    },
+
+    createPlaceAdmin: async (data) => {
+        const token = localStorageService.getToken();
+        if (token) {
+            const response = await reqApi.post(placeApi.Place_Admin_CreatePlace, data);
+            if (response) {
+                return response;
+            }
+            return null;
+        }
+    }
 }

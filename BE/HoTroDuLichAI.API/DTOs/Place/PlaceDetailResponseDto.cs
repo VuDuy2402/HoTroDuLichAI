@@ -6,8 +6,8 @@ namespace HoTroDuLichAI.API
         public Guid PlaceId { get; set; }
         public string Name { get; set; } = string.Empty;
         public bool IsNew { get; set; }
-        public long Latitude { get; set; }
-        public long Longtitude { get; set; }
+        public float Latitude { get; set; }
+        public float Longtitude { get; set; }
         public int TotalView { get; set; }
         public int Rating { get; set; }
         public CPlaceType PlaceType { get; set; }

@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { Button, Form, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { placeService } from "../../../services/placeService";
-import { FaSearch } from "react-icons/fa";
+import { FaInfoCircle, FaSearch } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
@@ -14,6 +14,7 @@ import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
 import { PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";
 import { ApprovalTypeDescriptions, CApprovalType } from "../../../enum/approvalTypeEnum";
+import APlaceDetailPage from "./APlaceDetailPage";
 
 const APlaceIndexPlace = () => {
     const initColumn = [
@@ -31,6 +32,7 @@ const APlaceIndexPlace = () => {
     const { register, handleSubmit } = useForm();
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState(null);
     const [errorList, setErrorList] = useState([]);
     const [dataPlaces, setDataPlaces] = useState([]);
@@ -94,6 +96,16 @@ const APlaceIndexPlace = () => {
         setShowCreateModal(false);
     };
 
+    const handleOpenDetailModal = (placeId) => {
+        setSelectedPlaceId(placeId);
+        setShowDetailModal(true);
+    };
+
+    const handleCloseDetailModal = () => {
+        setShowDetailModal(false);
+        setSelectedPlaceId(null);
+    };
+
     const handleSubmitSearch = (data) => {
         fetchData(1, data.searchQuery);
     };
@@ -129,7 +141,7 @@ const APlaceIndexPlace = () => {
             <Table
                 columns={initColumn}
                 items={dataPlaces}
-                template={<TableRowTemplate onDelete={handleDeletePlace} onEdit={handleOpenUpdateModal} />}
+                template={<TableRowTemplate onDelete={handleDeletePlace} onEdit={handleOpenUpdateModal} onOpenDetail={handleOpenDetailModal} />}
                 onSort={handleSort}
             />
 
@@ -147,12 +159,21 @@ const APlaceIndexPlace = () => {
                 onClose={() => setShowCreateModal(false)}
                 onPlaceCreated={handlePlaceCreated}
             />
+
+            {/* Place Detail Modal */}
+            {selectedPlaceId && (
+                <APlaceDetailPage
+                    show={showDetailModal}
+                    placeId={selectedPlaceId}
+                    onClose={handleCloseDetailModal}
+                />
+            )}
         </div>
     );
 };
 
-const TableRowTemplate = ({ data, onDelete, onEdit }) => {
-    const [showModal, setShowModal] = useState(false);
+const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
+    const [showModal, setShowConfirmDeleteModal] = useState(false);
 
     const getInitials = (name) => {
         const names = name.split(" ");
@@ -169,7 +190,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit }) => {
                 setErrorList(result.errors);
             }
         }
-        setShowModal(false);
+        setShowConfirmDeleteModal(false);
     };
 
     const renderApprovalStatus = (approvalType) => {
@@ -294,26 +315,38 @@ const TableRowTemplate = ({ data, onDelete, onEdit }) => {
                 <td>{renderOwner(data.ownerProperty)}</td>
                 <td>
                     <Button
+                        variant="outline-info"
+                        size="sm"
+                        className="ms"
+                        onClick={() => onOpenDetail(data.placeId)}
+                        title="Xem chi tiết"
+                    >
+                        <FaInfoCircle />
+                    </Button>
+                    <Button
                         variant="outline-warning"
                         size="sm"
+                        className="ms-2"
+                        title="Cập nhật"
                         onClick={() => onEdit(data.placeId)}
                     >
-                        <i className="bi bi-pencil-fill"></i> Cập nhật
+                        <i className="bi bi-pencil-fill"></i>
                     </Button>
                     <Button
                         variant="outline-danger"
                         size="sm"
-                        onClick={() => setShowModal(true)}
+                        title="Xóa"
+                        onClick={() => setShowConfirmDeleteModal(true)}
                         className="ms-2"
                     >
-                        <i className="bi bi-trash-fill"></i> Xóa
+                        <i className="bi bi-trash-fill"></i>
                     </Button>
                 </td>
             </tr>
             <ConfirmModalPage
                 show={showModal}
                 onConfirm={() => handleDelete(data.placeId)}
-                onCancel={() => setShowModal(false)}
+                onCancel={() => setShowConfirmDeleteModal(false)}
             />
         </>
     );

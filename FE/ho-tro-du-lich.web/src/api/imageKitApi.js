@@ -1,3 +1,3 @@
 export const imageKitApi = {
-  Image_Auth: "api/v1/cet/fileupload/imagekit/auth",
+  Image_Auth: "api/v1/admin/fileupload/imagekit/auth",
 };

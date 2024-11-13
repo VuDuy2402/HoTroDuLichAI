@@ -9,14 +9,17 @@ namespace HoTroDuLichAI.API
     {
         private readonly HoTroDuLichAIDbContext _dbContext;
         private readonly UserManager<UserEntity> _userManager;
+        private readonly IImageKitIOService _imagekitIOService;
         private readonly ILogger<PlaceService> _logger;
 
         public PlaceService(
             HoTroDuLichAIDbContext dbContext,
+            IImageKitIOService imagekitIOService,
             ILogger<PlaceService> logger,
             UserManager<UserEntity> userManager)
         {
             _dbContext = dbContext;
+            _imagekitIOService = imagekitIOService;
             _logger = logger;
             _userManager = userManager;
         }
@@ -160,7 +163,7 @@ namespace HoTroDuLichAI.API
         }
         #endregion get place with paging
 
-
+        #region Get place by Id
         public async Task<ApiResponse<PlaceMoreInfoResponseDto>> GetPlaceDetailByIdAsync(Guid placeId)
         {
             var errors = new List<ErrorDetail>();
@@ -219,6 +222,151 @@ namespace HoTroDuLichAI.API
                 _logger.LogError(ex.Message);
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
+        }
+        #endregion Get place by Id
+
+        #region Create place
+        public async Task<ApiResponse<PlaceDetailResponseDto>> CreatePlaceAsync(CreatePlaceRequestDto requestDto,
+            ModelStateDictionary? modelState = null)
+        {
+            if (requestDto == null)
+            {
+                return new ApiResponse<PlaceDetailResponseDto>()
+                {
+                    Result = new ResponseResult<PlaceDetailResponseDto>()
+                    {
+                        Errors = new List<ErrorDetail>() { new ErrorDetail() { Error = $"Dữ liệu gửi về không hợp lệ. Vui lòng kiểm tra lại.", ErrorScope = CErrorScope.FormSummary } },
+                        Success = false
+                    },
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+            }
+            var errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            var response = new ApiResponse<PlaceDetailResponseDto>();
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var placeExist = await _dbContext.Places.Where(pl => pl.Name.ToLower() == requestDto.Name.ToLower()
+                    || (pl.Longitude == requestDto.Longitude && pl.Latitude == requestDto.Latitude)).FirstOrDefaultAsync();
+                if (placeExist != null)
+                {
+                    errors.Add(new ErrorDetail()
+                    {
+                        Error = $"Địa điểm đã tồn tại.",
+                        ErrorScope = CErrorScope.FormSummary
+                    });
+                    response.Result.Errors.AddRange(errors);
+                    response.Result.Success = false;
+                    response.StatusCode = StatusCodes.Status409Conflict;
+                    return response;
+                }
+                bool hasAdminRole = (await _userManager.GetRolesAsync(user: currentUser)).Contains(CRoleType.Admin.ToString());
+                var imageProperties = new List<ImageProperty>();
+                int index = 0;
+                foreach (var id in requestDto.FileIds)
+                {
+                    var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: id);
+                    if (imageResponse.StatusCode == StatusCodes.Status200OK)
+                    {
+                        if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo
+                            && imageInfo != null)
+                        {
+                            imageProperties.Add(ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: index++ == 0));
+                        }
+                    }
+                }
+
+                var placeEntity = new PlaceEntity()
+                {
+                    Appoved = hasAdminRole ? CApprovalType.Accepted : CApprovalType.PendingAprroval,
+                    Address = requestDto.Address,
+                    IsNew = hasAdminRole ? requestDto.IsNew : true,
+                    Latitude = requestDto.Latitude,
+                    Longitude = requestDto.Longitude,
+                    Description = requestDto.Description,
+                    Name = requestDto.Name,
+                    PlaceType = requestDto.PlaceType,
+                    UserId = currentUser.Id,
+                    Thumbnail = imageProperties.Where(img => img.IsDefault).Select(img => img.Url).FirstOrDefault() ?? string.Empty,
+                    ImageGallery = imageProperties.ToJson()
+                };
+                _dbContext.Places.Add(entity: placeEntity);
+                if (!hasAdminRole)
+                {
+                    // if normal user need send notification to admin handle request add new Place.
+
+                    var adminUsers = await _userManager.GetUsersInRoleAsync(roleName: CRoleType.Admin.ToString());
+                    if (!adminUsers.IsNullOrEmpty())
+                    {
+                        var notifications = new List<NotificationEntity>();
+                        foreach (var user in adminUsers)
+                        {
+                            var notificationEntity = new NotificationEntity()
+                            {
+                                IsRead = false,
+                                Title = "Yêu cầu xác nhận địa điểm mới.",
+                                Content = $"{requestDto.Name} - {requestDto.Address}",
+                                Type = CNotificationType.Place,
+                                UserId = user.Id
+                            };
+                            notifications.Add(notificationEntity);
+                        }
+                        _dbContext.Notifications.AddRange(entities: notifications);
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Không tìm thấy người dùng nào có vai trò Admin để gửi thông báo.");
+                    }
+                }
+                await _dbContext.SaveChangesAsync();
+                var data = placeEntity.Adapt<PlaceMoreInfoResponseDto>();
+                data.ImageDetailProperties = imageProperties.Select(img => new ImageDetailProperty()
+                {
+                    FileId = img.BlobId,
+                    FileName = img.FileName,
+                    IsDefault = img.IsDefault,
+                    Type = img.ImageType,
+                    Url = img.Url
+                }).ToList();
+                response.Result.Success = true;
+                response.Result.Data = data;
+                response.StatusCode = StatusCodes.Status201Created;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        #endregion Create place
+
+
+        private ImageProperty ConvertToImageProperty(ImageFileInfo imageFileInfo,
+            CImageType imageType, bool isDefault = false)
+        {
+            return new ImageProperty
+            {
+                BlobId = imageFileInfo.FileId,
+                FileName = imageFileInfo.Name,
+                Url = imageFileInfo.Url,
+                Width = imageFileInfo.Width,
+                Height = imageFileInfo.Height,
+                FolderName = string.Empty,
+                IsDefault = isDefault,
+                BlobType = CBlobType.ImageKit,
+                ImageType = imageType,
+                FileExtensionType = CFileExtensionType.JPEG
+            };
         }
     }
 }

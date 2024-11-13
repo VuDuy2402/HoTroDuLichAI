@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HoTroDuLichAI.API.Controllers
 {
     [ApiController]
-    [Route("/api/v1/cet/fileupload")]
+    [Route("/api/v1/admin/fileupload")]
     public class FileUploadController : ControllerBase
     {
         private readonly IImageKitIOService _imageKitIOService;

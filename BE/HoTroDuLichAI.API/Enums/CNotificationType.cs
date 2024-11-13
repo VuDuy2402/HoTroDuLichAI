@@ -14,6 +14,8 @@ namespace HoTroDuLichAI.API
         Order = 3,
         [Description(description: "Đăng ký tài khoản")]
         Register = 4,
+        [Description(description: "Địa điểm")]
+        Place = 5
     }
 
     public enum CNotificationLevel
