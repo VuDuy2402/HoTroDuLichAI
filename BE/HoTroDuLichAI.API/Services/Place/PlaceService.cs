@@ -299,11 +299,10 @@ namespace HoTroDuLichAI.API
                     ImageGallery = imageProperties.ToJson()
                 };
                 _dbContext.Places.Add(entity: placeEntity);
+                var adminUsers = await _userManager.GetUsersInRoleAsync(roleName: CRoleType.Admin.ToString());
                 if (!hasAdminRole)
                 {
                     // if normal user need send notification to admin handle request add new Place.
-
-                    var adminUsers = await _userManager.GetUsersInRoleAsync(roleName: CRoleType.Admin.ToString());
                     if (!adminUsers.IsNullOrEmpty())
                     {
                         var notifications = new List<NotificationEntity>();
@@ -325,6 +324,26 @@ namespace HoTroDuLichAI.API
                     {
                         _logger.LogWarning($"Không tìm thấy người dùng nào có vai trò Admin để gửi thông báo.");
                     }
+                }
+                else
+                {
+                    // send notification for all user about new palce.
+                    List<Guid> adminUserIds = adminUsers.Select(a => a.Id).ToList();
+                    var normalUser = await _dbContext.Users.Where(us => !adminUserIds.Contains(us.Id)).ToListAsync();
+                    var notifications = new List<NotificationEntity>();
+                    foreach (var user in normalUser)
+                    {
+                        var notificationEntity = new NotificationEntity()
+                        {
+                            IsRead = false,
+                            Title = "Thông báo có địa điểm mới.",
+                            Content = $"{requestDto.Name} - {requestDto.Address}",
+                            Type = CNotificationType.Place,
+                            UserId = user.Id
+                        };
+                        notifications.Add(notificationEntity);
+                    }
+                    _dbContext.Notifications.AddRange(entities: notifications);
                 }
                 await _dbContext.SaveChangesAsync();
                 var data = placeEntity.Adapt<PlaceMoreInfoResponseDto>();
