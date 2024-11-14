@@ -320,7 +320,8 @@ namespace HoTroDuLichAI.API
                                 Type = CNotificationType.Place,
                                 UserId = user.Id
                             };
-                            await _notificationHubContext.Clients.User(user.Id.ToString()).SendAsync("ReceiveNotification", $"Có yêu cầu phê duyệt địa điểm mới: {requestDto.Name}.");
+                            await _notificationHubContext.Clients.User(user.Id.ToString())
+                                .SendAsync("ReceiveNotification", $"Có yêu cầu phê duyệt địa điểm mới: {requestDto.Name}.");
                             notifications.Add(notificationEntity);
                         }
                         _dbContext.Notifications.AddRange(entities: notifications);
@@ -346,7 +347,8 @@ namespace HoTroDuLichAI.API
                             Type = CNotificationType.Place,
                             UserId = user.Id
                         };
-                        await _notificationHubContext.Clients.User(user.Id.ToString()).SendAsync("ReceiveNotification", $"Có địa điểm mới: {requestDto.Name}.");
+                        await _notificationHubContext.Clients.User(user.Id.ToString())
+                            .SendAsync("ReceiveNotification", $"Có địa điểm mới: {requestDto.Name}.");
                         notifications.Add(notificationEntity);
                     }
                     _dbContext.Notifications.AddRange(entities: notifications);

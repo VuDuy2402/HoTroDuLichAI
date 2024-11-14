@@ -8,11 +8,20 @@ import NotificationSummary from "../pages/NotificationSummaryPage/NotificationSu
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
 import ChatUI from "../common/components/Chat/ChatUI";
 import AHomePage from "../pages/admin/AHomePage/AHomePage";
+import Test from "../pages/HomePage/Test";
 
 export const routes = [
   {
     path: "/",
     component: <Home />,
+    checkAuth: false,
+    roles: [],
+    // errorElement: <Navigate to="/error" />,
+    layout: <MainLayout />,
+  },
+  {
+    path: "/test",
+    component: <Test />,
     checkAuth: false,
     roles: [],
     // errorElement: <Navigate to="/error" />,

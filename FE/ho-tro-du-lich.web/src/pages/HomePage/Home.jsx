@@ -1,30 +1,27 @@
-import CardTag from "./component/CardTag/CardTag";
-import mainimg from "../../assets/img/—Pngtree—big isolated cartoon character vector_7256413.png";
-import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { systemAction } from "../../redux/slices/systemSlice";
 import { FaSearch } from "react-icons/fa";
-import LinkCustom from "../../common/components/LinkCustom/LinkCustom";
 import { useNavigate } from "react-router-dom";
 import bgKH from "@/assets/img/bgkh.webp";
 import { CiLocationOn } from "react-icons/ci";
 import "./Home.scss";
+import { toast } from "react-toastify";
+import * as signalR from "@microsoft/signalr";
+import { localStorageService } from "../../services/localstorageService";
 const Home = () => {
   const navigate = useNavigate();
-  // const [listCourseIntake, setListCourseIntake] = useState([]);
-  // const dispatch = useDispatch();
-  // useEffect(() => {
-  //   const fetchApi = async () => {
-  //     dispatch(systemAction.enableLoading());
-  //     const data = CourseIntakePagingDto;
-  //     const result = await courseIntakeService.paging(data);
-  //     if (result.success) {
-  //       setListCourseIntake(result.data.items);
-  //     }
-  //     dispatch(systemAction.disableLoading());
-  //   };
-  //   fetchApi();
-  // }, []);
+  const connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:7001/notificationHub", {
+      accessTokenFactory: () => localStorageService.getAccessToken()
+    })
+    .withAutomaticReconnect()
+    .build();
+ connection.on("ReceiveNotification", function (message) {
+    toast.success(message);
+  });
+
+  connection.start().catch(function (err) {
+    return console.error(err.toString());
+  });
+
   return (
     <>
       <div

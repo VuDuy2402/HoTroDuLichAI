@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace HoTroDuLichAI.API
 {
+    [Authorize]
     public class NotificationHub : Hub
     {
         public async Task SendNotificationToUser(string userId, string message)
@@ -16,7 +18,7 @@ namespace HoTroDuLichAI.API
 
         public override async Task OnConnectedAsync()
         {
-            string userId = Context.User?.Identity?.Name ?? "";
+            string userId = RuntimeContext.CurrentUserId.ToString() ?? string.Empty;
             if (!string.IsNullOrEmpty(userId))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, userId);

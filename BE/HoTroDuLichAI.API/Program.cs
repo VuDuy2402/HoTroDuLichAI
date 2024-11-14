@@ -40,6 +40,10 @@ builder.Services.AddAuthentication(options =>
             {
                 context.Token = accessToken;
             }
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationHub"))
+            {
+                context.Token = accessToken;
+            }
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>
