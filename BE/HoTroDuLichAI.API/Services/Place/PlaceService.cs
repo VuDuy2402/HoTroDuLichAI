@@ -1,6 +1,7 @@
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace HoTroDuLichAI.API
@@ -10,16 +11,19 @@ namespace HoTroDuLichAI.API
         private readonly HoTroDuLichAIDbContext _dbContext;
         private readonly UserManager<UserEntity> _userManager;
         private readonly IImageKitIOService _imagekitIOService;
+        private readonly IHubContext<NotificationHub> _notificationHubContext;
         private readonly ILogger<PlaceService> _logger;
 
         public PlaceService(
             HoTroDuLichAIDbContext dbContext,
+            IHubContext<NotificationHub> notificationHubContext,
             IImageKitIOService imagekitIOService,
             ILogger<PlaceService> logger,
             UserManager<UserEntity> userManager)
         {
             _dbContext = dbContext;
             _imagekitIOService = imagekitIOService;
+            _notificationHubContext = notificationHubContext;
             _logger = logger;
             _userManager = userManager;
         }
@@ -316,6 +320,7 @@ namespace HoTroDuLichAI.API
                                 Type = CNotificationType.Place,
                                 UserId = user.Id
                             };
+                            await _notificationHubContext.Clients.User(user.Id.ToString()).SendAsync("ReceiveNotification", $"Có yêu cầu phê duyệt địa điểm mới: {requestDto.Name}.");
                             notifications.Add(notificationEntity);
                         }
                         _dbContext.Notifications.AddRange(entities: notifications);
@@ -341,6 +346,7 @@ namespace HoTroDuLichAI.API
                             Type = CNotificationType.Place,
                             UserId = user.Id
                         };
+                        await _notificationHubContext.Clients.User(user.Id.ToString()).SendAsync("ReceiveNotification", $"Có địa điểm mới: {requestDto.Name}.");
                         notifications.Add(notificationEntity);
                     }
                     _dbContext.Notifications.AddRange(entities: notifications);

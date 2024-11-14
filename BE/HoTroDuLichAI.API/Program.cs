@@ -122,8 +122,8 @@ app.UseCors(cor =>
 {
     cor.AllowAnyHeader()
         .AllowAnyMethod()
-        .WithOrigins("http://localhost:5173") // Specify the allowed origin
-        .AllowCredentials(); // Allow credentials
+        .WithOrigins("http://localhost:5173")
+        .AllowCredentials();
 });
 
 app.UseHttpsRedirection();
@@ -139,5 +139,6 @@ app.UseAuthorization();
 app.MapRuntimeContext();
 
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();
