@@ -113,7 +113,9 @@ const Home = () => {
             ></img>
           </div>
         </div>
-        <h2 className="fw-bold text-success">Các địa điểm đến phổ biến</h2>
+        <h2 className="fw-bold text-success mt-5 mb-3">
+          Các địa điểm đến phổ biến
+        </h2>
         <div className="row">
           <div className="col-6 col-md-4 p-1">
             <FamousLocation
@@ -161,6 +163,48 @@ const Home = () => {
                 "https://bizweb.dktcdn.net/100/319/254/products/7.jpg?v=1529382490283"
               }
               title={"Sa Pa"}
+            />
+          </div>
+        </div>
+        <h2 className="fw-bold text-success mt-5 mb-4">Tin tức du lịch</h2>
+        <div className="row">
+          <div className="col-12 col-sm-6 col-md-4 px-1">
+            <NewsTravel
+              img={
+                "https://bizweb.dktcdn.net/100/319/254/products/25.jpg?v=1529382237713"
+              }
+              month={12}
+              year={2024}
+              title={"Hellod asd sad sad sadsa d sadsa dsa dasd sad s"}
+              description={
+                "abc lorem3asdsa dsad sad sad asd jsad hsakud hksadh sak dhaskd sad oisadi sad hkiasid hsad hioasd os"
+              }
+            />
+          </div>
+          <div className="col-12 col-sm-6 col-md-4 px-1">
+            <NewsTravel
+              img={
+                "https://bizweb.dktcdn.net/100/319/254/products/25.jpg?v=1529382237713"
+              }
+              month={12}
+              year={2024}
+              title={"Hellod asd sad sad sadsa d sadsa dsa dasd sad s"}
+              description={
+                "abc lorem3asdsa dsad sad sad asd jsad hsakud hksadh sak dhaskd sad oisadi sad hkiasid hsad hioasd os"
+              }
+            />
+          </div>
+          <div className="col-12 col-sm-6 col-md-4 px-1">
+            <NewsTravel
+              img={
+                "https://bizweb.dktcdn.net/100/319/254/products/25.jpg?v=1529382237713"
+              }
+              month={12}
+              year={2024}
+              title={"Hellod asd sad sad sadsa d sadsa dsa dasd sad s"}
+              description={
+                "abc lorem3asdsa dsad sad sad asd jsad hsakud hksadh sak dhaskd sad oisadi sad hkiasid hsad hioasd osd sad sad ád sad sad sad dsfg dgdfg dfg dfg dfg dfg df sadsa dsa ds adsa dsa ds dsad sad "
+              }
             />
           </div>
         </div>
@@ -322,7 +366,7 @@ const StepIntroduce = ({ number, title, description }) => {
 
 const FamousLocation = ({ img, title }) => {
   return (
-    <div className="famous-location__item position-relative">
+    <div className="famous-location__item position-relative overflow-hidden">
       <img className="w-100" src={img}></img>
       <div
         className="famous-location__item__location bg-white d-flex align-items-center position-absolute px-2 py-1"
@@ -330,6 +374,52 @@ const FamousLocation = ({ img, title }) => {
       >
         <CiLocationOn />
         <p className="m-0">{title}</p>
+      </div>
+    </div>
+  );
+};
+
+const NewsTravel = ({ img, month, year, title, description }) => {
+  return (
+    <div
+      className="news-travel__frame position-relative d-flex flex-column w-100 shadow border"
+      style={{ height: "400px" }}
+    >
+      <img className="h-50" src={img}></img>
+      <div className="news-travel__content h-50 p-2">
+        <h5
+          className="fw-bold w-100 overflow-hidden"
+          style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}
+        >
+          {title}
+        </h5>
+        <p
+          className="w-100 overflow-hidden"
+          style={{
+            textOverflow: "ellipsis",
+            height: "7.5em",
+            overflow: "hidden",
+          }}
+        >
+          {description}
+        </p>
+      </div>
+      <div
+        className="news-travel__times position-absolute d-flex flex-column p-2"
+        style={{
+          width: "70px",
+          height: "120px",
+          top: "-20px",
+          right: "10px",
+          background: "#424242b8",
+        }}
+      >
+        <p className="text-white fs-2 h-50 m-0 text-center border-1 border-bottom">
+          {month}
+        </p>
+        <p className="text-white fs-5 h-50 m-0 text-center d-flex align-items-center justify-content-center">
+          {year}
+        </p>
       </div>
     </div>
   );

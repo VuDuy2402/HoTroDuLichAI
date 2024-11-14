@@ -8,15 +8,18 @@ import { authAction } from "../../../redux/slices/authSlices";
 import { memo, useEffect, useState } from "react";
 import { userService } from "../../../services/userSerivce";
 import { publisherService } from "../../../services/publisherService";
+import { notificationService } from "../../../services/notificationService";
+import { FiBell } from "react-icons/fi";
 import UserTag from "../UserTag/UserTag";
 import {
   getAuthSelector,
   getUserProfileSelector,
   getUserRoleSelector,
 } from "../../../redux/selectors/authSelector";
+import * as signalR from "@microsoft/signalr";
 import LinkCustom from "../LinkCustom/LinkCustom";
 import { Role } from "../../../enum/permission";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Modal, Button, Form, Badge } from "react-bootstrap";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { TbLogin } from "react-icons/tb";
@@ -24,9 +27,14 @@ import { FaUserPlus } from "react-icons/fa";
 import { MdOutlineApps } from "react-icons/md";
 import DropdownCustom from "../Dropdown/Dropdown";
 import { IoLogOutSharp } from "react-icons/io5";
+import { toast } from "react-toastify";
+import NotificationPage from "../../../pages/commonpage/Notification/NotificationPage";
+import { getNoticeNumberSelector } from "../../../redux/selectors/systemSelector";
+import useSignalR from "../../../hooks/useSignalR";
+
 const contentItem = [
   { title: "Trang Chủ", url: "/" },
-  { title: "Tin Tức", url: "/khoahoc" },
+  { title: "Tin Tức", url: "/tintuc" },
   { title: "Địa điểm", url: "/khoahoc" },
 ];
 
@@ -34,6 +42,7 @@ const Navbar = ({ className }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
+  const noticeNumber = useSelector(getNoticeNumberSelector);
   const getAuth = useSelector(getAuthSelector);
   const getUserProfile = useSelector(getUserProfileSelector);
   const getUserRoles = useSelector(getUserRoleSelector);
@@ -41,6 +50,7 @@ const Navbar = ({ className }) => {
   const handleLogin = () => {
     navigate("/dangnhap");
   };
+  const [connection, setConnection] = useState(null);
   const [userProfile, setuserProfile] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -91,6 +101,40 @@ const Navbar = ({ className }) => {
   const handleCloseModal = () => {
     setShowModal(false);
   };
+
+  useEffect(() => {
+    const connectSignalR = async () => {
+      const token = localStorageService.getAccessToken();
+      const newConnection = new signalR.HubConnectionBuilder()
+        .withUrl("https://localhost:7001/notificationHub", {
+          accessTokenFactory: () => token,
+        })
+        .withAutomaticReconnect()
+        .build();
+      newConnection.on("ReceiveNotification", () => {
+        dispatch(systemAction.addNoticeNumber(1));
+      });
+      try {
+        await newConnection.start();
+        setConnection(newConnection);
+      } catch (error) {
+        console.error("Error connection:", error);
+        toast.error("Failed to connect.");
+      }
+    };
+    connectSignalR();
+    return () => {
+      connection?.stop();
+    };
+  }, []);
+
+  // const { connection } = useSignalR(
+  //   "https://localhost:7001/notificationHub",
+  //   "ReceiveNotification",
+  //   () => {
+  //     dispatch(systemAction.addNoticeNumber(1));
+  //   }
+  // );
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -190,6 +234,7 @@ const Navbar = ({ className }) => {
   return (
     <>
       <nav className={`w-100 shadow bg-white ${styles.navbar}`}>
+        <FormErrorAlert errors={errorList} />
         <div
           className={`${className} h-100 d-flex justify-content-between align-items-center`}
         >
@@ -198,7 +243,7 @@ const Navbar = ({ className }) => {
               className={`navbar__logo d-flex align-items-center ${styles.navbar_logo}`}
               onClick={() => navigate("/")}
             >
-              <p className="p-1 m-0 text-success">DU LỊCH</p>
+              <p className="p-1 m-0 text-success">DULICHDN</p>
             </div>
             <div className="navbar__content__item ms-3 d-flex gap-1 align-items-center">
               {contentItem.map((item, idx) => (
@@ -230,6 +275,17 @@ const Navbar = ({ className }) => {
                   autoClose
                   onClick={handleClickDropdownRole}
                 />
+                <DropdownCustom
+                  title={<FiBell size={20} />}
+                  classBtn={"btn btn-light rounded-0"}
+                  classDropdown={"bg-white p-2 shadow"}
+                  classItem="p-1 d-flex justify-content-center"
+                  styleDropdown={{ right: 0, width: "150px" }}
+                  autoClose
+                  noticeIcon
+                  amountNotice={noticeNumber}
+                  onClickBtn={() => dispatch(systemAction.resetNoticeNumber())}
+                />
                 {windowSize.width > 768 && (
                   <>
                     <UserTag
@@ -237,7 +293,7 @@ const Navbar = ({ className }) => {
                       onClick={handleClickUserTag}
                     />
                     <button
-                      className={`btn btn-light fw-bold rounded-0  navbar__btn__dangxuat text-warning `}
+                      className={`btn btn-light fw-bold rounded-0  navbar__btn__dangxuat text-success `}
                       onClick={() => setShowConfirmLogout(true)}
                     >
                       <IoLogOutSharp />
@@ -268,71 +324,12 @@ const Navbar = ({ className }) => {
               </>
             )}
           </div>
+          {/* {showNotifications && (
+            <NotificationPage onClose={handleCloseNotifications} />
+          )} */}
         </div>
       </nav>
 
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Trở thành người dạy đàn</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleSubmitForm}>
-            <FormErrorAlert errors={errorList} />
-            <Form.Group className="mb-3" controlId="formName">
-              <Form.Label>Họ và tên</Form.Label>
-              <Form.Control
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                required
-              />
-              <ErrorField errorList={errorList} field={"FullName_Error"} />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formEmail">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-              <ErrorField errorList={errorList} field={"Email_Error"} />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="description">
-              <Form.Label>Giới thiệu bản thân</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-              />
-              <ErrorField errorList={errorList} field={"Description_Error"} />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="videoUrl">
-              <Form.Label>Video bài giảng (URL)</Form.Label>
-              <Form.Control
-                type="url"
-                name="videoUrl"
-                value={formData.videoUrl}
-                onChange={handleInputChange}
-                required
-              />
-              <ErrorField errorList={errorList} field={"VideoUrl_Error"} />
-            </Form.Group>
-
-            <Button variant="primary" type="submit">
-              Gửi yêu cầu
-            </Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
       <Modal
         show={showConfirmLogout}
         onHide={() => setShowConfirmLogout(false)}
@@ -351,7 +348,7 @@ const Navbar = ({ className }) => {
           >
             Đóng
           </button>
-          <button className="btn btn-warning" onClick={handleLogout}>
+          <button className="btn btn-success" onClick={handleLogout}>
             Xác nhận
           </button>
         </Modal.Footer>
