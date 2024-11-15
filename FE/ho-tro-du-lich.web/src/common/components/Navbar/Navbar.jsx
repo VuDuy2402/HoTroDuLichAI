@@ -53,6 +53,7 @@ const Navbar = ({ className }) => {
   const [connection, setConnection] = useState(null);
   const [userProfile, setuserProfile] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -126,6 +127,23 @@ const Navbar = ({ className }) => {
     return () => {
       connection?.stop();
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await notificationService.countUnRead();
+        if (response && response.success) {
+          setUnreadCount(response.data);
+        }
+        else if (response.errors) {
+          setErrorList(response.errors);
+        }
+      } catch (error) {
+        toast.error("Không thể lấy số lượng thông báo.");
+      }
+    };
+    fetchUnreadCount();
   }, []);
 
   // const { connection } = useSignalR(
@@ -276,7 +294,20 @@ const Navbar = ({ className }) => {
                   onClick={handleClickDropdownRole}
                 />
                 <DropdownCustom
-                  title={<FiBell size={20} />}
+                  title={
+                    <div className="position-relative">
+                      <FiBell size={24} />
+                      {unreadCount > 0 && (
+                        <Badge
+                          bg="danger"
+                          pill
+                          className="position-absolute top-0 start-100 translate-middle"
+                        >
+                          {unreadCount}
+                        </Badge>
+                      )}
+                    </div>
+                  }
                   classBtn={"btn btn-light rounded-0"}
                   classDropdown={"bg-white p-2 shadow"}
                   classItem="p-1 d-flex justify-content-center"
@@ -293,13 +324,14 @@ const Navbar = ({ className }) => {
                       onClick={handleClickUserTag}
                     />
                     <button
-                      className={`btn btn-light fw-bold rounded-0  navbar__btn__dangxuat text-success `}
+                      className={`btn btn-light fw-bold rounded-0 navbar__btn__dangxuat text-success`}
                       onClick={() => setShowConfirmLogout(true)}
                     >
                       <IoLogOutSharp />
                     </button>
                   </>
                 )}
+
               </>
             ) : (
               <>
@@ -314,9 +346,8 @@ const Navbar = ({ className }) => {
                   )}
                 </button>
                 <button
-                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${
-                    windowSize.width > 767 ? "" : ""
-                  }`}
+                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${windowSize.width > 767 ? "" : ""
+                    }`}
                   onClick={handleRegister}
                 >
                   {windowSize.width <= 767 ? <FaUserPlus /> : "Đăng ký"}
