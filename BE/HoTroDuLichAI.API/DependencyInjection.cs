@@ -15,6 +15,7 @@ namespace HoTroDuLichAI.API
             services.AddScoped<IRoleService, RoleService>();
 
             services.AddScoped<IPlaceService, PlaceService>();
+            services.AddScoped<IArticleService, ArticleService>();
             services.AddScoped<INotificationService, NotificationService>();
 
             services.AddScoped<IMyService, MyService>();
