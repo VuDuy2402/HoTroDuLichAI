@@ -1,4 +1,6 @@
 
+using System.Text.Json.Serialization;
+
 namespace HoTroDuLichAI.API
 {
     public class PlaceDetailResponseDto
@@ -14,6 +16,8 @@ namespace HoTroDuLichAI.API
         public string Thumbnail { get; set; } = string.Empty;
         public CApprovalType ApprovalType { get; set; }
         public OwnerProperty OwnerProperty { get; set; } = null!;
+        [JsonIgnore]
+        public double Score { get; set; }
     }
 
     public class PlaceMoreInfoResponseDto : PlaceDetailResponseDto

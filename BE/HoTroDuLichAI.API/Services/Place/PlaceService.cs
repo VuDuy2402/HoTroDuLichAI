@@ -52,7 +52,9 @@ namespace HoTroDuLichAI.API
             }
             try
             {
-                IQueryable<PlaceEntity> collection = _dbContext.Places.Include(pl => pl.User);
+                IQueryable<PlaceEntity> collection = _dbContext.Places
+                    .Include(pl => pl.User)
+                    .Include(pl => pl.ReviewPlaces);
                 var currentUser = RuntimeContext.CurrentUser;
                 if (param.IsAdmin)
                 {
@@ -81,6 +83,10 @@ namespace HoTroDuLichAI.API
                         return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
                     }
                     collection = collection.Where(c => c.UserId == currentUser.Id);
+                }
+                if (param.IsNew)
+                {
+                    collection = collection.Where(c => c.IsNew);
                 }
                 if (!string.IsNullOrEmpty(param.SearchQuery))
                 {
@@ -111,6 +117,14 @@ namespace HoTroDuLichAI.API
                     {
                         collection = collection.Where(pl => pl.CreatedDate <= filter.ToDate.Value);
                     }
+                }
+                if (!param.IsMy && !param.IsAdmin)
+                {
+                    collection = collection.Where(c => c.Appoved == CApprovalType.Accepted)
+                        .OrderByDescending(pl => ((pl.TotalView * 0.3) +
+                            (pl.Rating * 0.5) +
+                            (pl.ReviewPlaces.Count * 0.2) +
+                            (new Random().NextDouble() * 0.1)));
                 }
                 if (param.SortProperty != null)
                 {
