@@ -14,7 +14,11 @@ namespace HoTroDuLichAI
         private readonly IReviewPlaceService _reviewPlaceSevice;
         private readonly ILogger<ItineraryService> _logger;
 
-        public ItineraryService(HoTroDuLichAIDbContext dbContext, UserManager<UserEntity> userManager, PlaceService placeService, IReviewPlaceService reviewPlaceSevice, ILogger<ItineraryService> logger)
+        public ItineraryService(HoTroDuLichAIDbContext dbContext,
+            UserManager<UserEntity> userManager,
+            IPlaceService placeService,
+            IReviewPlaceService reviewPlaceSevice,
+            ILogger<ItineraryService> logger)
         {
             _dbContext = dbContext;
             _userManager = userManager;
@@ -45,7 +49,7 @@ namespace HoTroDuLichAI
             try
             {
                 IQueryable<ItineraryEntity> collection = _dbContext.Itineraries.Include(it => it.User)
-                                                                                .Include(it => it.ItineraryDetails);
+                    .Include(it => it.ItineraryDetails);
                 var currentUser = RuntimeContext.CurrentUser;
                 if (param.IsAdmin)
                 {
@@ -90,7 +94,7 @@ namespace HoTroDuLichAI
                         {
                             collection = sorter.IsASC ? collection.OrderBy(it => it.Name) : collection.OrderByDescending(it => it.Name);
                         }
-                        if (sorter.KeyName.Equals(nameof(ItineraryEntity.UpdatedDate), StringComparer.OrdinalIgnoreCase))
+                        if (sorter.KeyName.Equals(value: nameof(ItineraryEntity.UpdatedDate), comparisonType: StringComparison.OrdinalIgnoreCase))
                         {
                             collection = sorter.IsASC ? collection.OrderBy(it => it.UpdatedDate) : collection.OrderByDescending(it => it.UpdatedDate);
                         }
@@ -361,7 +365,7 @@ namespace HoTroDuLichAI
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return null;
+                return new();
             }
         }
     }

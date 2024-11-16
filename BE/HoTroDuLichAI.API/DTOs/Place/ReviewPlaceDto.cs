@@ -4,7 +4,7 @@ namespace HoTroDuLichAI.API
     {
         public Guid Id { get; set; }
         public long Rating { get; set; }
-        public string Comment { get; set; }
+        public string Comment { get; set; } = string.Empty;
         public DateTimeOffset CreatedDate { get; set; }
         public Guid UserId { get; set; }
         public UserEntity User { get; set; } = null!;

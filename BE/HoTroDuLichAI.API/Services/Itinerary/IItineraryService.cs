@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+
 namespace HoTroDuLichAI.API
 {
     public interface IItineraryService

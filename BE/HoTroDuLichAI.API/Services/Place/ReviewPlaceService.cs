@@ -11,8 +11,8 @@ namespace HoTroDuLichAI.API
 
         public ReviewPlaceSerice
         (
-                    HoTroDuLichAIDbContext dbContext,
-                    ILogger<PlaceService> logger
+            HoTroDuLichAIDbContext dbContext,
+            ILogger<PlaceService> logger
         )
         {
             _dbContext = dbContext;
@@ -24,7 +24,7 @@ namespace HoTroDuLichAI.API
             var result = await _dbContext.ReviewPlaces.Where(x => x.PlaceId == placeId).ToListAsync();
             if (result.IsNullOrEmpty())
             {
-                _logger.LogWarning("No review exist for PlaceId: ", placeId);
+                _logger.LogWarning($"No review exist for PlaceId: {placeId}");
                 return new List<ReviewPlaceDto>();
             }
             return result.Adapt<List<ReviewPlaceDto>>();
