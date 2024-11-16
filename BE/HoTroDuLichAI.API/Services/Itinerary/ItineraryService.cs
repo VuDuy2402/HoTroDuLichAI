@@ -104,6 +104,7 @@ namespace HoTroDuLichAI
                 var pagedList = await PagedList<ItineraryEntity>.ToPagedListAsync(source: collection, pageNumber: param.PageNumber, pageSize: param.PageSize);
                 var selected = pagedList.Select(it => new ItineraryDto
                 {
+                    Id = it.Id,
                     Name = it.Name,
                     CreatedDate = it.CreatedDate,
                     UpdatedDate = it.UpdatedDate,
@@ -227,6 +228,7 @@ namespace HoTroDuLichAI
                 var pagedList = await PagedList<ItineraryDetailEntity>.ToPagedListAsync(source: collection, pageNumber: param.PageNumber, pageSize: param.PageSize);
                 List<ItineraryDetailDto>? selected = pagedList.Select(it => new ItineraryDetailDto
                 {
+                    Id = it.Id,
                     Index = it.Index,
                     CreatedDate = it.CreatedDate,
                     Time = it.Time,

@@ -101,7 +101,7 @@ namespace HoTroDuLichAI.API
                 if (param.FilterProperty != null)
                 {
                     var filter = param.FilterProperty;
-                    if (filter.ApprovalType.HasValue)
+                    if (filter.ApprovalType.HasValue && param.IsAdmin)
                     {
                         collection = collection.Where(pl => pl.Appoved == filter.ApprovalType.Value);
                     }

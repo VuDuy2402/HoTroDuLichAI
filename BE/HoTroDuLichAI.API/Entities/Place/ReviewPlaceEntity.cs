@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HoTroDuLichAI.API
 {
+    [Table(name: "Customer_ReviewPlace")]
     public class ReviewPlaceEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
