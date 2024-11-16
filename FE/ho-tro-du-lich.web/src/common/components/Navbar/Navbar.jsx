@@ -35,7 +35,7 @@ import useSignalR from "../../../hooks/useSignalR";
 const contentItem = [
   { title: "Trang Chủ", url: "/" },
   { title: "Tin Tức", url: "/tintuc" },
-  { title: "Địa điểm", url: "/khoahoc" },
+  { title: "Địa điểm", url: "/diadiem" },
 ];
 
 const Navbar = ({ className }) => {
@@ -135,8 +135,7 @@ const Navbar = ({ className }) => {
         const response = await notificationService.countUnRead();
         if (response && response.success) {
           setUnreadCount(response.data);
-        }
-        else if (response.errors) {
+        } else if (response.errors) {
           setErrorList(response.errors);
         }
       } catch (error) {
@@ -272,7 +271,7 @@ const Navbar = ({ className }) => {
                   className={
                     item.url === location.pathname
                       ? "text-success fw-bold"
-                      : "text-black fw-bold"
+                      : "text-black"
                   }
                 />
               ))}
@@ -331,7 +330,6 @@ const Navbar = ({ className }) => {
                     </button>
                   </>
                 )}
-
               </>
             ) : (
               <>
@@ -346,8 +344,9 @@ const Navbar = ({ className }) => {
                   )}
                 </button>
                 <button
-                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${windowSize.width > 767 ? "" : ""
-                    }`}
+                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${
+                    windowSize.width > 767 ? "" : ""
+                  }`}
                   onClick={handleRegister}
                 >
                   {windowSize.width <= 767 ? <FaUserPlus /> : "Đăng ký"}

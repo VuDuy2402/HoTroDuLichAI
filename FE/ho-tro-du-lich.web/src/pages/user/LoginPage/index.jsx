@@ -1,6 +1,6 @@
 import LoginForm from "./LoginForm";
 import styles from "./Login.module.scss";
-import cauVangImg from "../../assets/img/cauvang.jpg";
+import cauVangImg from "@/assets/img/cauvang.jpg";
 const LoginPage = () => {
   return (
     <div

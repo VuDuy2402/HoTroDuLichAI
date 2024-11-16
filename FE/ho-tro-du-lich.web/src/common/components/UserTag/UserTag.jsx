@@ -41,7 +41,7 @@ const UserTag = ({ profile, onClick, size }) => {
           }
         ></img>
         <p
-          className="m-0 fw-bold"
+          className="m-0"
           style={{
             maxWidth: "100px",
             overflow: "hidden",

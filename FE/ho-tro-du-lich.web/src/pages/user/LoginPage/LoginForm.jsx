@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { authService } from "../../services/authServices";
+import { authService } from "@/services/authServices";
 import styles from "./Login.module.scss";
 import { useForm } from "react-hook-form";
-import { localStorageService } from "../../services/localstorageService";
+import { localStorageService } from "@/services/localstorageService";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { systemAction } from "../../redux/slices/systemSlice";
-import FormErrorAlert from "../../common/components/FormErrorAlert/FormErrorAlert";
-import ErrorField from "../../common/components/ErrorField/ErrorField";
+import { systemAction } from "@/redux/slices/systemSlice";
+import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { toast } from "react-toastify";
 const LoginForm = () => {

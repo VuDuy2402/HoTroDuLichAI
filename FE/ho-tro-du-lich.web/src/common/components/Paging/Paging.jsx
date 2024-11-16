@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 const pageDisplay = 5;
-const Paging = ({ data, onChange }) => {
+const Paging = ({ data, onChange, classActive, classDeactive }) => {
   const [listPaging, setListPaging] = useState([]);
 
   useEffect(() => {
@@ -64,7 +64,11 @@ const Paging = ({ data, onChange }) => {
             key={page}
             className={`btn border ${
               page === data.currentPage
-                ? "btn-warning"
+                ? classActive
+                  ? classActive
+                  : "btn-warning"
+                : classDeactive
+                ? classDeactive
                 : "btn-outline-secondary"
             }`}
           >

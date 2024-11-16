@@ -5,12 +5,12 @@ import { CiLocationOn } from "react-icons/ci";
 import "./Home.scss";
 import { toast } from "react-toastify";
 import * as signalR from "@microsoft/signalr";
-import { localStorageService } from "../../services/localstorageService";
-import { placeService } from "../../services/placeService";
+import { localStorageService } from "../../../services/localstorageService";
+import { placeService } from "../../../services/placeService";
 import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
-import { articleService } from "../../services/articleService";
+import { articleService } from "../../../services/articleService";
 const Home = () => {
   const navigate = useNavigate();
   const [famousPlace, setFamousPlace] = useState([]);
@@ -231,24 +231,7 @@ const Home = () => {
             >
               {newPlace.map((place) => (
                 <SwiperSlide key={place.placeId}>
-                  <div
-                    className="new-place-frame d-flex flex-column p-2"
-                    style={{
-                      height: "400px",
-                      backgroundImage: `url(${place.thumbnail})`,
-                      backgroundPosition: "center",
-                      backgroundSize: "cover",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div className="new-place-frame__content w-100 h-100 d-flex justify-content-center align-items-end">
-                      <div className="content-place w-100 p-2 d-flex align-items-center justify-content-center">
-                        <p className="text-center text-white fw-bold fs-4 m-0">
-                          {place.name}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <NewHotPlace place={place} />
                 </SwiperSlide>
               ))}
             </Swiper>
@@ -354,6 +337,29 @@ const FamousLocation = ({ img, title }) => {
       >
         <CiLocationOn />
         <p className="m-0">{title}</p>
+      </div>
+    </div>
+  );
+};
+
+const NewHotPlace = ({ place }) => {
+  return (
+    <div
+      className="new-place-frame d-flex flex-column p-2"
+      style={{
+        height: "400px",
+        backgroundImage: `url(${place.thumbnail})`,
+        backgroundPosition: "center",
+        backgroundSize: "cover",
+        cursor: "pointer",
+      }}
+    >
+      <div className="new-place-frame__content w-100 h-100 d-flex justify-content-center align-items-end">
+        <div className="content-place w-100 p-2 d-flex align-items-center justify-content-center">
+          <p className="text-center text-white fw-bold fs-4 m-0">
+            {place.name}
+          </p>
+        </div>
       </div>
     </div>
   );

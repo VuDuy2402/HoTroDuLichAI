@@ -1,14 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import styles from "./Register.module.scss";
 import { useForm } from "react-hook-form";
-import { authService } from "../../services/authServices";
+import { authService } from "@/services/authServices";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { systemAction } from "../../redux/slices/systemSlice";
-import FormErrorAlert from "../../common/components/FormErrorAlert/FormErrorAlert";
-import ErrorField from "../../common/components/ErrorField/ErrorField";
+import { systemAction } from "@/redux/slices/systemSlice";
+import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { toast } from "react-toastify";
-import { toQueryString } from "../../utils/queryParams";
+import { toQueryString } from "@/utils/queryParams";
 
 const RegisterForm = () => {
   const navigate = useNavigate();

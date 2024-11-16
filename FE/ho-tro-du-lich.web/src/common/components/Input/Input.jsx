@@ -12,7 +12,7 @@ const Input = ({
   return (
     <>
       {register && (
-        <div className={`${col}`}>
+        <div className={`${col ? col : "w-100"}`}>
           {label && (
             <label
               className={`${classLabel ? classLabel : "fw-bold"}`}
@@ -24,13 +24,13 @@ const Input = ({
           <input
             id={id}
             className={`form-control ${className}`}
-            {...register(name, validate)}
             {...others}
+            {...register(name, validate)}
           />
         </div>
       )}
       {!register && (
-        <div className={`${col}`}>
+        <div className={`${col ? col : "w-100"}`}>
           {label && (
             <label
               className={`${classLabel ? classLabel : "fw-bold"}`}
