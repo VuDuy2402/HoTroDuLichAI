@@ -8,7 +8,15 @@ namespace HoTroDuLichAI.API
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
+        public string Thumbnail { get; set; } = string.Empty;
         public CArticleType Type { get; set; }
+        public string ImageProperty { get; set; } = string.Empty;
+        [NotMapped]
+        public List<ImageProperty> ImageProperties
+        {
+            get => ImageProperty.FromJson<List<ImageProperty>>();
+            set => ImageProperty = value.ToJson();
+        }
         private DateTimeOffset _createdDate = DateTimeOffset.UtcNow;
         public DateTimeOffset CreatedDate
         {

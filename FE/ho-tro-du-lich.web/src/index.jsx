@@ -5,6 +5,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "leaflet/dist/leaflet.css";
 import "react-toastify/ReactToastify.css";
+import "swiper/css";
+import "swiper/css/navigation";
 import App from "./App";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

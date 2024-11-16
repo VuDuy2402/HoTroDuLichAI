@@ -10,16 +10,17 @@ namespace HoTroDuLichAI.API
         {
         }
 
-        public DbSet<LinkHelperEntity> LinkHelpers { get; set; }
-        public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; }
-        public new DbSet<UserTokenEntity> UserTokens { get; set; }
-        public DbSet<MessageEntity> Messages { get; set; }
-        public DbSet<NotificationEntity> Notifications { get; set; }
-        public DbSet<PlaceEntity> Places { get; set; }
-        public DbSet<ItineraryDetailEntity> ItineraryDetails { get; set; }
-        public DbSet<ItineraryEntity> Itineraries { get; set; }
-        public DbSet<BusinessEntity> Businesses { get; set; }
-        public DbSet<ReviewPlaceEntity> ReviewPlaces { get; set; }
+        public DbSet<LinkHelperEntity> LinkHelpers { get; set; } = null!;
+        public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; } = null!;
+        public new DbSet<UserTokenEntity> UserTokens { get; set; } = null!;
+        public DbSet<MessageEntity> Messages { get; set; } = null!;
+        public DbSet<NotificationEntity> Notifications { get; set; } = null!;
+        public DbSet<PlaceEntity> Places { get; set; } = null!;
+        public DbSet<ItineraryDetailEntity> ItineraryDetails { get; set; } = null!;
+        public DbSet<ItineraryEntity> Itineraries { get; set; } = null!;
+        public DbSet<BusinessEntity> Businesses { get; set; } = null!;
+        public DbSet<ReviewPlaceEntity> ReviewPlaces { get; set; } = null!;
+        public DbSet<ArticleEntity> Articles { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

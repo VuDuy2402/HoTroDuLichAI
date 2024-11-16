@@ -1,30 +1,86 @@
-import CardTag from "./component/CardTag/CardTag";
-import mainimg from "../../assets/img/—Pngtree—big isolated cartoon character vector_7256413.png";
-import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { systemAction } from "../../redux/slices/systemSlice";
 import { FaSearch } from "react-icons/fa";
-import LinkCustom from "../../common/components/LinkCustom/LinkCustom";
 import { useNavigate } from "react-router-dom";
 import bgKH from "@/assets/img/bgkh.webp";
 import { CiLocationOn } from "react-icons/ci";
 import "./Home.scss";
+import { toast } from "react-toastify";
+import * as signalR from "@microsoft/signalr";
+import { localStorageService } from "../../services/localstorageService";
+import { placeService } from "../../services/placeService";
+import { useEffect, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay } from "swiper/modules";
+import { articleService } from "../../services/articleService";
 const Home = () => {
   const navigate = useNavigate();
-  // const [listCourseIntake, setListCourseIntake] = useState([]);
-  // const dispatch = useDispatch();
-  // useEffect(() => {
-  //   const fetchApi = async () => {
-  //     dispatch(systemAction.enableLoading());
-  //     const data = CourseIntakePagingDto;
-  //     const result = await courseIntakeService.paging(data);
-  //     if (result.success) {
-  //       setListCourseIntake(result.data.items);
-  //     }
-  //     dispatch(systemAction.disableLoading());
-  //   };
-  //   fetchApi();
-  // }, []);
+  const [famousPlace, setFamousPlace] = useState([]);
+  const [newPlace, setNewPlace] = useState([]);
+  const [article, setArticle] = useState([]);
+  const connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:7001/notificationHub", {
+      accessTokenFactory: () => localStorageService.getAccessToken(),
+    })
+    .withAutomaticReconnect()
+    .build();
+  connection.on("ReceiveNotification", function (message) {
+    toast.success(message);
+  });
+
+  connection.start().catch(function (err) {
+    return console.error(err.toString());
+  });
+
+  const handlePlaceFamous = async () => {
+    const dataSend = {
+      pageNumber: 1,
+      pageSize: 6,
+      searchQuery: "",
+      filterProperty: {},
+      sortProperty: {},
+    };
+    const result = await placeService.getWithPaging(dataSend);
+    if (result) {
+      if (result.success) {
+        console.log(result);
+        setFamousPlace([...result.data.items]);
+      }
+    }
+  };
+  const handlePlaceNew = async () => {
+    const dataSend = {
+      pageNumber: 1,
+      pageSize: 6,
+      searchQuery: "",
+      filterProperty: {},
+      sortProperty: {},
+    };
+    const result = await placeService.getNewPlacePaging(dataSend);
+    if (result) {
+      if (result.success) {
+        console.log(result);
+        setNewPlace([...result.data.items]);
+      }
+    }
+  };
+  const handleArticle = async () => {
+    const dataSend = {
+      pageNumber: 1,
+      pageSize: 6,
+      searchQuery: "",
+    };
+    const result = await articleService.paging(dataSend);
+    if (result) {
+      if (result.success) {
+        console.log(result);
+        setArticle([...result.data.items]);
+      }
+    }
+  };
+  useEffect(() => {
+    handlePlaceFamous();
+    handlePlaceNew();
+    handleArticle();
+  }, []);
   return (
     <>
       <div
@@ -67,25 +123,28 @@ const Home = () => {
         </div>
       </div>
       {/* ---------------------- */}
-      <div
-        className="frame-three-steps border-1 border-bottom d-flex justify-content-between p-3"
-        style={{ height: "150px" }}
-      >
-        <StepIntroduce
-          number={1}
-          title={"Địa Điểm Hot Nhất"}
-          description={"Cập nhật các địa điểm hot nhanh chóng"}
-        />
-        <StepIntroduce
-          number={2}
-          title={"Tin Tức Du Lịch Mới Nhất"}
-          description={"Tin tức về các địa điểm du lịch mới nhất"}
-        />
-        <StepIntroduce
-          number={3}
-          title={"Định Vị Chính Xác"}
-          description={"Xác định địa điểm du lịch chính xác nhất"}
-        />
+      <div className="row py-3 border-1 border-bottom">
+        <div className="col-12 col-md-4 py-4">
+          <StepIntroduce
+            number={1}
+            title={"Địa Điểm Hot Nhất"}
+            description={"Cập nhật các địa điểm hot nhanh chóng"}
+          />
+        </div>
+        <div className="col-12 col-md-4 py-4">
+          <StepIntroduce
+            number={2}
+            title={"Tin Tức Du Lịch Mới Nhất"}
+            description={"Tin tức về các địa điểm du lịch mới nhất"}
+          />
+        </div>
+        <div className="col-12 col-md-4 py-4">
+          <StepIntroduce
+            number={3}
+            title={"Định Vị Chính Xác"}
+            description={"Xác định địa điểm du lịch chính xác nhất"}
+          />
+        </div>
       </div>
 
       <div className="container">
@@ -116,190 +175,152 @@ const Home = () => {
             ></img>
           </div>
         </div>
-        <h2 className="fw-bold text-success">Các địa điểm đến phổ biến</h2>
+        <h2
+          className="fw-bold text-success mt-5 mb-3"
+          style={{ cursor: "pointer" }}
+        >
+          Các địa điểm nổi bật
+        </h2>
         <div className="row">
-          <div className="col-6 col-md-4 p-1">
-            <FamousLocation
-              img={
-                "https://bizweb.dktcdn.net/100/319/254/products/2.jpg?v=1529381089257"
-              }
-              title={"Đà Lạt"}
-            />
-          </div>
-          <div className="col-6 col-md-4 p-1">
-            <FamousLocation
-              img={
-                "https://bizweb.dktcdn.net/100/319/254/products/9.jpg?v=1529381887240"
-              }
-              title={"Phú Quốc"}
-            />
-          </div>
-          <div className="col-6 col-md-4 p-1">
-            <FamousLocation
-              img={
-                "https://bizweb.dktcdn.net/100/319/254/products/16.jpg?v=1529382039330"
-              }
-              title={"Cần Thơ"}
-            />
-          </div>
-          <div className="col-6 col-md-4 p-1">
-            <FamousLocation
-              img={
-                "https://bizweb.dktcdn.net/100/319/254/products/25.jpg?v=1529382237713"
-              }
-              title={"Đà Nẵng"}
-            />
-          </div>
-          <div className="col-6 col-md-4 p-1">
-            <FamousLocation
-              img={
-                "https://bizweb.dktcdn.net/100/319/254/products/1.jpg?v=1529382365957"
-              }
-              title={"Hạ Long"}
-            />
-          </div>
-          <div className="col-6 col-md-4 p-1">
-            <FamousLocation
-              img={
-                "https://bizweb.dktcdn.net/100/319/254/products/7.jpg?v=1529382490283"
-              }
-              title={"Sa Pa"}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="">
-        <div className="my-5 text-center">
-          <h1 className="text-primary">Top điểm đến nổi tiếng</h1>
-          <div className="d-flex flex-row justify-content-center gap-3 px-3">
-            <div className="">
-              <div className="">
-                <img
-                  src="/src/assets/img/cauvang.jpg"
-                  alt=""
-                  className="w-100 h-100"
-                />
-              </div>
-              <div className="mt-3">
-                <h3 className="fs-5 text-left">Cầu Vàng Đà Nẵng</h3>
-              </div>
-              <button type="button" className="btn btn-primary">
-                Xem chi tiết
-              </button>
+          {famousPlace.map((place) => (
+            <div key={place.placeId} className="col-6 col-md-4 p-1">
+              <FamousLocation img={place.thumbnail} title={place.name} />
             </div>
-            <div className="">
-              <div className="">
-                <img
-                  src="/src/assets/img/bgHoiAn.jpg"
-                  alt=""
-                  className="w-100 h-100"
-                />
-              </div>
-              <div className="mt-3">
-                <h3 className="fs-5 text-left">Phố Cổ Hội An</h3>
-              </div>
-              <button type="button" className="btn btn-primary">
-                Xem chi tiết
-              </button>
-            </div>
-            <div className="">
-              <div className="">
-                <img
-                  src="/src/assets/img/bgHoiAn.jpg"
-                  alt=""
-                  className="w-100 h-100"
-                />
-              </div>
-              <div className="mt-3">
-                <h3 className="fs-5 text-left">Cố đô Huế</h3>
-              </div>
-              <button type="button" className="btn btn-primary">
-                Xem chi tiết
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="">
-        <div className="my-3 text-center">
-          <h1 className="text-primary">Tìm hiểu thêm về các tours du lịch</h1>
-          <div className="d-flex flex-row justify-content-center gap-3 px-3">
-            <div className="">
-              <div className="">
-                <img
-                  src="/src/assets/img/cauvang.jpg"
-                  alt=""
-                  className="w-100 h-100"
-                />
-              </div>
-              <div className="mt-3">
-                <div className="fs-6" style={{ textAlign: "right" }}>
-                  NEW - 19 Oct 2024
-                </div>
-                <h3 className="fs-5 text-left">Lan Ha Bay in Vietnam</h3>
-              </div>
-            </div>
-            <div className="">
-              <div className="">
-                <img
-                  src="/src/assets/img/bgHoiAn.jpg"
-                  alt=""
-                  className="w-100 h-100"
-                />
-              </div>
-              <div className="mt-3">
-                <div className="fs-6" style={{ textAlign: "right" }}>
-                  NEW - 19 Oct 2024
-                </div>
-                <h3 className="fs-5 text-left">
-                  Best Time to Visit Phu Quoc Island in Vietnam
-                </h3>
-              </div>
-            </div>
-            <div className="">
-              <div className="">
-                <img
-                  src="/src/assets/img/bgHoiAn.jpg"
-                  alt=""
-                  className="w-100 h-100"
-                />
-              </div>
-              <div className="mt-3">
-                <div className="fs-6" style={{ textAlign: "right" }}>
-                  NEW - 19 Oct 2024
-                </div>
-                <h3 className="fs-5 text-left">
-                  Ninh Binh – Halong Bay on Land
-                </h3>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
       <div
-        className=""
+        className="container-fluid p-5"
+        style={{
+          backgroundImage:
+            "url('https://bizweb.dktcdn.net/100/299/077/themes/642224/assets/sec_inbound_tour_bg.png?1705894497089')",
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+        }}
+      >
+        <div className="container">
+          <h2
+            className="fw-bold text-success mt-5 mb-3"
+            style={{ cursor: "pointer" }}
+          >
+            Các địa điểm mới
+          </h2>
+          <div className="row">
+            <Swiper
+              className="new-place-frame-swiper"
+              modules={[Navigation, Autoplay]}
+              spaceBetween={20}
+              slidesPerView={3}
+              // autoplay
+              loop
+              navigation
+              breakpoints={{
+                0: {
+                  slidesPerView: 1,
+                  spaceBetween: 10,
+                },
+                768: {
+                  slidesPerView: 2,
+                  spaceBetween: 20,
+                },
+                1024: {
+                  slidesPerView: 3,
+                  spaceBetween: 30,
+                },
+              }}
+            >
+              {newPlace.map((place) => (
+                <SwiperSlide key={place.placeId}>
+                  <div
+                    className="new-place-frame d-flex flex-column p-2"
+                    style={{
+                      height: "400px",
+                      backgroundImage: `url(${place.thumbnail})`,
+                      backgroundPosition: "center",
+                      backgroundSize: "cover",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div className="new-place-frame__content w-100 h-100 d-flex justify-content-center align-items-end">
+                      <div className="content-place w-100 p-2 d-flex align-items-center justify-content-center">
+                        <p className="text-center text-white fw-bold fs-4 m-0">
+                          {place.name}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+        </div>
+      </div>
+      <div className="container mb-3">
+        <h2 className="fw-bold text-success mt-5 mb-4">Tin tức du lịch</h2>
+        <div className="row">
+          {
+            <Swiper
+              className="new-place-frame-swiper"
+              modules={[Navigation, Autoplay]}
+              spaceBetween={20}
+              slidesPerView={3}
+              // autoplay
+              loop
+              navigation
+              breakpoints={{
+                0: {
+                  slidesPerView: 1,
+                  spaceBetween: 10,
+                },
+                640: {
+                  slidesPerView: 2,
+                  spaceBetween: 20,
+                },
+                1024: {
+                  slidesPerView: 3,
+                  spaceBetween: 30,
+                },
+              }}
+            >
+              {article.map((news) => (
+                <SwiperSlide className="pt-3" key={news.placeId}>
+                  <NewsTravel
+                    img={news.thumbnail}
+                    month={new Date(news.createdDate).getMonth() + 1}
+                    year={new Date(news.createdDate).getFullYear()}
+                    title={news.title}
+                    description={news.content}
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          }
+        </div>
+      </div>
+      <div
+        className="container-fluid p-3"
         style={{
           backgroundImage: `url(${bgKH})`,
           backgroundPosition: "center",
           backgroundSize: "cover",
         }}
       >
-        <div className="my-3 text-center mb-10">
-          <h1 className="text-primary">Khách hàng đánh giá</h1>
-          <div className="fs-6">
-            Mục tiêu hàng đầu của chúng tôi là sự hài lòng của khách hàng
-          </div>
-          <div>
-            Faucibus tristique felis potenti ultrices ornare rhoncus semper hac
-            facilisi Rutrum tellus lorem sem velit nisi non.
-          </div>
-          <div>
-            Đặt chuyến tham quan ngay hôm nay và tận hưởng khoản tiết kiệm độc
-            quyền cho bất kỳ chuyến đi nào bạn đặt trong tương lai! Không có
-            giới hạn thời gian hoặc ngày hết hạn đối với những khoản tiết kiệm
-            này
+        <div className="my-3 text-center mb-10 text-white p-3">
+          <h1 className="text-success mb-3">Khách hàng đánh giá</h1>
+          <div className="p-2" style={{ background: "#00000085" }}>
+            <p className="m-0">
+              Mục tiêu hàng đầu của chúng tôi là sự hài lòng của khách hàng
+            </p>
+            <p className="m-0">
+              Faucibus tristique felis potenti ultrices ornare rhoncus semper
+              hac facilisi Rutrum tellus lorem sem velit nisi non.
+            </p>
+            <p className="m-0">
+              Đặt chuyến tham quan ngay hôm nay và tận hưởng khoản tiết kiệm độc
+              quyền cho bất kỳ chuyến đi nào bạn đặt trong tương lai! Không có
+              giới hạn thời gian hoặc ngày hết hạn đối với những khoản tiết kiệm
+              này
+            </p>
           </div>
         </div>
       </div>
@@ -325,14 +346,60 @@ const StepIntroduce = ({ number, title, description }) => {
 
 const FamousLocation = ({ img, title }) => {
   return (
-    <div className="famous-location__item position-relative">
-      <img className="w-100" src={img}></img>
+    <div className="famous-location__item position-relative overflow-hidden h-100 w-100">
+      <img className="w-100 h-100" src={img}></img>
       <div
         className="famous-location__item__location bg-white d-flex align-items-center position-absolute px-2 py-1"
         style={{ bottom: 0, right: 0 }}
       >
         <CiLocationOn />
         <p className="m-0">{title}</p>
+      </div>
+    </div>
+  );
+};
+
+const NewsTravel = ({ img, month, year, title, description }) => {
+  return (
+    <div
+      className="news-travel__frame position-relative d-flex flex-column w-100 shadow border"
+      style={{ height: "400px" }}
+    >
+      <img className="h-50" src={img}></img>
+      <div className="news-travel__content h-50 p-2">
+        <h5
+          className="fw-bold w-100 overflow-hidden"
+          style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}
+        >
+          {title}
+        </h5>
+        <p
+          className="w-100 overflow-hidden"
+          style={{
+            textOverflow: "ellipsis",
+            height: "7.5em",
+            overflow: "hidden",
+          }}
+        >
+          {description}
+        </p>
+      </div>
+      <div
+        className="news-travel__times position-absolute d-flex flex-column p-2"
+        style={{
+          width: "70px",
+          height: "120px",
+          top: "-20px",
+          right: "10px",
+          background: "#424242b8",
+        }}
+      >
+        <p className="text-white fs-2 h-50 m-0 text-center border-1 border-bottom">
+          {month}
+        </p>
+        <p className="text-white fs-5 h-50 m-0 text-center d-flex align-items-center justify-content-center">
+          {year}
+        </p>
       </div>
     </div>
   );

@@ -1,3 +1,22 @@
 .famous-location__item {
   cursor: pointer;
+  img {
+  }
+  &:hover {
+    img {
+      transform: scale(1.2);
+      transition: transform 0.3s ease;
+    }
+  }
+}
+.new-place-frame-swiper {
+  .swiper-button-next,
+  .swiper-button-prev {
+    color: rgb(25 135 84);
+  }
+  .new-place-frame__content {
+    .content-place {
+      background-color: rgba(0, 0, 0, 0.539);
+    }
+  }
 }

@@ -18,6 +18,14 @@ export const routes = [
     // errorElement: <Navigate to="/error" />,
     layout: <MainLayout />,
   },
+  // {
+  //   path: "/test",
+  //   component: <Test />,
+  //   checkAuth: false,
+  //   roles: [],
+  //   // errorElement: <Navigate to="/error" />,
+  //   layout: <MainLayout />,
+  // },
   {
     path: "/chat",
     component: <ChatUI />,

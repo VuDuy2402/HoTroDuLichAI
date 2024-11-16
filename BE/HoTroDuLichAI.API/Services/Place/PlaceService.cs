@@ -1,6 +1,7 @@
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace HoTroDuLichAI.API
@@ -10,16 +11,19 @@ namespace HoTroDuLichAI.API
         private readonly HoTroDuLichAIDbContext _dbContext;
         private readonly UserManager<UserEntity> _userManager;
         private readonly IImageKitIOService _imagekitIOService;
+        private readonly IHubContext<NotificationHub> _notificationHubContext;
         private readonly ILogger<PlaceService> _logger;
 
         public PlaceService(
             HoTroDuLichAIDbContext dbContext,
+            IHubContext<NotificationHub> notificationHubContext,
             IImageKitIOService imagekitIOService,
             ILogger<PlaceService> logger,
             UserManager<UserEntity> userManager)
         {
             _dbContext = dbContext;
             _imagekitIOService = imagekitIOService;
+            _notificationHubContext = notificationHubContext;
             _logger = logger;
             _userManager = userManager;
         }
@@ -48,7 +52,9 @@ namespace HoTroDuLichAI.API
             }
             try
             {
-                IQueryable<PlaceEntity> collection = _dbContext.Places.Include(pl => pl.User);
+                IQueryable<PlaceEntity> collection = _dbContext.Places
+                    .Include(pl => pl.User)
+                    .Include(pl => pl.ReviewPlaces);
                 var currentUser = RuntimeContext.CurrentUser;
                 if (param.IsAdmin)
                 {
@@ -77,6 +83,10 @@ namespace HoTroDuLichAI.API
                         return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
                     }
                     collection = collection.Where(c => c.UserId == currentUser.Id);
+                }
+                if (param.IsNew)
+                {
+                    collection = collection.Where(c => c.IsNew);
                 }
                 if (!string.IsNullOrEmpty(param.SearchQuery))
                 {
@@ -107,6 +117,14 @@ namespace HoTroDuLichAI.API
                     {
                         collection = collection.Where(pl => pl.CreatedDate <= filter.ToDate.Value);
                     }
+                }
+                if (!param.IsMy && !param.IsAdmin)
+                {
+                    collection = collection.Where(c => c.Appoved == CApprovalType.Accepted)
+                        .OrderByDescending(pl => ((pl.TotalView * 0.3) +
+                            (pl.Rating * 0.5) +
+                            (pl.ReviewPlaces.Count * 0.2) +
+                            (new Random().NextDouble() * 0.1)));
                 }
                 if (param.SortProperty != null)
                 {
@@ -299,11 +317,10 @@ namespace HoTroDuLichAI.API
                     ImageGallery = imageProperties.ToJson()
                 };
                 _dbContext.Places.Add(entity: placeEntity);
+                var adminUsers = await _userManager.GetUsersInRoleAsync(roleName: CRoleType.Admin.ToString());
                 if (!hasAdminRole)
                 {
                     // if normal user need send notification to admin handle request add new Place.
-
-                    var adminUsers = await _userManager.GetUsersInRoleAsync(roleName: CRoleType.Admin.ToString());
                     if (!adminUsers.IsNullOrEmpty())
                     {
                         var notifications = new List<NotificationEntity>();
@@ -317,6 +334,8 @@ namespace HoTroDuLichAI.API
                                 Type = CNotificationType.Place,
                                 UserId = user.Id
                             };
+                            await _notificationHubContext.Clients.User(user.Id.ToString())
+                                .SendAsync("ReceiveNotification", $"Có yêu cầu phê duyệt địa điểm mới: {requestDto.Name}.");
                             notifications.Add(notificationEntity);
                         }
                         _dbContext.Notifications.AddRange(entities: notifications);
@@ -325,6 +344,28 @@ namespace HoTroDuLichAI.API
                     {
                         _logger.LogWarning($"Không tìm thấy người dùng nào có vai trò Admin để gửi thông báo.");
                     }
+                }
+                else
+                {
+                    // send notification for all user about new palce.
+                    List<Guid> adminUserIds = adminUsers.Select(a => a.Id).ToList();
+                    var normalUser = await _dbContext.Users.Where(us => !adminUserIds.Contains(us.Id)).ToListAsync();
+                    var notifications = new List<NotificationEntity>();
+                    foreach (var user in normalUser)
+                    {
+                        var notificationEntity = new NotificationEntity()
+                        {
+                            IsRead = false,
+                            Title = "Thông báo có địa điểm mới.",
+                            Content = $"{requestDto.Name} - {requestDto.Address}",
+                            Type = CNotificationType.Place,
+                            UserId = user.Id
+                        };
+                        await _notificationHubContext.Clients.User(user.Id.ToString())
+                            .SendAsync("ReceiveNotification", $"Có địa điểm mới: {requestDto.Name}.");
+                        notifications.Add(notificationEntity);
+                    }
+                    _dbContext.Notifications.AddRange(entities: notifications);
                 }
                 await _dbContext.SaveChangesAsync();
                 var data = placeEntity.Adapt<PlaceMoreInfoResponseDto>();
