@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HoTroDuLichAI.API
@@ -5,6 +6,7 @@ namespace HoTroDuLichAI.API
     [Table(name: "Business_Business")]
     public class BusinessEntity
     {
+        [Key]
         public Guid Id { get; set; }
         public string BusinessName { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
@@ -22,9 +24,8 @@ namespace HoTroDuLichAI.API
 
         [InverseProperty(property: "Business")]
         public virtual ICollection<BusinessAnalyticEntity> BusinessAnalytics { get; set; } = new List<BusinessAnalyticEntity>();
+        [InverseProperty(property: "Business")]
+        public virtual ICollection<ItineraryDetailEntity> ItineraryDetails { get; set; } = new List<ItineraryDetailEntity>();
         #endregion inverse property
     }
-
-
-
 }

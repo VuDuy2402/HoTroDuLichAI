@@ -64,7 +64,7 @@ namespace HoTroDuLichAI.API
                 .WithMany(p => p.ReviewPlaces)
                 .HasForeignKey(r => r.PlaceId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             builder.Entity<ItineraryDetailEntity>()
                 .HasOne(id => id.Itinerary)
                 .WithMany(i => i.ItineraryDetails)
@@ -76,6 +76,6 @@ namespace HoTroDuLichAI.API
                 .WithMany(p => p.ItineraryDetails)
                 .HasForeignKey(id => id.PlaceId)
                 .OnDelete(DeleteBehavior.Restrict);
-            }
+        }
     }
 }

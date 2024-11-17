@@ -17,5 +17,7 @@ namespace HoTroDuLichAI.API
         public string DivisionType { get; set; } = string.Empty;
         [StringLength(maximumLength: 150)]
         public string PhoneCode { get; set; } = string.Empty;
+        [InverseProperty("Province")]
+        public ICollection<ItineraryEntity> Itineraries { get; set; } = new List<ItineraryEntity>();
     }
 }

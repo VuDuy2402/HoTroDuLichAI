@@ -8,6 +8,7 @@ namespace HoTroDuLichAI.API
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
         public int TotalUse { get; set; }
+        [Column(TypeName = "decimal(19,2)")]
         public decimal TotalAmount { get; set; }
         public int TotalDay { get; set; }
         private DateTimeOffset _createdDate = DateTimeOffset.UtcNow;

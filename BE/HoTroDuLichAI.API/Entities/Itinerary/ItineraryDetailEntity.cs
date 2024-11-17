@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HoTroDuLichAI.API
@@ -5,6 +6,7 @@ namespace HoTroDuLichAI.API
     [Table(name: "Customer_ItineraryDetail")]
     public class ItineraryDetailEntity
     {
+        [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
         public int Index { get; set; }
         public TimeOnly Time { get; set; }
