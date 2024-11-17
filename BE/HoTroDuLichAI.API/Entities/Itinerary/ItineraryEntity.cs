@@ -7,6 +7,9 @@ namespace HoTroDuLichAI.API
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
+        public int TotalUse { get; set; }
+        public decimal TotalAmount { get; set; }
+        public int TotalDay { get; set; }
         private DateTimeOffset _createdDate = DateTimeOffset.UtcNow;
         public DateTimeOffset CreatedDate
         {
@@ -19,6 +22,11 @@ namespace HoTroDuLichAI.API
         [ForeignKey(name: "UserId")]
         [InverseProperty(property: "Itineraries")]
         public virtual UserEntity User { get; set; } = null!;
+
+        public Guid? ProvinceId { get; set; }
+        [ForeignKey(name: "ProvinceId")]
+        [InverseProperty(property: "Itineraries")]
+        public virtual ProvinceEntity? Province { get; set; }
 
         [InverseProperty("Itinerary")]
         public virtual ICollection<ItineraryDetailEntity> ItineraryDetails { get; set; } = new List<ItineraryDetailEntity>();

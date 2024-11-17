@@ -6,12 +6,12 @@ namespace HoTroDuLichAI.API
     public class BusinessEntity
     {
         public Guid Id { get; set; }
-        public string BussinessName { get; set; } = string.Empty;
+        public string BusinessName { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public string Service { get; set; } = string.Empty;
-        public string BussinessContactPerson { get; set; } = string.Empty;
+        public string BusinessContactPerson { get; set; } = string.Empty;
         [NotMapped]
-        public BussinessContactProperty BussinessContactProperty { get; set; } = null!;
+        public BusinessContactProperty BusinessContactProperty { get; set; } = null!;
         
 
         #region inverse property

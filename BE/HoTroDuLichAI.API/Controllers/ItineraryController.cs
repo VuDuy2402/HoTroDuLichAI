@@ -15,6 +15,20 @@ namespace HoTroDuLichAI.API
             _itineraryService = itineraryService;
         }
 
+        [HttpPost("suggestion/{placeId}")]
+        public async Task<IActionResult> GetItinerarySuggestion(Guid placeId, ItineraryPagingAndFilterParam param)
+        {
+            var result = await _itineraryService.GetItinerarySuggestionAsync(placeId: placeId, param: param, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpGet("itinerarydetail/{itineraryId}")]
+        public async Task<IActionResult> Get(Guid itineraryId)
+        {
+            var result = await _itineraryService.GetItineraryDetailsByItineraryIdAsync(itineraryId: itineraryId);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
         [HttpPost("paging")]
         public async Task<IActionResult> GetWithPaging(ItineraryPagingAndFilterParam param)
         {

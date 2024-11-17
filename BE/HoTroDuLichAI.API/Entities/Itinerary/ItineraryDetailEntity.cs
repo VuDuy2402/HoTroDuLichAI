@@ -14,6 +14,11 @@ namespace HoTroDuLichAI.API
             get => _createdDate.ToLocalTime();
             private set => _createdDate = value;
         }
+        public List<Guid> BusinessServiceIds { get; set; } = new();
+        public Guid BusinessId { get; set; }
+        [ForeignKey("BusinessId")]
+        [InverseProperty("ItineraryDetails")]
+        public virtual BusinessEntity Business { get; set; } = null!;
 
         public Guid ItineraryId { get; set; }
         [ForeignKey(name: "ItineraryId")]

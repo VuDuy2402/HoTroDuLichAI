@@ -3,6 +3,7 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace HoTroDuLichAI
 {
@@ -26,6 +27,131 @@ namespace HoTroDuLichAI
             _reviewPlaceSevice = reviewPlaceSevice;
             _logger = logger;
         }
+
+
+        public async Task<ApiResponse<BasePagedResult<ItineraryInfoResponseDto>>> GetItinerarySuggestionAsync(Guid placeId, ItineraryPagingAndFilterParam param,
+            ModelStateDictionary? modelState = null)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<BasePagedResult<ItineraryInfoResponseDto>>();
+            if (param == null)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Dữ liệu gửi về không hợp lệ. Vui lòng kiểm tra lại.",
+                    ErrorScope = CErrorScope.PageSumarry
+                });
+                response.Result.Errors.AddRange(errors);
+                response.Result.Success = false;
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
+            errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+            try
+            {
+                var placeEntity = await _dbContext.Places.FindAsync(placeId);
+                if (placeEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                IQueryable<ItineraryEntity> collection = _dbContext.Itineraries.Include(it => it.ItineraryDetails)
+                    .Include(id => id.User);
+                collection = collection.Where(it => it.ItineraryDetails.Any(id => id.PlaceId == placeId)).OrderByDescending(id => id.TotalUse);
+                var pagedList = await PagedList<ItineraryEntity>.ToPagedListAsync(
+                    source: collection, pageNumber: param.PageNumber, pageSize: param.PageSize);
+                var selected = pagedList.Select(id => new ItineraryInfoResponseDto()
+                {
+                    ItineraryId = id.Id,
+                    Name = id.Name,
+                    TotalDay = id.TotalDay,
+                    TotalAmount = id.TotalAmount,
+                    TotalUse = id.TotalUse,
+                    CreatedDate = id.CreatedDate,
+                    PlaceId = placeId,
+                    OwnerProperty = new OwnerProperty()
+                    {
+                        Avatar = id.User.Avatar,
+                        Email = id.User.Email ?? string.Empty,
+                        FullName = id.User.FullName,
+                        UserId = id.UserId
+                    }
+                }).ToList();
+                var data = new BasePagedResult<ItineraryInfoResponseDto>()
+                {
+                    CurrentPage = pagedList.CurrentPage,
+                    Items = selected,
+                    PageSize = pagedList.PageSize,
+                    TotalItems = pagedList.TotalCount,
+                    TotalPages = pagedList.TotalPages,
+                    ObjFilterProperties = param.FilterProperty,
+                };
+                response.Result.Success = true;
+                response.Result.Data = data;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<ApiResponse<List<ItineraryDetailResponseDto>>> GetItineraryDetailsByItineraryIdAsync(Guid itineraryId)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<List<ItineraryDetailResponseDto>>();
+            try
+            {
+                var itineraryDetails = await _dbContext.ItineraryDetails.Include(id => id.Business)
+                .Where(id => id.Id == itineraryId)
+                .OrderBy(id => id.Index)
+                .Select(id => new
+                {
+                    ItineraryDetailId = id.Id,
+                    ItineraryId = id.ItineraryId,
+                    BusinessName = id.Business.BusinessName,
+                    BusinessId = id.BusinessId,
+                    BusinessAddress = id.Business.Address,
+                    BusinessContactPerson = id.Business.BusinessContactPerson,
+                    ServiceProperty = id.Business.Service,
+                    ServiceIds = id.BusinessServiceIds,
+                    PlaceId = id.PlaceId,
+                    Time = id.Time
+                }).ToListAsync();
+                var data = itineraryDetails.Select(id => new ItineraryDetailResponseDto()
+                {
+                    ItineraryDetailId = id.ItineraryDetailId,
+                    ItineraryId = id.ItineraryId,
+                    PlaceId = id.PlaceId,
+                    Time = id.Time,
+                    BusinessProperty = new BusinessProperty
+                    {
+                        Id = id.BusinessId,
+                        Name = id.BusinessName,
+                        Address = id.BusinessAddress,
+                        ContactPerson = id.BusinessContactPerson.FromJson<BusinessContactProperty>(),
+                        ServiceProperties = id.ServiceProperty.FromJson<List<BusinessServiceProperty>>()
+                            .Where(item => id.ServiceIds.Contains(item.ServiceId)).ToList()
+                    }
+                }).ToList();
+                response.Result.Data = data;
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+
         public async Task<ApiResponse<BasePagedResult<ItineraryDto>>> GetAllItinerariesAsync(ItineraryPagingAndFilterParam param, ModelStateDictionary? modelState = null)
         {
             ApiResponse<BasePagedResult<ItineraryDto>>? response = new ApiResponse<BasePagedResult<ItineraryDto>>();
@@ -224,7 +350,7 @@ namespace HoTroDuLichAI
                         }
                     }
                 }
-                var reviewDic = await _dbContext.ReviewPlaces.GroupBy(s => s.PlaceId).ToDictionaryAsync(g => g.Key, g => g.Select(s=>s.Adapt<ReviewPlaceDto>()).ToList());
+                var reviewDic = await _dbContext.ReviewPlaces.GroupBy(s => s.PlaceId).ToDictionaryAsync(g => g.Key, g => g.Select(s => s.Adapt<ReviewPlaceDto>()).ToList());
                 var pagedList = await PagedList<ItineraryDetailEntity>.ToPagedListAsync(source: collection, pageNumber: param.PageNumber, pageSize: param.PageSize);
                 List<ItineraryDetailDto>? selected = pagedList.Select(it => new ItineraryDetailDto
                 {
