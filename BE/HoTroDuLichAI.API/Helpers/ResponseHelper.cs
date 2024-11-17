@@ -47,5 +47,10 @@ namespace HoTroDuLichAI.API
             response.StatusCode = StatusCodes.Status400BadRequest;
             return await Task.FromResult(response);
         }
+
+        internal static async Task<ApiResponse<ResultMessage>> UnauthenticationResponseAsync(object errors, object response)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -31,5 +31,21 @@ namespace HoTroDuLichAI.API.Controllers
             ApiResponse<int> result = await _notificationService.CountNotificationUnReadAsync();
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
+
+        [HttpPost("marknotificationasread")]
+        [Authorize]
+        public async Task<IActionResult> MarkNotificationAsRead()
+        {
+            ApiResponse<ResultMessage> result = await _notificationService.MarkNotificationAsReadAsync();
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpDelete("{notificationId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteNotification(Guid notificationId)
+        {
+            var result = await _notificationService.DeleteNotificationByIdAsync(notificationId: notificationId);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
     }
 }

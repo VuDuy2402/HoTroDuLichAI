@@ -38,7 +38,7 @@ namespace HoTroDuLichAI.API
                 response.StatusCode = StatusCodes.Status200OK;
                 return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
@@ -123,6 +123,78 @@ namespace HoTroDuLichAI.API
             }
             catch (Exception ex)
             {
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<ApiResponse<ResultMessage>> MarkNotificationAsReadAsync()
+        {
+            ApiResponse<ResultMessage> response = new();
+            List<ErrorDetail> errors = new();
+            var currentUser = RuntimeContext.CurrentUser;
+            if (currentUser == null)
+            {
+                return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+            }
+            try
+            {
+                var notifications = await _dbContext.Notifications.Where(nt => nt.UserId == currentUser.Id && !nt.IsRead).ToListAsync();
+                if (!notifications.IsNullOrEmpty())
+                {
+                    notifications.ForEach(nt => nt.IsRead = true);
+                    _dbContext.Notifications.UpdateRange(notifications);
+                    await _dbContext.SaveChangesAsync();
+                }
+                response.Result.Success = true;
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Info,
+                    Message = $"Đã đánh dấu tất cả thông báo đã được đọc.",
+                    NotificationType = CNotificationType.Normal
+                };
+                response.StatusCode = StatusCodes.Status202Accepted;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<ApiResponse<ResultMessage>> DeleteNotificationByIdAsync(Guid notificationId)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                bool hasAdminRole = (await _userManager.GetRolesAsync(user: currentUser)).Contains(CRoleType.Admin.ToString());
+                var notification = await _dbContext.Notifications.Where(nt => hasAdminRole ? nt.Id == notificationId : (nt.Id == notificationId && nt.UserId == currentUser.Id))
+                    .FirstOrDefaultAsync();
+                if (notification == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                _dbContext.Notifications.Remove(entity: notification);
+                await _dbContext.SaveChangesAsync();
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Success,
+                    Message = $"Xóa thông báo thành công",
+                    NotificationType = CNotificationType.Normal
+                };
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status202Accepted;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
         }
