@@ -3,32 +3,32 @@ import { useNavigate } from "react-router-dom";
 import bgKH from "@/assets/img/bgkh.webp";
 import { CiLocationOn } from "react-icons/ci";
 import "./Home.scss";
-import { toast } from "react-toastify";
-import * as signalR from "@microsoft/signalr";
-import { localStorageService } from "../../../services/localstorageService";
 import { placeService } from "../../../services/placeService";
 import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import { articleService } from "../../../services/articleService";
+import { useDispatch } from "react-redux";
+import { systemAction } from "../../../redux/slices/systemSlice";
 const Home = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [famousPlace, setFamousPlace] = useState([]);
   const [newPlace, setNewPlace] = useState([]);
   const [article, setArticle] = useState([]);
-  const connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://localhost:7001/notificationHub", {
-      accessTokenFactory: () => localStorageService.getAccessToken(),
-    })
-    .withAutomaticReconnect()
-    .build();
-  connection.on("ReceiveNotification", function (message) {
-    toast.success(message);
-  });
+  // const connection = new signalR.HubConnectionBuilder()
+  //   .withUrl("https://localhost:7001/notificationHub", {
+  //     accessTokenFactory: () => localStorageService.getAccessToken(),
+  //   })
+  //   .withAutomaticReconnect()
+  //   .build();
+  // connection.on("ReceiveNotification", function (message) {
+  //   toast.success(message);
+  // });
 
-  connection.start().catch(function (err) {
-    return console.error(err.toString());
-  });
+  // connection.start().catch(function (err) {
+  //   return console.error(err.toString());
+  // });
 
   const handlePlaceFamous = async () => {
     const dataSend = {
@@ -41,7 +41,6 @@ const Home = () => {
     const result = await placeService.getWithPaging(dataSend);
     if (result) {
       if (result.success) {
-        console.log(result);
         setFamousPlace([...result.data.items]);
       }
     }
@@ -57,7 +56,6 @@ const Home = () => {
     const result = await placeService.getNewPlacePaging(dataSend);
     if (result) {
       if (result.success) {
-        console.log(result);
         setNewPlace([...result.data.items]);
       }
     }
@@ -71,15 +69,16 @@ const Home = () => {
     const result = await articleService.paging(dataSend);
     if (result) {
       if (result.success) {
-        console.log(result);
         setArticle([...result.data.items]);
       }
     }
   };
   useEffect(() => {
+    dispatch(systemAction.enableLoading());
     handlePlaceFamous();
     handlePlaceNew();
     handleArticle();
+    dispatch(systemAction.disableLoading());
   }, []);
   return (
     <>

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import styles from "./Dropdown.module.scss";
 /**
@@ -12,6 +13,8 @@ const DropdownCustom = ({
   styleBtn,
   items,
   onClickBtn,
+  onOpen,
+  onClose,
   onClick,
   classItem = "",
   styleItem,
@@ -19,14 +22,19 @@ const DropdownCustom = ({
   styleDropdown,
   autoClose = false,
   noticeIcon = false,
-  amountNotice = 1,
+  amountNotice = 0,
   emptyItem,
+  loadMore,
+  onClickMore,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div
       className="drop-down position-relative"
-      onMouseLeave={() => autoClose && setIsOpen(false)}
+      onMouseLeave={() => {
+        autoClose && setIsOpen(false);
+        onClose && isOpen && onClose();
+      }}
     >
       <button
         className={`${classBtn} position-relative`}
@@ -34,6 +42,8 @@ const DropdownCustom = ({
         onClick={() => {
           setIsOpen((pre) => !pre);
           onClickBtn && onClickBtn();
+          onOpen && !isOpen && onOpen();
+          onClose && isOpen && onClose();
         }}
       >
         {title}
@@ -59,13 +69,16 @@ const DropdownCustom = ({
         >
           {items &&
             items.length > 0 &&
-            items.map((item) => (
+            items.map((item, idx) => (
               <div
+                key={idx}
                 className={`${classItem} ${styles.item}`}
                 onClick={() => onClick(item)}
                 style={{ ...styleItem, cursor: "pointer" }}
               >
-                <p className="m-0">{item.label}</p>
+                <div className="m-0" style={{ maxWidth: "100%" }}>
+                  {item.label}
+                </div>
               </div>
             ))}
           {((items && items.length === 0) || !items) && (
@@ -74,6 +87,17 @@ const DropdownCustom = ({
               style={{ ...styleItem, cursor: "pointer" }}
             >
               <p className="m-0">{emptyItem || "Trống"}</p>
+            </div>
+          )}
+          {loadMore && items && items.length > 0 && (
+            <div
+              className={`${classItem} ${styles.item}`}
+              onClick={() => onClickMore()}
+              style={{ ...styleItem, cursor: "pointer" }}
+            >
+              <div className="m-0" style={{ maxWidth: "100%" }}>
+                Thêm
+              </div>
             </div>
           )}
         </div>

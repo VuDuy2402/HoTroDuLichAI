@@ -1,13 +1,12 @@
 import { useSelector } from "react-redux";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { renderRouter } from "./router";
 import { getPromptLoading } from "./redux/selectors/systemSelector";
 import PromptLoading from "./common/components/PromptLoading/PromptLoading";
 import { IKContext } from "imagekitio-react";
 import { imageKitService } from "./services/imageKitService";
+import SignalR from "./SignalR";
 
-const router = createBrowserRouter(renderRouter());
+// const router = createBrowserRouter(renderRouter());
 const App = () => {
   const promptLoading = useSelector(getPromptLoading);
   const authenticator = async () => {
@@ -27,7 +26,7 @@ const App = () => {
         urlEndpoint={`${import.meta.env.VITE_URL_ENDPOINT_IMAGEKIT}`}
         authenticator={authenticator}
       >
-        <RouterProvider router={router} />
+        <SignalR />
       </IKContext>
       <ToastContainer />
       {promptLoading && <PromptLoading />}

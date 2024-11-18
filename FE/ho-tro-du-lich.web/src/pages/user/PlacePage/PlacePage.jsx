@@ -96,7 +96,7 @@ const Toolbar = ({ onSubmitFilter }) => {
       <div className="row">
         <div className="col-12 col-md-6 p-1">
           <Input
-            placeHolder="Tìm kiếm địa điểm"
+            placeholder="Tìm kiếm địa điểm"
             register={register}
             className={"w-100"}
             name={"searchQuery"}

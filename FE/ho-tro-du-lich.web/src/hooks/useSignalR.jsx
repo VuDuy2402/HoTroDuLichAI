@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { localStorageService } from "../services/localstorageService";
 import { toast } from "react-toastify";
 import * as signalR from "@microsoft/signalr";
-const useSignalR = (hubUrl, eventHubName, eventHub = {}) => {
+const useSignalR = (hubUrl, accessTokenFactory, eventHub = {}) => {
   const [connection, setConnection] = useState(null);
   useEffect(() => {
     const connectHub = async () => {

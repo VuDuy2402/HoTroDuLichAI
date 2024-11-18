@@ -30,7 +30,8 @@ import { IoLogOutSharp } from "react-icons/io5";
 import { toast } from "react-toastify";
 import NotificationPage from "../../../pages/commonpage/Notification/NotificationPage";
 import { getNoticeNumberSelector } from "../../../redux/selectors/systemSelector";
-import useSignalR from "../../../hooks/useSignalR";
+import { IoMenu } from "react-icons/io5";
+import { getSignalR } from "../../../redux/selectors/signalRSelector";
 
 const contentItem = [
   { title: "Trang Chủ", url: "/" },
@@ -42,7 +43,6 @@ const Navbar = ({ className }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const noticeNumber = useSelector(getNoticeNumberSelector);
   const getAuth = useSelector(getAuthSelector);
   const getUserProfile = useSelector(getUserProfileSelector);
   const getUserRoles = useSelector(getUserRoleSelector);
@@ -50,18 +50,14 @@ const Navbar = ({ className }) => {
   const handleLogin = () => {
     navigate("/dangnhap");
   };
-  const [connection, setConnection] = useState(null);
   const [userProfile, setuserProfile] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    description: "",
-    videoUrl: "",
-  });
+  const unreadCount = useSelector(getNoticeNumberSelector);
+  const signalNotice = useSelector(
+    getSignalR("https://localhost:7001/notificationHub", "ReceiveNotification")
+  );
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
-
+  const [pagingNotification, setPagingNotification] = useState(1);
+  const [notificationItem, setNotificationItem] = useState([]);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -95,46 +91,12 @@ const Navbar = ({ className }) => {
     navigate("/thongtincanhan");
   };
 
-  const handleShowModal = () => {
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
-  useEffect(() => {
-    const connectSignalR = async () => {
-      const token = localStorageService.getAccessToken();
-      const newConnection = new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:7001/notificationHub", {
-          accessTokenFactory: () => token,
-        })
-        .withAutomaticReconnect()
-        .build();
-      newConnection.on("ReceiveNotification", () => {
-        dispatch(systemAction.addNoticeNumber(1));
-      });
-      try {
-        await newConnection.start();
-        setConnection(newConnection);
-      } catch (error) {
-        console.error("Error connection:", error);
-        toast.error("Failed to connect.");
-      }
-    };
-    connectSignalR();
-    return () => {
-      connection?.stop();
-    };
-  }, []);
-
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
         const response = await notificationService.countUnRead();
         if (response && response.success) {
-          setUnreadCount(response.data);
+          dispatch(systemAction.setNoticeNumber(response.data));
         } else if (response.errors) {
           setErrorList(response.errors);
         }
@@ -145,37 +107,31 @@ const Navbar = ({ className }) => {
     fetchUnreadCount();
   }, []);
 
-  // const { connection } = useSignalR(
-  //   "https://localhost:7001/notificationHub",
-  //   "ReceiveNotification",
-  //   () => {
-  //     dispatch(systemAction.addNoticeNumber(1));
-  //   }
-  // );
+  useEffect(() => {
+    dispatch(systemAction.addNoticeNumber(1));
+  }, [signalNotice]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handleSubmitForm = async (e) => {
-    e.preventDefault();
-    const dataToSend = {
-      FullName: formData.fullName,
-      Email: formData.email,
-      Description: formData.description,
-      VideoUrl: formData.videoUrl,
-    };
-    dispatch(systemAction.enableLoading());
-    const result = await publisherService.requestBecomeToAPublisher(dataToSend);
-    if (result && result.success) {
-      dispatch(systemAction.disableLoading());
-      window.location.href = result.data;
-      setShowModal(false);
-    } else {
-      dispatch(systemAction.disableLoading());
-      if (result.errors) {
+  const resetUnreadCount = async () => {
+    const result = await notificationService.resetUnRead();
+    if (result) {
+      if (result.success) {
+        dispatch(systemAction.resetNoticeNumber());
+      } else {
         setErrorList(result.errors);
+      }
+    }
+  };
+  const loadNotification = async () => {
+    const result = await notificationService.getWithPaging({
+      pageNumber: pagingNotification,
+      pageSize: 10,
+      searchQuery: "",
+      filterProperty: {},
+    });
+    if (result) {
+      if (result.success) {
+        const newArr = result.data.items.map((item) => ({ label: item.title }));
+        setNotificationItem(newArr);
       }
     }
   };
@@ -216,7 +172,7 @@ const Navbar = ({ className }) => {
 
     if (windowSize.width <= 767) {
       listBtn.push({
-        label: <UserTag profile={userProfile} />,
+        label: <UserTag size={1} profile={userProfile} className={"w-100"} />,
         id: 4,
       });
       listBtn.push({
@@ -232,6 +188,18 @@ const Navbar = ({ className }) => {
       });
     }
     return listBtn;
+  };
+
+  const generateBtnPage = () => {
+    const listBtn = contentItem.map((item) => ({
+      label: item.title,
+      url: item.url,
+    }));
+
+    return listBtn;
+  };
+  const handleClickDropdownPage = (data) => {
+    navigate(data.url);
   };
   const handleClickDropdownRole = (data) => {
     if (data.id === 1) {
@@ -263,18 +231,30 @@ const Navbar = ({ className }) => {
               <p className="p-1 m-0 text-success">DULICHDN</p>
             </div>
             <div className="navbar__content__item ms-3 d-flex gap-1 align-items-center">
-              {contentItem.map((item, idx) => (
-                <LinkCustom
-                  key={idx}
-                  title={item.title}
-                  url={item.url}
-                  className={
-                    item.url === location.pathname
-                      ? "text-success fw-bold"
-                      : "text-black"
-                  }
+              {windowSize.width > 768 ? (
+                contentItem.map((item, idx) => (
+                  <LinkCustom
+                    key={idx}
+                    title={item.title}
+                    url={item.url}
+                    className={
+                      item.url === location.pathname
+                        ? "text-success fw-bold"
+                        : "text-black"
+                    }
+                  />
+                ))
+              ) : (
+                <DropdownCustom
+                  title={<IoMenu />}
+                  classBtn={"btn btn-light"}
+                  classDropdown={"bg-white p-2 shadow"}
+                  classItem={"p-1 d-flex justify-content-center"}
+                  items={generateBtnPage()}
+                  onClick={handleClickDropdownPage}
+                  autoClose
                 />
-              ))}
+              )}
             </div>
           </div>
           <div
@@ -293,28 +273,27 @@ const Navbar = ({ className }) => {
                   onClick={handleClickDropdownRole}
                 />
                 <DropdownCustom
-                  title={
-                    <div className="position-relative">
-                      <FiBell size={24} />
-                      {unreadCount > 0 && (
-                        <Badge
-                          bg="danger"
-                          pill
-                          className="position-absolute top-0 start-100 translate-middle"
-                        >
-                          {unreadCount}
-                        </Badge>
-                      )}
-                    </div>
-                  }
+                  title={<FiBell size={24} />}
                   classBtn={"btn btn-light rounded-0"}
                   classDropdown={"bg-white p-2 shadow"}
                   classItem="p-1 d-flex justify-content-center"
-                  styleDropdown={{ right: 0, width: "150px" }}
                   autoClose
                   noticeIcon
-                  amountNotice={noticeNumber}
-                  onClickBtn={() => dispatch(systemAction.resetNoticeNumber())}
+                  items={notificationItem}
+                  amountNotice={unreadCount}
+                  loadMore
+                  styleDropdown={{
+                    height: "50vh",
+                    right: 0,
+                    overflow: "auto",
+                    width: "200px",
+                    maxHeight: "500px",
+                    minHeight: "200px",
+                  }}
+                  onOpen={() => {
+                    resetUnreadCount();
+                    loadNotification();
+                  }}
                 />
                 {windowSize.width > 768 && (
                   <>

@@ -16,6 +16,9 @@ const systemSlice = createSlice({
     addNoticeNumber: (state, action) => {
       state.noticeNumber = state.noticeNumber + action.payload;
     },
+    setNoticeNumber: (state, action) => {
+      state.noticeNumber = action.payload;
+    },
     resetNoticeNumber: (state) => {
       state.noticeNumber = 0;
     },
