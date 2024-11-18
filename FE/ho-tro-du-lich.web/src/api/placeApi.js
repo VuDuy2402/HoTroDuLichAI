@@ -6,6 +6,7 @@ export const placeApi = {
   Place_Admin_GetPlaceById: "api/v1/admin/place/manage",
 
   Place_Admin_CreatePlace: "api/v1/admin/place/manage",
+  Place_Admin_UpdatePlace: "api/v1/admin/place/manage",
   // admin
 
   // my

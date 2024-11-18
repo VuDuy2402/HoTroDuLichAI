@@ -69,4 +69,19 @@ export const placeService = {
       return null;
     }
   },
+
+
+  updatePlaceAdmin: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.put(
+        placeApi.Place_Admin_UpdatePlace,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
 };
