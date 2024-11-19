@@ -45,7 +45,7 @@ const APlaceIndexPlace = () => {
     const fetchData = async (paging = 1, query = "", sort = {}) => {
         dispatch(systemAction.enableLoading());
         try {
-            const result = await placeService.getWithPaging({
+            const result = await placeService.getWithPagingAdmin({
                 pageNumber: paging,
                 pageSize: 10,
                 searchQuery: query,
@@ -137,7 +137,6 @@ const APlaceIndexPlace = () => {
                 </Form>
             </div>
 
-            {/* Updated Table Component */}
             <Table
                 columns={initColumn}
                 items={dataPlaces}

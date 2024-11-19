@@ -38,6 +38,7 @@ const AUserIndex = () => {
         total: 1,
         pageSize: 10,
     });
+    const [searchQuery, setSearchQuery] = useState("");
 
     const fetchData = async (paging = 1, query = "") => {
         dispatch(systemAction.enableLoading());
@@ -57,12 +58,10 @@ const AUserIndex = () => {
                     pageSize: result.data.pageSize,
                 });
             }
-            else if (result.errors)
-            {
+            else if (result.errors) {
                 setErrorList(result.errors);
             }
-            else
-            {
+            else {
                 toast.error(result);
             }
         } catch (error) {
@@ -73,8 +72,8 @@ const AUserIndex = () => {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        fetchData(pagingData.currentPage, searchQuery); 
+    }, [pagingData.currentPage, searchQuery]);
 
     const handleDeleteUser = (userId) => {
         setDataUsers((prevUsers) => prevUsers.filter(user => user.userId !== userId));
@@ -85,17 +84,19 @@ const AUserIndex = () => {
         setShowUpdateModal(true);
     };
 
-    const handleUserUpdated = () => {
-        fetchData();
+    const handleUserUpdated = (updatedUser) => {
+        setDataUsers(prevUsers => prevUsers.map(user => 
+            user.userId === updatedUser.userId ? updatedUser : user
+        ));
     };
 
-    const handleUserCreated = () => {
-        fetchData();
+    const handleUserCreated = (newUser) => {
+        setDataUsers(prevUsers => [newUser, ...prevUsers]);
         setShowCreateModal(false);
     };
 
     const handleSubmitSearch = (data) => {
-        fetchData(1, data.searchQuery);
+        setSearchQuery(data.searchQuery);
     };
 
     return (
@@ -127,7 +128,7 @@ const AUserIndex = () => {
                 items={dataUsers}
                 template={<TableRowTemplate onDelete={handleDeleteUser} onEdit={handleOpenUpdateModal} />}
             />
-            <Paging data={pagingData} onChange={(page) => fetchData(page)} />
+            <Paging data={pagingData} onChange={(page) => setPagingData(prev => ({ ...prev, currentPage: page }))} />
             <AUpdateUserPage
                 show={showUpdateModal}
                 onClose={() => setShowUpdateModal(false)}

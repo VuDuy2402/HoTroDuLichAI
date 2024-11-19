@@ -28,6 +28,21 @@ namespace HoTroDuLichAI.API
             _userManager = userManager;
         }
 
+        #region remove place images
+
+        // public async Task<ApiResponse<ResultMessage>> DeletePlaceImagesAsync(DeletePlaceImagesRequestDto requestDto,
+        //     ModelStateDictionary? modelState = null)
+        // {
+        //     var errors = new List<ErrorDetail>();
+        //     var response = new ApiResponse<ResultMessage>();
+        //     if (requestDto == null)
+        //     {
+            
+        //     }
+        // }
+
+        #endregion remove place images
+
         #region get place with paging
         public async Task<ApiResponse<BasePagedResult<PlaceDetailResponseDto>>> GetWithPagingAsync(
             PlacePagingAndFilterParams param, ModelStateDictionary? modelState = null)

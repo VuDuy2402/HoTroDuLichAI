@@ -1,19 +1,21 @@
+import { Button, Form, Modal, Row, Col, ListGroup, Image, FormSelect } from "react-bootstrap";
+import { FaTrashAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import { Button, Form, Modal, Row, Col } from "react-bootstrap";
 import { useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 import { placeService } from "../../../services/placeService";
 import { toast } from "react-toastify";
 import { systemAction } from "../../../redux/slices/systemSlice";
-import { FaImage, FaMapMarkedAlt } from "react-icons/fa";
+import { CPlaceType, PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";
 
 const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
     const [placeDetail, setPlaceDetail] = useState(null);
     const [imageFiles, setImageFiles] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+    const [selectedPlaceType, setSelectedPlaceType] = useState(CPlaceType.None);
     const dispatch = useDispatch();
 
-    // Fetch place details when the modal opens
     useEffect(() => {
         if (placeId && show) {
             fetchPlaceDetail();
@@ -26,15 +28,13 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
             const result = await placeService.getPlaceById(placeId);
             if (result && result.success) {
                 setPlaceDetail(result.data);
-                // Set form values based on the fetched place data
                 setValue("name", result.data.name);
                 setValue("address", result.data.address);
                 setValue("latitude", result.data.latitude);
                 setValue("longitude", result.data.longtitude);
                 setValue("description", result.data.description);
-                setValue("placeType", result.data.placeType);
+                setSelectedPlaceType(result.data.placeType || CPlaceType.None);
                 setValue("isNew", result.data.isNew);
-                // Prepare images for display
                 setImageFiles(result.data.imageDetailProperties || []);
             } else {
                 toast.error("Failed to load place details.");
@@ -50,7 +50,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
         const files = Array.from(event.target.files);
         const updatedImageFiles = [...imageFiles];
         files.forEach(file => {
-            const fileId = file.name; // You may replace this with an actual file upload API logic
+            const fileId = file.name;
             updatedImageFiles.push({ FileId: fileId, IsDefault: false });
         });
         setImageFiles(updatedImageFiles);
@@ -59,13 +59,21 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
     const handleImageDefault = (fileId) => {
         setImageFiles(prevImages =>
             prevImages.map(img =>
-                img.FileId === fileId ? { ...img, IsDefault: true } : img
+                img.FileId === fileId ? { ...img, IsDefault: true } : { ...img, IsDefault: false }
             )
         );
     };
 
+    const handleImageDelete = (fileId) => {
+        setImageFiles(prevImages => prevImages.filter(img => img.FileId !== fileId));
+    };
+
     const handleSubmitUpdate = async (data) => {
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
         dispatch(systemAction.enableLoading());
+
         const updatedData = {
             PlaceId: placeId,
             Address: data.address,
@@ -74,21 +82,23 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
             Longitude: data.longitude,
             Description: data.description,
             Name: data.name,
-            PlaceType: data.placeType,
+            PlaceType: selectedPlaceType,
             ImageFiles: imageFiles
         };
+
         try {
             const result = await placeService.updatePlaceAdmin(updatedData);
             if (result && result.success) {
                 toast.success("Place updated successfully.");
-                onPlaceUpdated(); // Refresh the places list after updating
-                onClose(); // Close the modal
+                onPlaceUpdated();
+                onClose();
             } else {
                 toast.error("Failed to update place.");
             }
         } catch (error) {
             toast.error("Error updating place:", error);
         } finally {
+            setIsSubmitting(false);
             dispatch(systemAction.disableLoading());
         }
     };
@@ -96,7 +106,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
     return (
         <Modal show={show} onHide={onClose} size="lg" centered>
             <Modal.Header closeButton>
-                <Modal.Title>Update Place</Modal.Title>
+                <Modal.Title>Cập nhật địa điểm</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {placeDetail ? (
@@ -104,7 +114,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Name</Form.Label>
+                                    <Form.Label>Tên địa điểm</Form.Label>
                                     <Form.Control
                                         type="text"
                                         {...register("name", { required: "Name is required" })}
@@ -118,7 +128,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Address</Form.Label>
+                                    <Form.Label>Địa chỉ</Form.Label>
                                     <Form.Control
                                         type="text"
                                         {...register("address", { required: "Address is required" })}
@@ -168,7 +178,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Description</Form.Label>
+                                    <Form.Label>Mô tả</Form.Label>
                                     <Form.Control
                                         as="textarea"
                                         rows={3}
@@ -179,16 +189,21 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Place Type</Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        {...register("placeType", { required: "Place Type is required" })}
-                                        defaultValue={placeDetail.placeType}
+                                    <Form.Label>Loại địa điểm</Form.Label>
+                                    <Form.Select
+                                        value={selectedPlaceType}  // Giữ giá trị được chọn từ state
+                                        onChange={(e) => setSelectedPlaceType(Number(e.target.value))} // Cập nhật state khi chọn
+                                        {...register("placeType", { required: "Loại địa điểm là bắt buộc." })}
                                     >
-                                        <option value="1">Type 1</option>
-                                        <option value="2">Type 2</option>
-                                        <option value="3">Type 3</option>
-                                    </Form.Control>
+                                        {Object.keys(CPlaceType).map(key => (
+                                            <option key={key} value={CPlaceType[key]}>
+                                                {PlaceTypeDescriptions[CPlaceType[key]]}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.placeType?.message}
+                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -206,7 +221,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Images</Form.Label>
+                                    <Form.Label>Hình ảnh</Form.Label>
                                     <Form.Control
                                         type="file"
                                         multiple
@@ -217,36 +232,54 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                         </Row>
 
                         <div className="mt-3">
-                            <h6>Current Images</h6>
-                            <div className="d-flex flex-wrap">
+                            <h6>Hình ảnh</h6>
+                            <ListGroup>
                                 {imageFiles.map((image, idx) => (
-                                    <div key={idx} className="position-relative me-3 mb-3">
-                                        <img
-                                            src={image.Url}
-                                            alt={`image-${idx}`}
-                                            style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                                        />
-                                        <div className="position-absolute top-0 end-0">
+                                    <ListGroup.Item key={idx} className="d-flex align-items-center">
+                                        <div className="col-8 d-flex align-items-center">
+                                            <Image
+                                                src={image.url}
+                                                alt={`image-${idx}`}
+                                                fluid
+                                                style={{ objectFit: "cover", height: "150px", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
+                                            />
+                                        </div>
+
+                                        <div className="col-2 d-flex align-items-center">
+                                            <Form.Check
+                                                type="radio"
+                                                name="defaultImage"
+                                                checked={image.IsDefault}
+                                                onChange={() => handleImageDefault(image.FileId)}
+                                                aria-label="Đặt làm mặc định"
+                                            />
+                                            <span className="ms-2">Đặt làm mặc định</span>
+                                        </div>
+
+                                        <div className="col-2 d-flex align-items-center justify-content-center">
                                             <Button
                                                 variant="link"
-                                                onClick={() => handleImageDefault(image.FileId)}
-                                                title="Set as default"
+                                                onClick={() => handleImageDelete(image.FileId)}
+                                                title="Xóa hình ảnh"
                                             >
-                                                {image.IsDefault ? "✔" : "Set Default"}
+                                                <FaTrashAlt />
                                             </Button>
                                         </div>
-                                    </div>
+                                    </ListGroup.Item>
+
                                 ))}
-                            </div>
+                            </ListGroup>
                         </div>
 
-                        <div className="d-flex justify-content-end">
-                            <Button variant="secondary" onClick={onClose} className="me-2">Cancel</Button>
-                            <Button type="submit" variant="primary">Update Place</Button>
+                        <div className="d-flex justify-content-end mt-3">
+                            <Button variant="secondary" onClick={onClose} className="me-2">Hủy bỏ</Button>
+                            <Button type="submit" variant="primary" disabled={isSubmitting}>
+                                Cập nhật địa điểm
+                            </Button>
                         </div>
                     </Form>
                 ) : (
-                    <div>Loading place details...</div>
+                    <div>Đang tải chi tiết địa điểm ...</div>
                 )}
             </Modal.Body>
         </Modal>
