@@ -13,6 +13,11 @@ export const signalRService = {
         );
       },
     },
+    "https://localhost:7001/chathub": {
+      ReceivePrivateMessage: async (response) => {
+        console.log("response", response);
+      },
+    },
   },
   bussinessSignalR: {},
   adminSignalR: {},

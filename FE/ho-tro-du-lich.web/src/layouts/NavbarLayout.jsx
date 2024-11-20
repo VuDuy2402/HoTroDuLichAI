@@ -8,7 +8,7 @@ const NavbarLayout = ({ children }) => {
         className="container-fluid bg-light px-0"
         style={{
           paddingTop: "50px",
-          height: `100vh`,
+          minHeight: `100vh`,
         }}
       >
         {children}

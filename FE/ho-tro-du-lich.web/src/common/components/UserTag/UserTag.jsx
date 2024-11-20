@@ -44,12 +44,39 @@ const UserTag = ({ profile, onClick, size, className }) => {
         ></img>
         <p
           className="m-0"
-          style={{
-            maxWidth: "100px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
+          style={
+            size === 1
+              ? {
+                  maxWidth: "50px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontSize: "0.7rem",
+                }
+              : size === 2
+              ? {
+                  maxWidth: "60px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontSize: "0.9rem",
+                }
+              : size === 3
+              ? {
+                  maxWidth: "80px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontSize: "1rem",
+                }
+              : {
+                  maxWidth: "100px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontSize: "1rem",
+                }
+          }
         >
           {profile.fullName}
         </p>

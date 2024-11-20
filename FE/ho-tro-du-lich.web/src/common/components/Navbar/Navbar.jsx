@@ -32,6 +32,8 @@ import NotificationPage from "../../../pages/commonpage/Notification/Notificatio
 import { getNoticeNumberSelector } from "../../../redux/selectors/systemSelector";
 import { IoMenu } from "react-icons/io5";
 import { getSignalR } from "../../../redux/selectors/signalRSelector";
+import { RiMessage2Line } from "react-icons/ri";
+import ButtonCustom from "../ButtonCustom/ButtonCustom";
 
 const contentItem = [
   { title: "Trang Chủ", url: "/" },
@@ -272,6 +274,13 @@ const Navbar = ({ className }) => {
                   autoClose
                   onClick={handleClickDropdownRole}
                 />
+                <ButtonCustom
+                  title={<RiMessage2Line size={24} />}
+                  noticeIcon
+                  amountNotice={2}
+                  className="btn btn-light rounded-0"
+                  onClick={() => navigate("/chat")}
+                />
                 <DropdownCustom
                   title={<FiBell size={24} />}
                   classBtn={"btn btn-light rounded-0"}
@@ -298,6 +307,7 @@ const Navbar = ({ className }) => {
                 {windowSize.width > 768 && (
                   <>
                     <UserTag
+                      size={2}
                       profile={userProfile}
                       onClick={handleClickUserTag}
                     />

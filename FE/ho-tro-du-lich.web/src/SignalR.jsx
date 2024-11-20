@@ -7,27 +7,37 @@ import { getUserRoleSelector } from "./redux/selectors/authSelector";
 import { localStorageService } from "./services/localstorageService";
 import { signalRAction } from "./redux/slices/signalRSlice";
 const router = createBrowserRouter(renderRouter());
+
+const objInitHub = [
+  "https://localhost:7001/notificationHub",
+  "https://localhost:7001/chathub",
+];
+
 const SignalR = () => {
   const dispatch = useDispatch();
   const roleUser = useSelector(getUserRoleSelector);
   useEffect(() => {
     const initSignalR = async () => {
-      const token = localStorageService.getAccessToken();
-      const eventNotifications = await initConnection(
-        "https://localhost:7001/notificationHub",
-        token
-      );
-      dispatch(
-        signalRAction.initEvent({
-          url: "https://localhost:7001/notificationHub",
-          listEventName: eventNotifications,
-        })
-      );
+      await initHub();
     };
+
     if (roleUser && roleUser.length > 0) {
       initSignalR();
     }
   }, [roleUser]);
+
+  const initHub = async () => {
+    const token = localStorageService.getAccessToken();
+    for (const url of objInitHub) {
+      const hub = await initConnection(url, token);
+      dispatch(
+        signalRAction.initEvent({
+          url: url,
+          listEventName: hub,
+        })
+      );
+    }
+  };
   return (
     <>
       <RouterProvider router={router} />
