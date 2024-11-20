@@ -15,7 +15,9 @@ namespace HoTroDuLichAI.API
         [Description(description: "Đăng ký tài khoản")]
         Register = 4,
         [Description(description: "Địa điểm")]
-        Place = 5
+        Place = 5,
+        [Description(description: "Doanh nghiệp")]
+        Business = 6
     }
 
     public enum CNotificationLevel
