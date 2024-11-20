@@ -30,17 +30,57 @@ namespace HoTroDuLichAI.API
 
         #region remove place images
 
-        // public async Task<ApiResponse<ResultMessage>> DeletePlaceImagesAsync(DeletePlaceImagesRequestDto requestDto,
-        //     ModelStateDictionary? modelState = null)
-        // {
-        //     var errors = new List<ErrorDetail>();
-        //     var response = new ApiResponse<ResultMessage>();
-        //     if (requestDto == null)
-        //     {
-            
-        //     }
-        // }
-
+        public async Task<ApiResponse<ResultMessage>> DeletePlaceImagesAsync(DeletePlaceImagesRequestDto requestDto,
+            ModelStateDictionary? modelState = null)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            if (requestDto == null)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Dữ liệu gửi về không hợp lệ, vui lòng kiểm tra lại.",
+                    ErrorScope = CErrorScope.PageSumarry
+                });
+                response.Result.Errors.AddRange(errors);
+                response.Result.Success = false;
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
+            errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+            var placeExist = await _dbContext.Places.FindAsync(requestDto.PlaceId);
+            if (placeExist == null)
+            {
+                return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+            }
+            var images = placeExist.ImageProperties.Where(img => !requestDto.FileIds.Contains(img.BlobId));
+            placeExist.ImageGallery = images.ToJson();
+            _dbContext.Places.Update(entity: placeExist);
+            try
+            {
+                await _imagekitIOService.BulkDeleteFilesAsync(requestDto: new ImageKitDeleteRequestDto()
+                {
+                    FileIds = requestDto.FileIds
+                });
+                await _dbContext.SaveChangesAsync();
+                response.Result.Success = true;
+                response.Result.Data = new ResultMessage()
+                {
+                    Message = $"Xóa hình ảnh của địa điểm thành công.",
+                    Level = CNotificationLevel.Success
+                };
+                response.StatusCode = StatusCodes.Status202Accepted;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
         #endregion remove place images
 
         #region get place with paging
@@ -408,158 +448,191 @@ namespace HoTroDuLichAI.API
 
 
         #region Update place
-        // public async Task<ApiResponse<PlaceDetailResponseDto>> UpdatePlaceAsync(Guid placeId, UpdatePlaceRequestDto requestDto,
-        //     ModelStateDictionary? modelState = null)
-        // {
-        //     if (requestDto == null)
-        //     {
-        //         return new ApiResponse<PlaceDetailResponseDto>()
-        //         {
-        //             Result = new ResponseResult<PlaceDetailResponseDto>()
-        //             {
-        //                 Errors = new List<ErrorDetail>() { new ErrorDetail() { Error = $"Dữ liệu gửi về không hợp lệ. Vui lòng kiểm tra lại.", ErrorScope = CErrorScope.FormSummary } },
-        //                 Success = false
-        //             },
-        //             StatusCode = StatusCodes.Status400BadRequest
-        //         };
-        //     }
+        public async Task<ApiResponse<ResultMessage>> UpdatePlaceAsync(UpdatePlaceRequestDto requestDto,
+            ModelStateDictionary? modelState = null)
+        {
+            if (requestDto == null)
+            {
+                return new ApiResponse<ResultMessage>()
+                {
+                    Result = new ResponseResult<ResultMessage>()
+                    {
+                        Errors = new List<ErrorDetail>() { new ErrorDetail() { Error = $"Dữ liệu gửi về không hợp lệ. Vui lòng kiểm tra lại.", ErrorScope = CErrorScope.FormSummary } },
+                        Success = false
+                    },
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+            }
 
-        //     var errors = ErrorHelper.GetModelStateError(modelState: modelState);
-        //     var response = new ApiResponse<PlaceDetailResponseDto>();
-        //     if (!errors.IsNullOrEmpty())
-        //     {
-        //         return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
-        //     }
+            var errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            var response = new ApiResponse<ResultMessage>();
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
 
-        //     try
-        //     {
-        //         var currentUser = RuntimeContext.CurrentUser;
-        //         if (currentUser == null)
-        //         {
-        //             return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
-        //         }
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
 
-        //         var placeEntity = await _dbContext.Places.FindAsync(placeId);
-        //         if (placeEntity == null)
-        //         {
-        //             errors.Add(new ErrorDetail()
-        //             {
-        //                 Error = $"Địa điểm không tồn tại.",
-        //                 ErrorScope = CErrorScope.FormSummary
-        //             });
-        //             response.Result.Errors.AddRange(errors);
-        //             response.Result.Success = false;
-        //             response.StatusCode = StatusCodes.Status404NotFound;
-        //             return response;
-        //         }
+                var placeEntity = await _dbContext.Places.FindAsync(requestDto.PlaceId);
+                if (placeEntity == null)
+                {
+                    errors.Add(new ErrorDetail()
+                    {
+                        Error = $"Địa điểm không tồn tại.",
+                        ErrorScope = CErrorScope.FormSummary
+                    });
+                    response.Result.Errors.AddRange(errors);
+                    response.Result.Success = false;
+                    response.StatusCode = StatusCodes.Status404NotFound;
+                    return response;
+                }
 
-        //         // Kiểm tra xem người dùng có quyền chỉnh sửa địa điểm này không (người tạo hoặc admin)
-        //         if (placeEntity.UserId != currentUser.Id && !await _userManager.IsInRoleAsync(currentUser, CRoleType.Admin.ToString()))
-        //         {
-        //             errors.Add(new ErrorDetail()
-        //             {
-        //                 Error = $"Bạn không có quyền sửa địa điểm này.",
-        //                 ErrorScope = CErrorScope.FormSummary
-        //             });
-        //             response.Result.Errors.AddRange(errors);
-        //             response.Result.Success = false;
-        //             response.StatusCode = StatusCodes.Status403Forbidden;
-        //             return response;
-        //         }
+                if (placeEntity.UserId != currentUser.Id && !await _userManager.IsInRoleAsync(currentUser, CRoleType.Admin.ToString()))
+                {
+                    errors.Add(new ErrorDetail()
+                    {
+                        Error = $"Bạn không có quyền sửa địa điểm này.",
+                        ErrorScope = CErrorScope.FormSummary
+                    });
+                    response.Result.Errors.AddRange(errors);
+                    response.Result.Success = false;
+                    response.StatusCode = StatusCodes.Status403Forbidden;
+                    return response;
+                }
 
-        //         // Kiểm tra xem địa điểm có bị trùng tên hoặc vị trí với địa điểm khác không
-        //         var placeExist = await _dbContext.Places.Where(pl => (pl.Name.ToLower() == requestDto.Name.ToLower()
-        //             || (pl.Longitude == requestDto.Longitude && pl.Latitude == requestDto.Latitude))
-        //             && pl.Id != placeId).FirstOrDefaultAsync();
+                var placeExist = await _dbContext.Places.Where(pl => (pl.Name.ToLower() == requestDto.Name.ToLower()
+                    || (pl.Longitude == requestDto.Longitude && pl.Latitude == requestDto.Latitude))
+                    && pl.Id != requestDto.PlaceId).FirstOrDefaultAsync();
 
-        //         if (placeExist != null)
-        //         {
-        //             errors.Add(new ErrorDetail()
-        //             {
-        //                 Error = $"Địa điểm đã tồn tại với tên hoặc vị trí này.",
-        //                 ErrorScope = CErrorScope.FormSummary
-        //             });
-        //             response.Result.Errors.AddRange(errors);
-        //             response.Result.Success = false;
-        //             response.StatusCode = StatusCodes.Status409Conflict;
-        //             return response;
-        //         }
+                if (placeExist != null)
+                {
+                    errors.Add(new ErrorDetail()
+                    {
+                        Error = $"Địa điểm đã tồn tại với tên hoặc vị trí này.",
+                        ErrorScope = CErrorScope.FormSummary
+                    });
+                    response.Result.Errors.AddRange(errors);
+                    response.Result.Success = false;
+                    response.StatusCode = StatusCodes.Status409Conflict;
+                    return response;
+                }
 
-        //         // Cập nhật thông tin địa điểm
-        //         placeEntity.Name = requestDto.Name;
-        //         placeEntity.Address = requestDto.Address;
-        //         placeEntity.IsNew = requestDto.IsNew;
-        //         placeEntity.Latitude = requestDto.Latitude;
-        //         placeEntity.Longitude = requestDto.Longitude;
-        //         placeEntity.Description = requestDto.Description;
-        //         placeEntity.PlaceType = requestDto.PlaceType;
+                placeEntity.Name = requestDto.Name;
+                placeEntity.Address = requestDto.Address;
+                placeEntity.IsNew = requestDto.IsNew;
+                placeEntity.Latitude = requestDto.Latitude;
+                placeEntity.Longitude = requestDto.Longitude;
+                placeEntity.Description = requestDto.Description;
+                placeEntity.PlaceType = requestDto.PlaceType;
 
-        //         // Cập nhật ảnh (nếu có)
-        //         var imageProperties = new List<ImageProperty>();
-        //         int index = 0;
-        //         foreach (var id in requestDto.FileIds)
-        //         {
-        //             var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: id);
-        //             if (imageResponse.StatusCode == StatusCodes.Status200OK)
-        //             {
-        //                 if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo && imageInfo != null)
-        //                 {
-        //                     imageProperties.Add(ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: index++ == 0));
-        //                 }
-        //             }
-        //         }
+                var imageProperties = new List<ImageProperty>();
+                foreach (var imgFile in requestDto.ImageFiles)
+                {
+                    var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: imgFile.FileId);
+                    if (imageResponse.StatusCode == StatusCodes.Status200OK)
+                    {
+                        if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo && imageInfo != null)
+                        {
+                            var property = ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: imgFile.IsDefault);
+                            if (imgFile.IsDefault)
+                            {
+                                placeEntity.Thumbnail = property.Url;
+                            }
+                            imageProperties.Add(property);
+                        }
+                    }
+                }
+                placeEntity.ImageGallery = imageProperties.IsNullOrEmpty() ? placeEntity.ImageGallery : imageProperties.ToJson();
+                _dbContext.Places.Update(placeEntity);
 
-        //         placeEntity.Thumbnail = imageProperties.Where(img => img.IsDefault).Select(img => img.Url).FirstOrDefault() ?? placeEntity.Thumbnail;
-        //         placeEntity.ImageGallery = imageProperties.IsNullOrEmpty() ? placeEntity.ImageGallery : imageProperties.ToJson();
+                var adminUsers = await _userManager.GetUsersInRoleAsync(CRoleType.Admin.ToString());
+                if (adminUsers.Any())
+                {
+                    var notifications = new List<NotificationEntity>();
+                    foreach (var user in adminUsers)
+                    {
+                        var notificationEntity = new NotificationEntity()
+                        {
+                            IsRead = false,
+                            Title = "Cập nhật địa điểm.",
+                            Content = $"{requestDto.Name} - {requestDto.Address}",
+                            Type = CNotificationType.Place,
+                            UserId = user.Id
+                        };
+                        await _notificationHubContext.Clients.User(user.Id.ToString())
+                            .SendAsync("ReceiveNotification", $"Địa điểm đã được cập nhật: {requestDto.Name}.");
+                        notifications.Add(notificationEntity);
+                    }
+                    _dbContext.Notifications.AddRange(notifications);
+                }
 
-        //         _dbContext.Places.Update(placeEntity);
+                await _dbContext.SaveChangesAsync();
 
-        //         // Gửi thông báo cho người dùng liên quan (cập nhật cho admin hoặc thông báo mới)
-        //         var adminUsers = await _userManager.GetUsersInRoleAsync(CRoleType.Admin.ToString());
-        //         if (adminUsers.Any())
-        //         {
-        //             var notifications = new List<NotificationEntity>();
-        //             foreach (var user in adminUsers)
-        //             {
-        //                 var notificationEntity = new NotificationEntity()
-        //                 {
-        //                     IsRead = false,
-        //                     Title = "Cập nhật địa điểm.",
-        //                     Content = $"{requestDto.Name} - {requestDto.Address}",
-        //                     Type = CNotificationType.Place,
-        //                     UserId = user.Id
-        //                 };
-        //                 await _notificationHubContext.Clients.User(user.Id.ToString())
-        //                     .SendAsync("ReceiveNotification", $"Địa điểm đã được cập nhật: {requestDto.Name}.");
-        //                 notifications.Add(notificationEntity);
-        //             }
-        //             _dbContext.Notifications.AddRange(notifications);
-        //         }
+                // var data = placeEntity.Adapt<PlaceMoreInfoResponseDto>();
+                // data.ImageDetailProperties = imageProperties.Select(img => new ImageDetailProperty()
+                // {
+                //     FileId = img.BlobId,
+                //     FileName = img.FileName,
+                //     IsDefault = img.IsDefault,
+                //     Type = img.ImageType,
+                //     Url = img.Url
+                // }).ToList();
 
-        //         await _dbContext.SaveChangesAsync();
-
-        //         var data = placeEntity.Adapt<PlaceMoreInfoResponseDto>();
-        //         data.ImageDetailProperties = imageProperties.Select(img => new ImageDetailProperty()
-        //         {
-        //             FileId = img.BlobId,
-        //             FileName = img.FileName,
-        //             IsDefault = img.IsDefault,
-        //             Type = img.ImageType,
-        //             Url = img.Url
-        //         }).ToList();
-
-        //         response.Result.Success = true;
-        //         response.Result.Data = data;
-        //         response.StatusCode = StatusCodes.Status200OK;
-        //         return response;
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         _logger.LogError(ex.Message);
-        //         return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
-        //     }
-        // }
+                response.Result.Success = true;
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Success,
+                    Message = $"Cập nhật địa điểm thành công.",
+                    NotificationType = CNotificationType.Place
+                };
+                response.StatusCode = StatusCodes.Status202Accepted;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
         #endregion Update place
+
+        #region Delete place
+        public async Task<ApiResponse<ResultMessage>> DeletePlaceAsync(Guid placeId)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            try
+            {
+                var placeEntity = await _dbContext.Places.FindAsync(placeId);
+                if (placeEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                _dbContext.Places.Remove(entity: placeEntity);
+                await _dbContext.SaveChangesAsync();
+                response.Result.Success = true;
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Success,
+                    Message = $"Xóa địa điểm thành công.",
+                    NotificationType = CNotificationType.Place
+                };
+                response.StatusCode = StatusCodes.Status202Accepted;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+        #endregion Delete place
 
 
         private ImageProperty ConvertToImageProperty(ImageFileInfo imageFileInfo,

@@ -48,10 +48,34 @@ namespace HoTroDuLichAI.API
         }
 
         [HttpPost("manage")]
-        [Authorize]
+        [Authorize(Roles = RoleDescription.Admin)]
         public async Task<IActionResult> CreatePlace(CreatePlaceRequestDto requestDto)
         {
             var result = await _placeService.CreatePlaceAsync(requestDto: requestDto, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpPut("manage")]
+        [Authorize(Roles = RoleDescription.Admin)]
+        public async Task<IActionResult> UpdatePlace(UpdatePlaceRequestDto requestDto)
+        {
+            var result = await _placeService.UpdatePlaceAsync(requestDto: requestDto, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpDelete("{placeId}")]
+        [Authorize(Roles = RoleDescription.Admin)]
+        public async Task<IActionResult> DeletePlace(Guid placeId)
+        {
+            var result = await _placeService.DeletePlaceAsync(placeId: placeId);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpPost("manage/images/delete")]
+        [Authorize(Roles = RoleDescription.Admin)]
+        public async Task<IActionResult> DeletePlace(DeletePlaceImagesRequestDto requestDto)
+        {
+            var result = await _placeService.DeletePlaceImagesAsync(requestDto: requestDto, modelState: ModelState);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
     }

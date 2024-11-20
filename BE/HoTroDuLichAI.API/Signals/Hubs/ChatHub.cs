@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace HoTroDuLichAI.API
 {
-    // [Authorize]
+    [Authorize]
     public class ChatHub : Hub
     {
         public async Task SendMessage(string userId, string message)
@@ -20,20 +20,20 @@ namespace HoTroDuLichAI.API
 
         public override async Task OnConnectedAsync()
         {
-            string userId = Context.User?.Identity?.Name ?? "";
-            if (!string.IsNullOrEmpty(userId))
+            var userId = RuntimeContext.CurrentUserId;
+            if (userId.HasValue)
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, userId);
+                await Groups.AddToGroupAsync(Context.ConnectionId, userId.Value.ToString());
             }
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            string userId = Context.User?.Identity?.Name ?? "";
-            if (!string.IsNullOrEmpty(userId))
+            var userId = RuntimeContext.CurrentUserId;
+            if (userId.HasValue)
             {
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId.Value.ToString());
             }
             await base.OnDisconnectedAsync(exception);
         }

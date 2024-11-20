@@ -9,5 +9,10 @@ namespace HoTroDuLichAI.API
         Task<ApiResponse<PlaceMoreInfoResponseDto>> GetPlaceDetailByIdAsync(Guid placeId);
         Task<ApiResponse<PlaceDetailResponseDto>> CreatePlaceAsync(CreatePlaceRequestDto requestDto,
             ModelStateDictionary? modelState = null);
+        Task<ApiResponse<ResultMessage>> UpdatePlaceAsync(UpdatePlaceRequestDto requestDto,
+            ModelStateDictionary? modelState = null);
+        Task<ApiResponse<ResultMessage>> DeletePlaceAsync(Guid placeId);
+        Task<ApiResponse<ResultMessage>> DeletePlaceImagesAsync(DeletePlaceImagesRequestDto requestDto,
+            ModelStateDictionary? modelState = null);
     }
 }

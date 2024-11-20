@@ -84,4 +84,18 @@ export const placeService = {
       return null;
     }
   },
+
+  deletePlaceImagesAdmin: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        placeApi.Place_Admin_DeletePlaceImages,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
 };
