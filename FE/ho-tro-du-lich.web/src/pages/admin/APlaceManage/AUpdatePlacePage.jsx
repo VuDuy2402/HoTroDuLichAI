@@ -1,4 +1,4 @@
-import { Button, Form, Modal, Row, Col, ListGroup, Image, FormSelect } from "react-bootstrap";
+import { Button, Form, Modal, Row, Col, Table } from "react-bootstrap";
 import { FaTrashAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
@@ -12,8 +12,11 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
     const [placeDetail, setPlaceDetail] = useState(null);
     const [imageFiles, setImageFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+    const { handleSubmit, setValue, formState: { errors } } = useForm();
     const [selectedPlaceType, setSelectedPlaceType] = useState(CPlaceType.None);
+    const [errorMessages, setErrorMessages] = useState([]);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [selectAll, setSelectAll] = useState(false);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -64,8 +67,78 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
         );
     };
 
-    const handleImageDelete = (fileId) => {
-        setImageFiles(prevImages => prevImages.filter(img => img.FileId !== fileId));
+    useEffect(() => {
+        if (selectedFiles.length === imageFiles.length) {
+            setSelectAll(true);
+        } else {
+            setSelectAll(false);
+        }
+    }, [selectedFiles, imageFiles.length]);
+
+    const handleImageDelete = async (fileId, placeId) => {
+        dispatch(systemAction.enableLoading());
+        try {
+            const requestData = {
+                placeId: placeId,
+                fileIds: [fileId]
+            }
+            const response = await placeService.deletePlaceImagesAdmin(requestData);
+            if (response && response.success) {
+                toast.success(response.data.message);
+                setImageFiles(prevImages => prevImages.filter(img => img.FileId !== fileId));
+            }
+            else if (response && response.errors) {
+                setErrorMessages(response.errors);
+            }
+        }
+        catch {
+            toast.error("Đã có lỗi xảy ra khi thực hiện việc xóa hình ảnh của địa điểm.");
+        }
+        finally {
+            dispatch(systemAction.disableLoading());
+        }
+    };
+
+    const handleSelectFile = (fileId) => {
+        setSelectedFiles((prevSelected) => {
+            if (prevSelected.includes(fileId)) {
+                return prevSelected.filter(id => id !== fileId);
+            } else {
+                return [...prevSelected, fileId];
+            }
+        });
+    };
+
+    const handleSelectAll = () => {
+        if (selectAll) {
+            setSelectedFiles([]);
+        } else {
+            setSelectedFiles(imageFiles.map(img => img.FileId));
+        }
+        setSelectAll(!selectAll);
+    };
+
+    const handleDeleteSelected = async () => {
+        if (selectedFiles.length === 0) {
+            toast.warning("Vui lòng chọn ít nhất một hình ảnh để xóa.");
+            return;
+        }
+
+        try {
+            const response = await placeService.deletePlaceImagesAdmin({
+                placeId,
+                fileIds: selectedFiles
+            });
+
+            if (response && response.success) {
+                toast.success(response.data.message);
+                setSelectedFiles([]);
+            } else {
+                toast.error(response.errors || "Lỗi khi xóa hình ảnh.");
+            }
+        } catch (error) {
+            toast.error("Đã có lỗi xảy ra khi xóa hình ảnh.");
+        }
     };
 
     const handleSubmitUpdate = async (data) => {
@@ -117,13 +190,9 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     <Form.Label>Tên địa điểm</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        {...register("name", { required: "Name is required" })}
                                         defaultValue={placeDetail.name}
                                         isInvalid={!!errors.name}
                                     />
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.name?.message}
-                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
@@ -131,13 +200,9 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     <Form.Label>Địa chỉ</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        {...register("address", { required: "Address is required" })}
                                         defaultValue={placeDetail.address}
                                         isInvalid={!!errors.address}
                                     />
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.address?.message}
-                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -149,13 +214,9 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     <Form.Control
                                         type="number"
                                         step="0.0001"
-                                        {...register("latitude", { required: "Latitude is required" })}
                                         defaultValue={placeDetail.latitude}
                                         isInvalid={!!errors.latitude}
                                     />
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.latitude?.message}
-                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
@@ -164,13 +225,9 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     <Form.Control
                                         type="number"
                                         step="0.0001"
-                                        {...register("longitude", { required: "Longitude is required" })}
                                         defaultValue={placeDetail.longtitude}
                                         isInvalid={!!errors.longitude}
                                     />
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.longitude?.message}
-                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -182,7 +239,6 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     <Form.Control
                                         as="textarea"
                                         rows={3}
-                                        {...register("description")}
                                         defaultValue={placeDetail.description}
                                     />
                                 </Form.Group>
@@ -191,9 +247,12 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                 <Form.Group className="mb-3">
                                     <Form.Label>Loại địa điểm</Form.Label>
                                     <Form.Select
-                                        value={selectedPlaceType}  // Giữ giá trị được chọn từ state
-                                        onChange={(e) => setSelectedPlaceType(Number(e.target.value))} // Cập nhật state khi chọn
-                                        {...register("placeType", { required: "Loại địa điểm là bắt buộc." })}
+                                        value={selectedPlaceType}
+                                        onChange={(e) => {
+                                            const newValue = Number(e.target.value);
+                                            setSelectedPlaceType(newValue);
+                                            setValue("placeType", newValue);
+                                        }}
                                     >
                                         {Object.keys(CPlaceType).map(key => (
                                             <option key={key} value={CPlaceType[key]}>
@@ -201,9 +260,6 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                             </option>
                                         ))}
                                     </Form.Select>
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.placeType?.message}
-                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -211,10 +267,9 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Is New</Form.Label>
+                                    <Form.Label>Là địa điểm mới</Form.Label>
                                     <Form.Check
                                         type="checkbox"
-                                        {...register("isNew")}
                                         defaultChecked={placeDetail.isNew}
                                     />
                                 </Form.Group>
@@ -233,42 +288,73 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
 
                         <div className="mt-3">
                             <h6>Hình ảnh</h6>
-                            <ListGroup>
-                                {imageFiles.map((image, idx) => (
-                                    <ListGroup.Item key={idx} className="d-flex align-items-center">
-                                        <div className="col-8 d-flex align-items-center">
-                                            <Image
-                                                src={image.url}
-                                                alt={`image-${idx}`}
-                                                fluid
-                                                style={{ objectFit: "cover", height: "150px", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
-                                            />
-                                        </div>
-
-                                        <div className="col-2 d-flex align-items-center">
+                            <Table striped bordered hover>
+                                <thead>
+                                    <tr>
+                                        <th>
                                             <Form.Check
-                                                type="radio"
-                                                name="defaultImage"
-                                                checked={image.IsDefault}
-                                                onChange={() => handleImageDefault(image.FileId)}
-                                                aria-label="Đặt làm mặc định"
+                                                type="checkbox"
+                                                label="Chọn tất cả"
+                                                checked={selectAll}
+                                                onChange={handleSelectAll}
                                             />
-                                            <span className="ms-2">Đặt làm mặc định</span>
-                                        </div>
-
-                                        <div className="col-2 d-flex align-items-center justify-content-center">
-                                            <Button
-                                                variant="link"
-                                                onClick={() => handleImageDelete(image.FileId)}
-                                                title="Xóa hình ảnh"
-                                            >
-                                                <FaTrashAlt />
+                                        </th>
+                                        <th>Hình ảnh</th>
+                                        <th>Đặt làm mặc định</th>
+                                        <th>
+                                            <Button variant="link" onClick={handleDeleteSelected} disabled={selectedFiles.length === 0}>
+                                                Xóa tất cả
                                             </Button>
-                                        </div>
-                                    </ListGroup.Item>
-
-                                ))}
-                            </ListGroup>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {imageFiles.map((image, idx) => (
+                                        <tr key={image.FileId}>
+                                            <td>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={selectedFiles.includes(image.FileId)}
+                                                    onChange={() => handleSelectFile(image.FileId)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <img
+                                                    src={image.url}
+                                                    alt={`image-${idx}`}
+                                                    style={{
+                                                        objectFit: "cover",
+                                                        height: "100px",
+                                                        width: "100px",
+                                                        borderRadius: "8px",
+                                                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
+                                                    }}
+                                                />
+                                            </td>
+                                            <td>
+                                                <Form.Check
+                                                    type="radio"
+                                                    name="defaultImage"
+                                                    checked={image.IsDefault}
+                                                    onChange={() => handleImageDefault(image.FileId)}
+                                                    aria-label="Đặt làm mặc định"
+                                                />
+                                            </td>
+                                            <td>
+                                                <Button
+                                                    variant="link"
+                                                    onClick={() => {
+                                                        handleImageDelete(image.fileId, placeDetail.placeId);
+                                                    }}
+                                                    title="Xóa hình ảnh"
+                                                >
+                                                    <FaTrashAlt />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
                         </div>
 
                         <div className="d-flex justify-content-end mt-3">

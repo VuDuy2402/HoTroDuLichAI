@@ -7,7 +7,7 @@ const ConfirmModalPage = ({ show, onConfirm, onCancel }) => {
             <Modal.Header closeButton>
                 <Modal.Title>Xác nhận xóa</Modal.Title>
             </Modal.Header>
-            <Modal.Body>Bạn có chắc chắn muốn xóa người dùng này?</Modal.Body>
+            <Modal.Body>Bạn có chắc chắn muốn xóa không?</Modal.Body>
             <Modal.Footer>
                 <Button variant="secondary" onClick={onCancel}>
                     Hủy
