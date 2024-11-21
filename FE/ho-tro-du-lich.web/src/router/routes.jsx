@@ -10,6 +10,7 @@ import ChatUI from "../common/components/Chat/ChatUI";
 import PlacePage from "../pages/user/PlacePage/PlacePage";
 import PlaceDetailPage from "../pages/user/PlaceDetailPage/PlaceDetailPage";
 import NavbarLayout from "../layouts/NavbarLayout";
+import ItineraryDetailPage from "../pages/user/ItineraryDetailPage/ItineraryDetailPage";
 
 export const routes = [
   {
@@ -68,6 +69,14 @@ export const routes = [
   {
     path: "/diadiem/:placeId",
     component: <PlaceDetailPage />,
+    checkAuth: false,
+    roles: [],
+    layout: <NavbarLayout />,
+    errorElement: <Navigate to="/error" />,
+  },
+  {
+    path: "/hanhtrinh/:itineraryId",
+    component: <ItineraryDetailPage />,
     checkAuth: false,
     roles: [],
     layout: <NavbarLayout />,
