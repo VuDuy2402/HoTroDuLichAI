@@ -189,20 +189,4 @@ const ItemPlace = ({ data }) => {
   );
 };
 
-const ContentFilter = () => {
-  const options = Object.keys(CPlaceType).map((key) => ({
-    label: PlaceTypeDescriptions[CPlaceType[key]],
-    value: CPlaceType[key],
-  }));
-
-  return (
-    <div className="content-filter">
-      <div className="mb-3">
-        <label className="fw-bold my-2">Loại địa điểm</label>
-        <Select options={options} />
-      </div>
-    </div>
-  );
-};
-
 export default PlacePage;

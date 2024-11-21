@@ -197,7 +197,7 @@ const Home = () => {
           backgroundSize: "cover",
         }}
       >
-        <div className="container">
+        <div className="new-place container">
           <h2
             className="fw-bold text-success mt-5 mb-3"
             style={{ cursor: "pointer" }}
@@ -237,7 +237,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <div className="container mb-3">
+      <div className="news-travel container mb-3">
         <h2 className="fw-bold text-success mt-5 mb-4">Tin tức du lịch</h2>
         <div className="row">
           {
