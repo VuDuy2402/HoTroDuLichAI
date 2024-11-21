@@ -52,7 +52,6 @@ namespace HoTroDuLichAI.API
             try
             {
                 IQueryable<BusinessEntity> collection = _dbContext.Businesses
-                                                        .Include(b => b.BusinessContactPerson)
                                                         .Include(b => b.User);
                 var currentUser = RuntimeContext.CurrentUser;
                 if (param.IsAdmin)
@@ -109,20 +108,9 @@ namespace HoTroDuLichAI.API
                 {
                     BusinessName = b.BusinessName,
                     Address = b.Address,
-                    Service = b.Service,
                     Appoved = b.Appoved,
                     IsNew = b.IsNew,
-                    BusinessContactProperty = new BusinessContactProperty()
-                    {
-                        Name = b.BusinessContactProperty.Name,
-                        Email = b.BusinessContactProperty.Email,
-                        PhoneNumber = b.BusinessContactProperty.PhoneNumber,
-                        ImageProperty = new ImageProperty()
-                        {
-                            Id = b.BusinessContactProperty.ImageProperty.Id,
-                            IsDefault = b.BusinessContactProperty.ImageProperty.IsDefault,
-                        }
-                    },
+                    BusinessContactProperty = b.BusinessContactPerson.FromJson<BusinessContactProperty>(),
                     OwnerProperty = new OwnerProperty()
                     {
                         Avatar = b.User.Avatar,
@@ -174,7 +162,6 @@ namespace HoTroDuLichAI.API
 
                 var businessEntity = await _dbContext.Businesses
                     .Include(b=>b.User)
-                    .Include(b => b.BusinessContactProperty)
                     .Include(b => b.ItineraryDetails)
                     .Where(b => b.Id == businessId)
                     .Select(b => new
@@ -202,6 +189,7 @@ namespace HoTroDuLichAI.API
                     return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
                 }
                 var data = businessEntity.Adapt<BusinessMoreInfoResponseDto>();
+                data.BusinessServiceProperty = businessEntity.Service.FromJson<BusinessServiceProperty>();
                 response.Result.Success = true;
                 response.Result.Data = data;
                 response.StatusCode = StatusCodes.Status200OK;
@@ -260,17 +248,6 @@ namespace HoTroDuLichAI.API
                     return response;
                 }
                 bool hasAdminRole = (await _userManager.GetRolesAsync(user: currentUser)).Contains(CRoleType.Admin.ToString());
-                var businessSeviceProperty = new BusinessServiceProperty()
-                {
-                    ServiceId = requestDto.BusinessServiceProperty.ServiceId,
-                    Name = requestDto.BusinessServiceProperty.Name,
-                    Status = requestDto.BusinessServiceProperty.Status,
-                    Type = requestDto.BusinessServiceProperty.Type,
-                    Amount = requestDto.BusinessServiceProperty.Amount,
-                    Quantity = requestDto.BusinessServiceProperty.Quantity,
-                    Thumbnail = requestDto.BusinessServiceProperty.Thumbnail,
-
-                };
                 var imageProperty = new ImageProperty();
                 var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: requestDto.FileId);
                 if (imageResponse.StatusCode == StatusCodes.Status200OK)
@@ -281,6 +258,17 @@ namespace HoTroDuLichAI.API
                         imageProperty = (ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: true));
                     }
                 }
+                var businessSeviceProperty = new BusinessServiceProperty()
+                {
+                    ServiceId = requestDto.BusinessServiceProperty.ServiceId,
+                    Name = requestDto.BusinessServiceProperty.Name,
+                    Status = requestDto.BusinessServiceProperty.Status,
+                    Type = requestDto.BusinessServiceProperty.Type,
+                    Amount = requestDto.BusinessServiceProperty.Amount,
+                    Quantity = requestDto.BusinessServiceProperty.Quantity,
+                    Thumbnail = imageProperty.Url ?? string.Empty,
+
+                };
                 var businessContactPerson = new BusinessContactProperty()
                 {
                     Name = requestDto.BusinessContactPerson.Name,
