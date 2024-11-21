@@ -10,6 +10,7 @@ import { userService } from "../../../services/userSerivce";
 import { publisherService } from "../../../services/publisherService";
 import { notificationService } from "../../../services/notificationService";
 import { FiBell } from "react-icons/fi";
+import { MdAddLocation } from "react-icons/md";
 import UserTag from "../UserTag/UserTag";
 import {
   getAuthSelector,
@@ -274,6 +275,13 @@ const Navbar = ({ className }) => {
                   autoClose
                   onClick={handleClickDropdownRole}
                 />
+                <button
+                  className="btn btn-light rounded-0"
+                  onClick={() => navigate("/diadiem/dangdiadiemmoi")}
+                >
+                  <MdAddLocation size={24} />
+                  {windowSize.width > 767 ? "Đăng địa điểm mới" : null}
+                </button>
                 <ButtonCustom
                   title={<RiMessage2Line size={24} />}
                   noticeIcon
@@ -333,9 +341,8 @@ const Navbar = ({ className }) => {
                   )}
                 </button>
                 <button
-                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${
-                    windowSize.width > 767 ? "" : ""
-                  }`}
+                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${windowSize.width > 767 ? "" : ""
+                    }`}
                   onClick={handleRegister}
                 >
                   {windowSize.width <= 767 ? <FaUserPlus /> : "Đăng ký"}
