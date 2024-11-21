@@ -1,0 +1,7 @@
+Cài đặt các phần mềm sau : 
+
+1. SQL Server 2022 : https://go.microsoft.com/fwlink/p/?linkid=2215158&clcid=0x409&culture=en-us&country=us
+2. Dotnet SDK : DotNet 8 : https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-8.0.403-windows-x64-installer
+3. NodeJS: https://nodejs.org/dist/v22.11.0/node-v22.11.0-x64.msi
+4. SSMS : https://aka.ms/ssmsfullsetup
+
