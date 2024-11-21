@@ -11,6 +11,7 @@ import PlacePage from "../pages/user/PlacePage/PlacePage";
 import PlaceDetailPage from "../pages/user/PlaceDetailPage/PlaceDetailPage";
 import NavbarLayout from "../layouts/NavbarLayout";
 import ItineraryDetailPage from "../pages/user/ItineraryDetailPage/ItineraryDetailPage";
+import RequestCreatePlacePage from "../pages/user/RequestCreatePlace/RequestCreatePlace";
 
 export const routes = [
   {
@@ -61,6 +62,14 @@ export const routes = [
   {
     path: "/diadiem",
     component: <PlacePage />,
+    checkAuth: false,
+    roles: [],
+    layout: <MainLayout />,
+    errorElement: <Navigate to="/error" />,
+  },
+  {
+    path: "/diadiem/dangdiadiemmoi",
+    component: <RequestCreatePlacePage />,
     checkAuth: false,
     roles: [],
     layout: <MainLayout />,

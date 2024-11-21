@@ -4,12 +4,10 @@ namespace HoTroDuLichAI.API
     {
         public string BusinessName { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public string Service { get; set; } = string.Empty;
-        public CBusinessServiceType businessServiceType { get; set; }
+        public BusinessServiceProperty BusinessServiceProperty { get; set; } = new BusinessServiceProperty();
         public bool IsNew { get; set; }
-        public string BusinessContactPerson { get; set; } = string.Empty;
+        public BusinessContactProperty BusinessContactPerson { get; set; } = new BusinessContactProperty();
         public string FileId { get; set; } = string.Empty;
-
     }
-
+    
 }

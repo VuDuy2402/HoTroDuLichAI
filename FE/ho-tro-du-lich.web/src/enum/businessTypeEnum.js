@@ -1,15 +1,30 @@
 // src/utils/enums.js
 
+import { CPlaceType } from "./placeTypeEnum";
+
 // Enums for Business Type
 export const CBusinessType = {
-    None: 0,
-    Hotel: 1,
-    Restaurant: 2,
+  None: 0,
+  Hotel: 1,
+  Restaurant: 2,
 };
 
 // Descriptions for Business Type
 export const PlaceTypeDescriptions = {
-    [CPlaceType.None]: "Không xác định",
-    [CPlaceType.Hotel]: "Khách sạn",
-    [CPlaceType.Restaurant]: "Nhà hàng",
+  [CPlaceType.None]: "Không xác định",
+  [CPlaceType.Hotel]: "Khách sạn",
+  [CPlaceType.Restaurant]: "Nhà hàng",
+};
+
+export const CBusinessServiceStatus = {
+  None: 0,
+  Available: 1,
+  NotAvailable: 2,
+};
+
+export const CBusinessServiceType = {
+  None: 0,
+  Room: 1,
+  Food: 2,
+  Drink: 3,
 };

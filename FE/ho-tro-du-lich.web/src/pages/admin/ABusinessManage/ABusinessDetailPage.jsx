@@ -8,7 +8,7 @@ import { ApprovalTypeDescriptions } from "../../../enum/approvalTypeEnum";
 import { toast } from "react-toastify";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
-const ABusinessDetailPage = ({ show, placeId, onClose }) => {
+const ABusinessDetailPage = ({ show, businessId, onClose }) => {
     const [businessDetails, setBusinessDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [errorList, setErrors] = useState([]);
@@ -61,7 +61,7 @@ const ABusinessDetailPage = ({ show, placeId, onClose }) => {
                 <Modal.Title>Chi tiết doanh nghiệp</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                {placeDetails ? (
+                {businessDetails ? (
                     <div>
                         {/* Statistical Info Section */}
                         <Row className="mb-4">
@@ -70,7 +70,7 @@ const ABusinessDetailPage = ({ show, placeId, onClose }) => {
                                     <Card.Body className="text-center">
                                         <FaEye size={30} color="#007bff" />
                                         <h5 className="mt-2">Tổng lượt xem</h5>
-                                        <h4>{placeDetails.totalView}</h4>
+                                        <h4>{businessDetails.totalView}</h4>
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -79,7 +79,7 @@ const ABusinessDetailPage = ({ show, placeId, onClose }) => {
                                     <Card.Body className="text-center">
                                         <FaStar size={30} color="#ffc107" />
                                         <h5 className="mt-2">Đánh giá</h5>
-                                        <h4>{placeDetails.rating}</h4>
+                                        <h4>{businessDetails.rating}</h4>
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -88,7 +88,7 @@ const ABusinessDetailPage = ({ show, placeId, onClose }) => {
                                     <Card.Body className="text-center">
                                         <FaImage size={30} color="#28a745" />
                                         <h5 className="mt-2">Số hình ảnh</h5>
-                                        <h4>{placeDetails.imageDetailProperties.length}</h4>
+                                        <h4>{businessDetails.imageDetailProperties.length}</h4>
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -112,7 +112,7 @@ const ABusinessDetailPage = ({ show, placeId, onClose }) => {
                                 bg="info"
                                 className="ms-2"
                             >
-                                {BusinessTypeDescriptions[placeDetails.placeType] || "Loại doanh nghiệp chưa xác định"}
+                                {BusinessTypeDescriptions[businessDetails.businessType] || "Loại doanh nghiệp chưa xác định"}
                             </Badge>
                         </div>
 
