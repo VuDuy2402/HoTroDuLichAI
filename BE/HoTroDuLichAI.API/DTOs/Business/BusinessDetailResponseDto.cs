@@ -8,9 +8,9 @@ namespace HoTroDuLichAI.API
         public Guid Id { get; set; }
         public string BusinessName { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public string Service { get; set; } = string.Empty;
         public CApprovalType Appoved { get; set; }
         public bool IsNew { get; set; }
+        public BusinessServiceProperty BusinessServiceProperty { get; set; } = new BusinessServiceProperty();
         public BusinessContactProperty BusinessContactProperty { get; set; } = null!;
         public OwnerProperty OwnerProperty { get; set; } = null!;
     }
