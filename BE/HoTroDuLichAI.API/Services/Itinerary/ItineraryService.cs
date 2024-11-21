@@ -175,7 +175,7 @@ namespace HoTroDuLichAI
             try
             {
                 var itineraryDetails = await _dbContext.ItineraryDetails.Include(id => id.Business)
-                .Where(id => id.Id == itineraryId)
+                .Where(id => id.ItineraryId == itineraryId)
                 .OrderBy(id => id.Index)
                 .Select(id => new
                 {
@@ -190,21 +190,27 @@ namespace HoTroDuLichAI
                     PlaceId = id.PlaceId,
                     Time = id.Time
                 }).ToListAsync();
-                var data = itineraryDetails.Select(id => new ItineraryDetailResponseDto()
+                var data = itineraryDetails.Select(id =>
                 {
-                    ItineraryDetailId = id.ItineraryDetailId,
-                    ItineraryId = id.ItineraryId,
-                    PlaceId = id.PlaceId,
-                    Time = id.Time,
-                    BusinessProperty = new BusinessProperty
+                    var contact = id.BusinessContactPerson.FromJson<BusinessContactProperty>();
+                    var service = id.ServiceProperty.FromJson<List<BusinessServiceProperty>>();
+                    var serviceIds = id.ServiceIds.FromJson<List<Guid>>();
+                    return new ItineraryDetailResponseDto()
                     {
-                        Id = id.BusinessId,
-                        Name = id.BusinessName,
-                        Address = id.BusinessAddress,
-                        ContactPerson = id.BusinessContactPerson.FromJson<BusinessContactProperty>(),
-                        ServiceProperties = id.ServiceProperty.FromJson<List<BusinessServiceProperty>>()
-                            .Where(item => id.ServiceIds.Contains(item.ServiceId)).ToList()
-                    }
+                        ItineraryDetailId = id.ItineraryDetailId,
+                        ItineraryId = id.ItineraryId,
+                        PlaceId = id.PlaceId,
+                        Time = id.Time,
+                        BusinessId = id.BusinessId,
+                        BusinessProperty = new BusinessProperty
+                        {
+                            Id = id.BusinessId,
+                            Name = id.BusinessName,
+                            Address = id.BusinessAddress,
+                            ContactPerson = contact,
+                            ServiceProperties = service.Where(item => serviceIds.Contains(item.ServiceId)).ToList()
+                        }
+                    };
                 }).ToList();
                 response.Result.Data = data;
                 response.Result.Success = true;

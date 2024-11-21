@@ -11,6 +11,8 @@ namespace HoTroDuLichAI.API
         public string BusinessName { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public string Service { get; set; } = string.Empty;
+        [NotMapped]
+        public BusinessServiceProperty ServiceProperty { get; set; } = null!;
         public CBusinessServiceType BusinessServiceType { get; set; }
         public CApprovalType Appoved { get; set; }
         public bool IsNew { get; set; }
