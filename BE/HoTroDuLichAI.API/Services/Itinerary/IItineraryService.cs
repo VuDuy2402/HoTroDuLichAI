@@ -11,5 +11,7 @@ namespace HoTroDuLichAI.API
         Task<ApiResponse<BasePagedResult<ItineraryInfoResponseDto>>> GetItinerarySuggestionAsync(Guid placeId, ItineraryPagingAndFilterParam param,
             ModelStateDictionary? modelState = null);
         Task<ApiResponse<List<ItineraryDetailResponseDto>>> GetItineraryDetailsByItineraryIdAsync(Guid itineraryId);
+        Task<ApiResponse<ItineraryInfoResponseDto>> CreateItineraryAsync(CreateItineraryRequestDto requestDto,
+            ModelStateDictionary? modelState = null);
     }
 }

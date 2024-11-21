@@ -29,6 +29,73 @@ namespace HoTroDuLichAI
         }
 
 
+        public async Task<ApiResponse<ItineraryInfoResponseDto>> CreateItineraryAsync(CreateItineraryRequestDto requestDto,
+            ModelStateDictionary? modelState = null)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ItineraryInfoResponseDto>();
+            if (requestDto == null)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Dữ liệu gửi về không hợp lệ. Vui lòng kiểm tra lại.",
+                    ErrorScope = CErrorScope.PageSumarry
+                });
+                response.Result.Errors.AddRange(errors);
+                response.Result.Success = false;
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
+
+            errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+
+            var currentUser = RuntimeContext.CurrentUser;
+            if (currentUser == null)
+            {
+                return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+            }
+
+            try
+            {
+                var itineraryEntity = new ItineraryEntity()
+                {
+                    Name = requestDto.Name,
+                    ProvinceId = requestDto.ProvinceId,
+                    UserId = currentUser.Id,
+                };
+
+                _dbContext.Itineraries.Add(entity: itineraryEntity);
+                await _dbContext.SaveChangesAsync();
+                response.Result.Data = new ItineraryInfoResponseDto()
+                {
+                    ItineraryId = itineraryEntity.Id,
+                    Name = itineraryEntity.Name,
+                    TotalDay = itineraryEntity.TotalDay,
+                    TotalAmount = itineraryEntity.TotalAmount,
+                    TotalUse = itineraryEntity.TotalUse,
+                    CreatedDate = itineraryEntity.CreatedDate,
+                    OwnerProperty = new OwnerProperty()
+                    {
+                        Avatar = currentUser.Avatar,
+                        Email = currentUser.Email ?? string.Empty,
+                        FullName = currentUser.FullName,
+                        UserId = currentUser.Id
+                    }
+                };
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status201Created;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
         public async Task<ApiResponse<BasePagedResult<ItineraryInfoResponseDto>>> GetItinerarySuggestionAsync(Guid placeId, ItineraryPagingAndFilterParam param,
             ModelStateDictionary? modelState = null)
         {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HoTroDuLichAI.API
@@ -28,6 +29,21 @@ namespace HoTroDuLichAI.API
             var result = await _itineraryService.GetItineraryDetailsByItineraryIdAsync(itineraryId: itineraryId);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
+
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CreateItinerary(CreateItineraryRequestDto requestDto)
+        {
+            var result = await _itineraryService.CreateItineraryAsync(requestDto: requestDto, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+
+
+
+
+
 
         [HttpPost("paging")]
         public async Task<IActionResult> GetWithPaging(ItineraryPagingAndFilterParam param)

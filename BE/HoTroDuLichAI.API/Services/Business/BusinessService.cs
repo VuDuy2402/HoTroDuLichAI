@@ -128,7 +128,7 @@ namespace HoTroDuLichAI.API
                     OwnerProperty = new OwnerProperty()
                     {
                         Avatar = pl.User.Avatar,
-                        Email = pl.User.Email,
+                        Email = pl.User.Email ?? string.Empty,
                         FullName = pl.User.FullName,
                         UserId = pl.UserId
                     }
