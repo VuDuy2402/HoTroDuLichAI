@@ -39,11 +39,12 @@ namespace HoTroDuLichAI.API
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
-
-
-
-
-
+        [HttpGet("province")]
+        public async Task<IActionResult> GetAllProvinces()
+        {
+            var result = await _itineraryService.GetAllProvincesAsync();
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
 
         [HttpPost("paging")]
         public async Task<IActionResult> GetWithPaging(ItineraryPagingAndFilterParam param)

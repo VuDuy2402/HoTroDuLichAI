@@ -5,6 +5,8 @@ export const CNotificationType = {
     Email: 2,
     Order: 3,
     Register: 4,
+    Place: 5,
+    Business: 6,
 };
 
 export const CNotificationLevel = {
@@ -17,17 +19,19 @@ export const CNotificationLevel = {
 
 // Description mappings
 export const NotificationTypeDescriptions = {
-    [CNotificationType.None]: '',
-    [CNotificationType.Normal]: 'Normal',
-    [CNotificationType.Email]: 'Send email',
+    [CNotificationType.None]: 'Chưa xác định',
+    [CNotificationType.Normal]: 'Thông báo',
+    [CNotificationType.Email]: 'Gửi email',
     [CNotificationType.Order]: 'Order',
-    [CNotificationType.Register]: 'Registration account',
+    [CNotificationType.Register]: 'Đăng ký',
+    [CNotificationType.Place]: 'Địa điểm',
+    [CNotificationType.Business]: 'Doanh nghiệp',
 };
 
 export const NotificationLevelDescriptions = {
-    [CNotificationLevel.None]: '',
-    [CNotificationLevel.Info]: '',
-    [CNotificationLevel.Warning]: '',
-    [CNotificationLevel.Error]: 'Failed',
-    [CNotificationLevel.Success]: 'Successfully',
+    [CNotificationLevel.None]: 'Chưa xác định',
+    [CNotificationLevel.Info]: 'Thông tin',
+    [CNotificationLevel.Warning]: 'Cảnh báo',
+    [CNotificationLevel.Error]: 'Lỗi',
+    [CNotificationLevel.Success]: 'Thành công',
 };

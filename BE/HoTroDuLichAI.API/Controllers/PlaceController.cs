@@ -55,6 +55,23 @@ namespace HoTroDuLichAI.API
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
+        [HttpPost("manage/approverequestcreateplace")]
+        [Authorize(Roles = RoleDescription.Admin)]
+        public async Task<IActionResult> ApprovalRequestCreatePlace(ApproveCreatePlaceRequestdto requestDto)
+        {
+            var result = await _placeService.ApprovalRequestCreatePlaceAsync(requestDto: requestDto);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpPost("requestcreateplace")]
+        [Authorize(Roles = RoleDescription.NormalUser)]
+        public async Task<IActionResult> RequestCreatePlace(CreatePlaceRequestDto requestDto)
+        {
+            requestDto.IsNew = true;
+            var result = await _placeService.CreatePlaceAsync(requestDto: requestDto, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
         [HttpPut("manage")]
         [Authorize(Roles = RoleDescription.Admin)]
         public async Task<IActionResult> UpdatePlace(UpdatePlaceRequestDto requestDto)
