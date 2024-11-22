@@ -73,6 +73,7 @@ namespace HoTroDuLichAI.API
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
         }

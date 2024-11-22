@@ -320,6 +320,19 @@ namespace HoTroDuLichAI.API
             {
                 return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
             }
+            if (requestDto.PlaceType == CPlaceType.None)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Bạn phải chọn loại địa điểm.",
+                    ErrorScope = CErrorScope.Field,
+                    Field = $"{nameof(requestDto.PlaceType)}_Error"
+                });
+                response.Result.Errors.AddRange(errors);
+                response.Result.Success = false;
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
             try
             {
                 var currentUser = RuntimeContext.CurrentUser;
@@ -633,6 +646,98 @@ namespace HoTroDuLichAI.API
             }
         }
         #endregion Delete place
+
+
+        #region Approval new place request
+        public async Task<ApiResponse<ResultMessage>> ApprovalRequestCreatePlaceAsync(
+            ApproveCreatePlaceRequestdto requestDto)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            if (requestDto == null)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Dữ liệu gửi về không đúng định dạng. Vui lòng kiểm tra lại.",
+                    ErrorScope = CErrorScope.PageSumarry
+                });
+                response.Result.Errors.AddRange(errors);
+                response.Result.Success = false;
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
+            using (var transaction = await _dbContext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var placeEntity = await _dbContext.Places.FindAsync(requestDto.PlaceId);
+                    if (placeEntity == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                    }
+                    if (!placeEntity.IsNew)
+                    {
+                        await transaction.RollbackAsync();
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = "Yêu cầu không hợp lệ. Địa không phải là địa điểm mới.",
+                            ErrorScope = CErrorScope.PageSumarry
+                        });
+                        response.Result.Errors.AddRange(errors);
+                        response.Result.Success = false;
+                        response.StatusCode = StatusCodes.Status406NotAcceptable;
+                        return response;
+                    }
+                    if (placeEntity.Appoved != CApprovalType.Accepted)
+                    {
+                        await transaction.RollbackAsync();
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = $"Yêu cầu không hợp lệ. Trạng thái yêu cầu không còn ở '{CApprovalType.PendingAprroval.ToDescription()}'",
+                            ErrorScope = CErrorScope.PageSumarry
+                        });
+                        response.Result.Errors.AddRange(errors);
+                        response.Result.Success = false;
+                        response.StatusCode = StatusCodes.Status410Gone;
+                        return response;
+                    }
+                    placeEntity.Appoved = requestDto.Type;
+                    _dbContext.Places.Update(entity: placeEntity);
+                    await _dbContext.SaveChangesAsync();
+                    var currentUser = RuntimeContext.CurrentUser;
+                    var notificationEntity = new NotificationEntity()
+                    {
+                        Content = $"Admin {currentUser?.FullName} {requestDto.Type.ToDescription()} yêu cầu đăng điểm mới '{placeEntity.Name}'",
+                        IsRead = false,
+                        Title = $"Yêu cầu đăng địa điểm mới : '{placeEntity.Name}' của bạn {requestDto.Type.ToDescription()}",
+                        Type = CNotificationType.Place,
+                        UserId = placeEntity.UserId
+                    };
+                    await _notificationHubContext.Clients.User(placeEntity.UserId.ToString())
+                        .SendAsync("ReceiveNotification", $"Có thông báo mới.");
+                    _dbContext.Notifications.Add(entity: notificationEntity);
+                    await _dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    response.Result.Success = true;
+                    response.Result.Data = new ResultMessage()
+                    {
+                        Level = CNotificationLevel.Info,
+                        Message = $"Xác nhận yêu cầu đăng địa điểm mới {requestDto.Type.ToDescription()}",
+                        NotificationType = CNotificationType.Place
+                    };
+                    response.StatusCode = StatusCodes.Status202Accepted;
+                    return response;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex.Message);
+                    return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+                }
+            }
+        }
+        #endregion Approval new place request
 
 
         private ImageProperty ConvertToImageProperty(ImageFileInfo imageFileInfo,

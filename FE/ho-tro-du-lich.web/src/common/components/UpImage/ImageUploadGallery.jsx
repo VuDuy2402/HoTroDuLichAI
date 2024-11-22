@@ -56,7 +56,7 @@ const ImageUploadGallery = ({ onImagesUploaded }) => {
                     disabled={uploading}
                 >
                     <FaFileUpload className="me-2" />
-                    {uploading ? "Đang tải..." : "Tải lên ảnh"}
+                    {uploading ? "Đang tải..." : "Tải ảnh lên"}
                 </Button>
             </div>
 

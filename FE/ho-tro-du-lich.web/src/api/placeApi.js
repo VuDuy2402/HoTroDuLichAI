@@ -13,4 +13,9 @@ export const placeApi = {
   // my
   Place_My_GetWithPaging: "api/v1/admin/place/my/paging",
   // my
+
+
+  // normal user
+  Place_User_RequestCreatePlace: "api/v1/admin/place/requestcreateplace"
+  // normal user
 };

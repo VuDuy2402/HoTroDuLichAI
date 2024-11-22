@@ -10,6 +10,19 @@ export const getQueryParameters = () => {
   return result;
 };
 
+export const getEnumValue = (enumObj, value) => {
+  if (!isNaN(parseInt(value))) {
+    return parseInt(value);
+  }
+  const enumKey = Object.keys(enumObj).find(
+    (key) => key.toLowerCase() === value.toLowerCase()
+  );
+
+  return enumKey ? enumObj[enumKey] : null;
+};
+
+
+
 export const toQueryString = (obj) => {
   if (!obj) {
     throw new Error("Đối tượng không được phép là null hoặc undefined.");

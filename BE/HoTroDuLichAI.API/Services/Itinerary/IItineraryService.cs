@@ -13,5 +13,6 @@ namespace HoTroDuLichAI.API
         Task<ApiResponse<List<ItineraryDetailResponseDto>>> GetItineraryDetailsByItineraryIdAsync(Guid itineraryId);
         Task<ApiResponse<ItineraryInfoResponseDto>> CreateItineraryAsync(CreateItineraryRequestDto requestDto,
             ModelStateDictionary? modelState = null);
+        Task<ApiResponse<List<ProvinceInfoResponseDto>>> GetAllProvincesAsync();
     }
 }

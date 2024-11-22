@@ -1,6 +1,7 @@
 using HoTroDuLichAI.API;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -27,6 +28,31 @@ namespace HoTroDuLichAI
             _reviewPlaceSevice = reviewPlaceSevice;
             _logger = logger;
         }
+
+        #region Province
+        public async Task<ApiResponse<List<ProvinceInfoResponseDto>>> GetAllProvincesAsync()
+        {
+            var response = new ApiResponse<List<ProvinceInfoResponseDto>>();
+            var errors = new List<ErrorDetail>();
+            try
+            {
+                var provinceInfos = await _dbContext.Provinces.Select(p => new ProvinceInfoResponseDto
+                {
+                    ProvinceId = p.Id,
+                    ProvinceName = p.Name
+                }).ToListAsync();
+                response.Result.Data = provinceInfos;
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+        #endregion Province
 
 
         public async Task<ApiResponse<ItineraryInfoResponseDto>> CreateItineraryAsync(CreateItineraryRequestDto requestDto,

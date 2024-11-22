@@ -98,4 +98,23 @@ export const placeService = {
       return null;
     }
   },
+
+
+
+  // normal user
+  requestCreatePlace: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        placeApi.Place_User_RequestCreatePlace,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  }
+
+  // normal user
 };

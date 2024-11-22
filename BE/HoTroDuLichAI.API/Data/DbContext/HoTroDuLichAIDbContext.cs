@@ -18,6 +18,7 @@ namespace HoTroDuLichAI.API
         public DbSet<PlaceEntity> Places { get; set; } = null!;
         public DbSet<ItineraryDetailEntity> ItineraryDetails { get; set; } = null!;
         public DbSet<ItineraryEntity> Itineraries { get; set; } = null!;
+        public DbSet<ProvinceEntity> Provinces { get; set; } = null!;
         public DbSet<BusinessEntity> Businesses { get; set; } = null!;
         public DbSet<BusinessAnalyticEntity> BusinessAnalytics { get; set; } = null!;
         public DbSet<ReviewPlaceEntity> ReviewPlaces { get; set; } = null!;
