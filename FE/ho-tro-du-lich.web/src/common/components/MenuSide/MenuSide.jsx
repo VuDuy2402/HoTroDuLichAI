@@ -87,7 +87,7 @@ const MenuSide = ({ items, status, onChangeStatus, onClickItem }) => {
                     className={`btn btn-light d-flex align-items-center ${
                       item.url === location.pathname ||
                       (selectId && item.id === selectId)
-                        ? "text-warning fw-bold"
+                        ? "text-success fw-bold"
                         : ""
                     } w-100 py-3 rounded-0 text-start`}
                   >

@@ -234,7 +234,7 @@ const Navbar = ({ className }) => {
               <p className="p-1 m-0 text-success">DULICHDN</p>
             </div>
             <div className="navbar__content__item ms-3 d-flex gap-1 align-items-center">
-              {windowSize.width > 768 ? (
+              {windowSize.width > 998 ? (
                 contentItem.map((item, idx) => (
                   <LinkCustom
                     key={idx}
@@ -280,7 +280,7 @@ const Navbar = ({ className }) => {
                   onClick={() => navigate("/diadiem/dangdiadiemmoi")}
                 >
                   <MdAddLocation size={24} />
-                  {windowSize.width > 767 ? "Đăng địa điểm mới" : null}
+                  {windowSize.width > 1024 ? "Đăng địa điểm mới" : null}
                 </button>
                 <ButtonCustom
                   title={<RiMessage2Line size={24} />}
@@ -341,8 +341,9 @@ const Navbar = ({ className }) => {
                   )}
                 </button>
                 <button
-                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${windowSize.width > 767 ? "" : ""
-                    }`}
+                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${
+                    windowSize.width > 767 ? "" : ""
+                  }`}
                   onClick={handleRegister}
                 >
                   {windowSize.width <= 767 ? <FaUserPlus /> : "Đăng ký"}

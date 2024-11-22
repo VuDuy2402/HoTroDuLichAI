@@ -10,25 +10,14 @@ import { Navigation, Autoplay } from "swiper/modules";
 import { articleService } from "../../../services/articleService";
 import { useDispatch } from "react-redux";
 import { systemAction } from "../../../redux/slices/systemSlice";
+import defaultImg from "@/assets/img/PhuQuoc.jpg";
+import { IoIosArrowDroprightCircle } from "react-icons/io";
 const Home = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [famousPlace, setFamousPlace] = useState([]);
   const [newPlace, setNewPlace] = useState([]);
   const [article, setArticle] = useState([]);
-  // const connection = new signalR.HubConnectionBuilder()
-  //   .withUrl("https://localhost:7001/notificationHub", {
-  //     accessTokenFactory: () => localStorageService.getAccessToken(),
-  //   })
-  //   .withAutomaticReconnect()
-  //   .build();
-  // connection.on("ReceiveNotification", function (message) {
-  //   toast.success(message);
-  // });
-
-  // connection.start().catch(function (err) {
-  //   return console.error(err.toString());
-  // });
 
   const handlePlaceFamous = async () => {
     const dataSend = {
@@ -109,12 +98,13 @@ const Home = () => {
                 className="d-flex gap-2 justify-content-center w-100"
                 style={{ maxWidth: "300px" }}
               >
-                <input
-                  className="form-control rounded-pill"
-                  placeholder="Tìm kiếm địa điểm . . ."
-                />
-                <button className="btn btn-success">
-                  <FaSearch color="white" />
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={() => navigate("/diadiem")}
+                >
+                  Khám phá ngay
+                  <IoIosArrowDroprightCircle color="white" className="ms-2" />
                 </button>
               </div>
             </div>
@@ -240,7 +230,7 @@ const Home = () => {
       <div className="news-travel container mb-3">
         <h2 className="fw-bold text-success mt-5 mb-4">Tin tức du lịch</h2>
         <div className="row">
-          {
+          {article && article.length > 0 && (
             <Swiper
               className="new-place-frame-swiper"
               modules={[Navigation, Autoplay]}
@@ -276,7 +266,10 @@ const Home = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
-          }
+          )}
+          {article.length === 0 && (
+            <p className="text-black">Hiện chưa có bảng tin nào</p>
+          )}
         </div>
       </div>
       <div
@@ -329,7 +322,11 @@ const StepIntroduce = ({ number, title, description }) => {
 const FamousLocation = ({ img, title }) => {
   return (
     <div className="famous-location__item position-relative overflow-hidden h-100 w-100">
-      <img className="w-100 h-100" src={img}></img>
+      <img
+        className="w-100 h-100"
+        src={img}
+        onError={(e) => (e.target.src = defaultImg)}
+      ></img>
       <div
         className="famous-location__item__location bg-white d-flex align-items-center position-absolute px-2 py-1"
         style={{ bottom: 0, right: 0 }}
@@ -348,6 +345,7 @@ const NewHotPlace = ({ place }) => {
       style={{
         height: "400px",
         backgroundImage: `url(${place.thumbnail})`,
+        background: "#80808080",
         backgroundPosition: "center",
         backgroundSize: "cover",
         cursor: "pointer",

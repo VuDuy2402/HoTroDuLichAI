@@ -12,16 +12,28 @@ const MenuSideLayout = ({ items, children }) => {
         className="container-fluid bg-light px-0"
         style={{
           paddingTop: "50px",
-          height: `100vh`,
         }}
       >
-        <div className="content container-fluid m-0 p-0 d-flex h-100 overflow-hidden">
+        <div
+          className="content container-fluid w-100 m-0 p-0 d-grid"
+          style={
+            statusMenuside
+              ? {
+                  gridTemplateColumns: "250px 1fr",
+                  gridTemplateRows: "calc(100vh - 50px)",
+                }
+              : {
+                  gridTemplateColumns: "50px 1fr",
+                  gridTemplateRows: "calc(100vh - 50px)",
+                }
+          }
+        >
           <MenuSide
             items={items}
             status={statusMenuside}
             onChangeStatus={() => setStatusMenuside((pre) => !pre)}
           />
-          <div className="w-100" style={{ marginLeft: "10px" }}>
+          <div className="overflow-hidden" style={{ marginLeft: "10px" }}>
             {children}
           </div>
         </div>
