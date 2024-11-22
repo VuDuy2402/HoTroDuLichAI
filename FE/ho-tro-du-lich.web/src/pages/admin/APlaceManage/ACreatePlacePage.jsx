@@ -38,6 +38,7 @@ const APlaceCreatePage = ({ show, onClose, onPlaceCreated }) => {
     const [selectedPlaceType, setSelectedPlaceType] = useState(CPlaceType.None);
     const [imageFileIds, setImageFileIds] = useState([]);
     const [isNew, setIsNew] = useState(false);
+    const [searchMapQuery, setSearchMapQuery] = useState("");
 
     // Sync coordinates with form fields when they change
     useEffect(() => {
@@ -92,6 +93,28 @@ const APlaceCreatePage = ({ show, onClose, onPlaceCreated }) => {
         }
     };
 
+    const handleSearchOnMap = async () => {
+        if (!searchMapQuery) return;
+
+        const encodedQuery = encodeURIComponent(searchMapQuery);
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data && data[0]) {
+                const { lat, lon } = data[0];
+
+                setCoordinates({ latitude: parseFloat(lat), longitude: parseFloat(lon) });
+            } else {
+                toast.error("Không tìm thấy địa điểm. Vui lòng thử lại.");
+            }
+        } catch (error) {
+            toast.error("Lỗi khi tìm kiếm địa điểm. Vui lòng thử lại.");
+        }
+    };
+
 
     return (
         <Modal show={show} onHide={onClose} centered>
@@ -131,6 +154,20 @@ const APlaceCreatePage = ({ show, onClose, onPlaceCreated }) => {
                             checked={isNew}
                             onChange={() => setIsNew(prev => !prev)}
                         />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Tìm kiếm địa điểm</Form.Label>
+                        <div className="d-flex">
+                            <Form.Control
+                                type="text"
+                                placeholder="Nhập tên hoặc địa chỉ"
+                                value={searchMapQuery}
+                                onChange={e => setSearchMapQuery(e.target.value)}
+                            />
+                            <Button variant="primary" onClick={handleSearchOnMap}>
+                                Tìm
+                            </Button>
+                        </div>
                     </Form.Group>
                     <MapSection coordinates={coordinates} setCoordinates={setCoordinates} />
                     <ImageUploadSection onImagesUploaded={handleImagesUploaded} />

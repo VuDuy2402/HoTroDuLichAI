@@ -3,8 +3,9 @@ import { IKUpload } from "imagekitio-react";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { systemAction } from "@/redux/slices/systemSlice";
-import { FaTimes } from "react-icons/fa";
+import { FaFileUpload, FaTimes } from "react-icons/fa";
 import styles from './ImageUploadGallery.module.scss';
+import { Button } from "react-bootstrap";
 
 const ImageUploadGallery = ({ onImagesUploaded }) => {
     const ikUploadRef = useRef(null);
@@ -12,31 +13,27 @@ const ImageUploadGallery = ({ onImagesUploaded }) => {
     const [uploadedImages, setUploadedImages] = useState([]);
     const [uploading, setUploading] = useState(false);
 
-    // Hàm xử lý lỗi khi upload thất bại
     const onError = (err) => {
         toast.error(`Lỗi tải ảnh: ${err.message}`);
         setUploading(false);
     };
 
-    // Hàm xử lý khi upload thành công
     const onSuccess = (res) => {
         setUploading(false);
         const newImage = {
             fileId: res.fileId,
-            url: res.url,  // URL của hình ảnh đã upload
-            fileName: res.fileName, // Tên file ảnh
+            url: res.url,
+            fileName: res.fileName,
         };
 
         setUploadedImages((prevImages) => [...prevImages, newImage]);
-        onImagesUploaded(newImage.fileId);  // Truyền fileId về parent component
+        onImagesUploaded(newImage.fileId);
     };
 
-    // Hàm xử lý khi upload đang diễn ra (hiển thị progress bar)
     const onUploadProgress = (progress) => {
         setUploading(true);
     };
 
-    // Hàm xóa ảnh khỏi gallery
     const removeImage = (fileId) => {
         setUploadedImages((prevImages) => prevImages.filter(image => image.fileId !== fileId));
     };
@@ -52,14 +49,15 @@ const ImageUploadGallery = ({ onImagesUploaded }) => {
                     onUploadProgress={onUploadProgress}
                     multiple
                 />
-                <button
-                    className={styles.uploadButton}
+                <Button
+                    variant="outline-secondary"
+                    size=""
                     onClick={() => ikUploadRef.current?.click()}
                     disabled={uploading}
-                    type="button"
                 >
+                    <FaFileUpload className="me-2" />
                     {uploading ? "Đang tải..." : "Tải lên ảnh"}
-                </button>
+                </Button>
             </div>
 
             {uploading && (
