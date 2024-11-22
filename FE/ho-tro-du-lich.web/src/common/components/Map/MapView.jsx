@@ -1,9 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
-import { Button, Form } from "react-bootstrap";
-import axios from "axios"; // Dùng axios để gọi API geocoding
+import { Form, InputGroup, Button } from "react-bootstrap";
+import { FaSearch } from "react-icons/fa";
 
-// LocationPicker component to update coordinates on map click
 const LocationPicker = ({ setCoordinates, position }) => {
     useMapEvents({
         click({ latlng: { lat, lng } }) {
@@ -18,64 +17,50 @@ const LocationPicker = ({ setCoordinates, position }) => {
     ) : null;
 };
 
-const MapView = ({ onCoordinatesChange }) => {
-    const [coordinates, setCoordinates] = useState({ latitude: 14.0583, longitude: 108.2772 });
-    const [searchQuery, setSearchQuery] = useState(""); // Trạng thái tìm kiếm
-    const [loading, setLoading] = useState(false); // Trạng thái tải dữ liệu từ API
+const MapView = ({ initialCoordinates, onCoordinatesChange }) => {
+    const [coordinates, setCoordinates] = useState(initialCoordinates || { latitude: 14.0583, longitude: 108.2772 });
+    const [searchQuery, setSearchQuery] = useState("");
     const mapRef = useRef(null);
 
-    // Handle changes when latitude or longitude is manually updated
-    const handleLatitudeChange = (e) => {
-        const newLatitude = parseFloat(e.target.value);
-        setCoordinates((prevCoordinates) => {
-            const updatedCoordinates = { ...prevCoordinates, latitude: newLatitude };
-            onCoordinatesChange(updatedCoordinates); // Pass new coordinates to parent
-            return updatedCoordinates;
-        });
+    const handleLatLngChange = (e, type) => {
+        const value = parseFloat(e.target.value);
+        if (!isNaN(value)) {
+            const newCoordinates = { ...coordinates, [type]: value };
+            setCoordinates(newCoordinates);
+            onCoordinatesChange(newCoordinates);
+        }
     };
 
-    const handleLongitudeChange = (e) => {
-        const newLongitude = parseFloat(e.target.value);
-        setCoordinates((prevCoordinates) => {
-            const updatedCoordinates = { ...prevCoordinates, longitude: newLongitude };
-            onCoordinatesChange(updatedCoordinates); // Pass new coordinates to parent
-            return updatedCoordinates;
-        });
-    };
+    const handleSearchOnMap = async () => {
+        if (!searchQuery) return;
 
-    // Xử lý tìm kiếm địa chỉ và cập nhật bản đồ
-    const handleSearch = async () => {
-        if (searchQuery.trim() === "") return;
+        const encodedQuery = encodeURIComponent(searchQuery);
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}`;
 
-        setLoading(true);
         try {
-            // Gọi API Geocoding, ví dụ sử dụng Nominatim (OpenStreetMap)
-            const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
-                params: {
-                    q: searchQuery,
-                    format: "json",
-                    limit: 1,
-                },
-            });
+            const response = await fetch(url);
+            const data = await response.json();
 
-            if (response.data && response.data.length > 0) {
-                const { lat, lon } = response.data[0];
-                setCoordinates({ latitude: parseFloat(lat), longitude: parseFloat(lon) });
-                onCoordinatesChange({ latitude: parseFloat(lat), longitude: parseFloat(lon) });
+            if (data && data[0]) {
+                const { lat, lon } = data[0];
+                const newCoordinates = { latitude: parseFloat(lat), longitude: parseFloat(lon) };
+                setCoordinates(newCoordinates);
+                onCoordinatesChange(newCoordinates);
+
+                if (mapRef.current) {
+                    mapRef.current.flyTo([newCoordinates.latitude, newCoordinates.longitude], 12);
+                }
             } else {
-                alert("Không tìm thấy địa chỉ!");
+                alert("Không tìm thấy địa điểm. Vui lòng thử lại.");
             }
         } catch (error) {
-            console.error("Lỗi tìm kiếm địa chỉ:", error);
-            alert("Đã xảy ra lỗi khi tìm kiếm địa chỉ.");
-        } finally {
-            setLoading(false);
+            alert("Lỗi khi tìm kiếm địa điểm. Vui lòng thử lại.");
         }
     };
 
     return (
         <div style={{ position: "relative", height: "400px" }}>
-            {/* Tìm kiếm */}
+            {/* Search Box */}
             <div
                 style={{
                     position: "absolute",
@@ -86,59 +71,20 @@ const MapView = ({ onCoordinatesChange }) => {
                     padding: "10px",
                     borderRadius: "5px",
                     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                    width: "300px",
                 }}
             >
-                <Form.Group>
-                    <Form.Label>Tìm kiếm địa điểm</Form.Label>
+                <InputGroup>
                     <Form.Control
                         type="text"
-                        placeholder="Nhập tên địa điểm"
+                        placeholder="Search by name or address"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearchOnMap()}
                     />
-                </Form.Group>
-                <Button
-                    variant="primary"
-                    onClick={handleSearch}
-                    disabled={loading}
-                    style={{ width: "100%", marginTop: "10px" }}
-                >
-                    {loading ? "Đang tìm kiếm..." : "Tìm kiếm"}
-                </Button>
-            </div>
-
-            {/* Latitude and Longitude Inputs */}
-            <div
-                style={{
-                    position: "absolute",
-                    top: 100,
-                    left: 10,
-                    zIndex: 1000,
-                    backgroundColor: "white",
-                    padding: "10px",
-                    borderRadius: "5px",
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                }}
-            >
-                <Form.Group>
-                    <Form.Label>Latitude</Form.Label>
-                    <Form.Control
-                        type="number"
-                        step="0.0001"
-                        value={coordinates.latitude || ""}
-                        onChange={handleLatitudeChange}
-                    />
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label>Longitude</Form.Label>
-                    <Form.Control
-                        type="number"
-                        step="0.0001"
-                        value={coordinates.longitude || ""}
-                        onChange={handleLongitudeChange}
-                    />
-                </Form.Group>
+                    <Button onClick={handleSearchOnMap}>
+                        <FaSearch />
+                    </Button>
+                </InputGroup>
             </div>
 
             {/* Map */}
@@ -146,16 +92,51 @@ const MapView = ({ onCoordinatesChange }) => {
                 center={[coordinates.latitude, coordinates.longitude]}
                 zoom={8}
                 style={{ height: "100%", width: "100%" }}
-                whenCreated={(map) => {
-                    mapRef.current = map;
-                }}
+                ref={mapRef}
             >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
                 <LocationPicker
-                    setCoordinates={setCoordinates}
+                    setCoordinates={(newCoordinates) => {
+                        setCoordinates(newCoordinates);
+                        onCoordinatesChange(newCoordinates);
+                    }}
                     position={[coordinates.latitude, coordinates.longitude]}
                 />
             </MapContainer>
+
+            {/* Latitude/Longitude Inputs */}
+            <div
+                style={{
+                    position: "absolute",
+                    bottom: "10px",
+                    right: "10px",
+                    zIndex: 1000,
+                    backgroundColor: "white",
+                    padding: "10px",
+                    borderRadius: "5px",
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                }}
+            >
+                <Form.Group className="d-flex">
+                    <Form.Label>Vĩ độ</Form.Label>
+                    <Form.Control
+                        type="number"
+                        placeholder="Latitude"
+                        value={coordinates.latitude || ""}
+                        onChange={(e) => handleLatLngChange(e, "latitude")}
+                    />
+                    <Form.Label>Kinh độ</Form.Label>
+                    <Form.Control
+                        type="number"
+                        placeholder="Longitude"
+                        value={coordinates.longitude || ""}
+                        onChange={(e) => handleLatLngChange(e, "longitude")}
+                    />
+                </Form.Group>
+            </div>
         </div>
     );
 };
