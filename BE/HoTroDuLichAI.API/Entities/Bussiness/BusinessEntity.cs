@@ -1,26 +1,35 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.ML.Data;
 
 namespace HoTroDuLichAI.API
 {
-    [Table(name: "Business_Business")]
+    [Table(name: "TBL_DoanhNghiep")]
     public class BusinessEntity
     {
         [Key]
         public Guid Id { get; set; }
+        [Column("TenDoanhNghiep")]
         public string BusinessName { get; set; } = string.Empty;
+        [Column("DiaChiDoanhNghiep")]
         public string Address { get; set; } = string.Empty;
+        [Column("TongHopDichVuDoanhNghiep")]
         public string Service { get; set; } = string.Empty;
         [NotMapped]
         public BusinessServiceProperty ServiceProperty { get; set; } = null!;
+        [Column("LoaiDichVuDoanhNghiep")]
         public CBusinessServiceType BusinessServiceType { get; set; }
+        [Column("LoaiPheDuyet")]
         public CApprovalType Appoved { get; set; }
+        [Column("CoPhaiDiaDiemMoi")]
         public bool IsNew { get; set; }
+        [Column("ThongTinNguoiLienHeDoanhNghiep")]
         public string BusinessContactPerson { get; set; } = string.Empty;
         [NotMapped]
         public BusinessContactProperty BusinessContactProperty { get; set; } = null!;
 
         #region inverse property
+        [Column("NguoiDungId")]
         public Guid UserId { get; set; }
         [ForeignKey(name: "UserId")]
         [InverseProperty(property: "Businesses")]

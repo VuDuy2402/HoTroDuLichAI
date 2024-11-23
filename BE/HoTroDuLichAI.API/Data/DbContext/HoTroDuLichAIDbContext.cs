@@ -39,7 +39,25 @@ namespace HoTroDuLichAI.API
             {
                 if (entityType.GetTableName()!.StartsWith("AspNet"))
                 {
-                    entityType.SetTableName($"Admin_{entityType.GetTableName()?.Substring(6).TrimEnd('s')}");
+                    string tableName = entityType.GetTableName() ?? string.Empty;
+                    if (tableName == "AspNetUsers")
+                    {
+                        entityType.SetTableName($"TBL_NguoiDung");
+                    }
+                    if (tableName == "AspNetUserTokens")
+                    {
+                        entityType.SetTableName($"TBL_TokenNguoiDung");
+                    }
+                    if (tableName == "AspNetRoles")
+                    {
+                        entityType.SetTableName("TBL_VaiTro");
+                    }
+                    if (tableName == "AspNetUserRoles")
+                    {
+                        entityType.SetTableName("TBL_VaiTroNguoiDung");
+                    }
+                    // if (tableName == "AspNe")
+                    // entityType.SetTableName($"TBL_{entityType.GetTableName()?.Substring(6).TrimEnd('s')}");
                 }
             }
 
