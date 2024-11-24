@@ -175,11 +175,11 @@ namespace HoTroDuLichAI.API
                 }
                 if (!param.IsMy && !param.IsAdmin)
                 {
-                    collection = collection.Where(c => c.Appoved == CApprovalType.Accepted)
-                        .OrderByDescending(pl => ((pl.TotalView * 0.3) +
-                            (pl.Rating * 0.5) +
-                            (pl.ReviewPlaces.Count * 0.2) +
-                            (new Random().NextDouble() * 0.1)));
+                    // collection = collection.Where(c => c.Appoved == CApprovalType.Accepted)
+                    //     .OrderByDescending(pl => ((pl.TotalView * 0.3) +
+                    //         (pl.Rating * 0.5) +
+                    //         (pl.ReviewPlaces.Count * 0.2) +
+                    //         (new Random().NextDouble() * 0.1)));
                 }
                 if (param.SortProperty != null)
                 {
@@ -260,6 +260,8 @@ namespace HoTroDuLichAI.API
                         PlaceType = pl.PlaceType,
                         Thumbnail = pl.Thumbnail,
                         ApprovalType = pl.Appoved,
+                        Address = pl.Address,
+                        Description = pl.Description,
                         OwnerProperty = new OwnerProperty()
                         {
                             Avatar = pl.User.Avatar,

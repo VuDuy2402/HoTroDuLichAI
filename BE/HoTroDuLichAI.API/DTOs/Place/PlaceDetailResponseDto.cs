@@ -25,6 +25,8 @@ namespace HoTroDuLichAI.API
         public List<ImageDetailProperty> ImageDetailProperties { get; set; } = new List<ImageDetailProperty>();
         public int TotalReview { get; set; }
         public int TotalUseItinerary { get; set; }
+        public string Address { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
 
     }
 
