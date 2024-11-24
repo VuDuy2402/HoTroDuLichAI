@@ -153,6 +153,19 @@ const PlaceDetailPage = () => {
               />
             </div>
           </div>
+          {dataPlace.address && (
+            <div className="mt-3">
+              <h6 className="text-muted">Địa chỉ:</h6>
+              <p>{dataPlace.address}</p>
+            </div>
+          )}
+
+          {dataPlace.description && (
+            <div className="mt-3">
+              <h6 className="text-muted">Mô tả:</h6>
+              <p>{dataPlace.description}</p>
+            </div>
+          )}
           <div className="place-detail mt-3 p-1">
             <h5 className="">Chi tiết địa điểm</h5>
             <div style={{ height: "350px", marginBottom: "20px" }}>
