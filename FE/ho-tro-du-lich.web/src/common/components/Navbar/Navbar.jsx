@@ -162,8 +162,8 @@ const Navbar = ({ className }) => {
       return listBtn;
     }
     if (getUserRoles && getUserRoles.length > 0) {
-      if (getUserRoles.includes(Role.Publisher)) {
-        listBtn.push({ label: "Publisher Page", id: 1 });
+      if (getUserRoles.includes(Role.Business)) {
+        listBtn.push({ label: "Business Page", id: 1 });
       }
     }
     if (getUserRoles.includes(Role.Admin)) {
@@ -206,7 +206,7 @@ const Navbar = ({ className }) => {
   };
   const handleClickDropdownRole = (data) => {
     if (data.id === 1) {
-      navigate("/publisher");
+      navigate("/business");
     }
     if (data.id === 2) {
       navigate("/admin");
@@ -351,9 +351,6 @@ const Navbar = ({ className }) => {
               </>
             )}
           </div>
-          {/* {showNotifications && (
-            <NotificationPage onClose={handleCloseNotifications} />
-          )} */}
         </div>
       </nav>
 

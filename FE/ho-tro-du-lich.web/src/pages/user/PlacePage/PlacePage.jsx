@@ -109,7 +109,6 @@ const Toolbar = ({ onSubmitFilter }) => {
             defaultValue={null}
             render={({ field }) => (
               <Select
-                {...field}
                 options={options}
                 placeholder="Loại địa điểm"
                 onChange={(selectedOption) =>

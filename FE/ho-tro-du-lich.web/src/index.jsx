@@ -8,6 +8,8 @@ import "react-toastify/ReactToastify.css";
 import "swiper/css";
 import "swiper/css/navigation";
 import App from "./App";
+import "leaflet/dist/leaflet.css";
+import "leaflet-control-geocoder";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

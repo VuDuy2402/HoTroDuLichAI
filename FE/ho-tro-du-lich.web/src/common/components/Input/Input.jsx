@@ -12,10 +12,10 @@ const Input = ({
   return (
     <>
       {register && (
-        <div className={`${col ? col : "w-100"}`}>
+        <div className={`${col ? col : "w-100 my-2"}`}>
           {label && (
             <label
-              className={`${classLabel ? classLabel : "fw-bold"}`}
+              className={`${classLabel ? classLabel : "fw-bold my-1"}`}
               htmlFor={id}
             >
               {label}
@@ -30,10 +30,10 @@ const Input = ({
         </div>
       )}
       {!register && (
-        <div className={`${col ? col : "w-100"}`}>
+        <div className={`${col ? col : "w-100 my-2"}`}>
           {label && (
             <label
-              className={`${classLabel ? classLabel : "fw-bold"}`}
+              className={`${classLabel ? classLabel : "fw-bold my-1"}`}
               htmlFor={id}
             >
               {label}
