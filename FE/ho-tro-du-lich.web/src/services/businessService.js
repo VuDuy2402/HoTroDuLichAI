@@ -35,7 +35,7 @@ export const businessService = {
   getWithPagingMy: async (data) => {
     const token = localStorageService.getToken();
     if (token) {
-      const response = await reqApi.post(placeApi.Business_My_GetWithPaging, data);
+      const response = await reqApi.post(businessApi.Business_My_GetWithPaging, data);
       if (response) {
         return response;
       }
@@ -98,4 +98,36 @@ export const businessService = {
       return null;
     }
   },
+
+
+  //report
+  businessReportViewContact: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        businessApi.Business_Report_ViewContact,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  businessReportServiceUsed: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        businessApi.Business_Report_ServiceUsed,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  //report
 };

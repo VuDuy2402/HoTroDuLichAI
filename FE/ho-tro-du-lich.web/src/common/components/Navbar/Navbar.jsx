@@ -163,12 +163,12 @@ const Navbar = ({ className }) => {
     }
     if (getUserRoles && getUserRoles.length > 0) {
       if (getUserRoles.includes(Role.Business)) {
-        listBtn.push({ label: "Business Page", id: 1 });
+        listBtn.push({ label: "Doanh nghiệp", id: 1 });
       }
     }
     if (getUserRoles.includes(Role.Admin)) {
       listBtn.push({
-        label: "Admin Page",
+        label: "Quản trị",
         id: 2,
       });
     }

@@ -1,17 +1,38 @@
 import { Navigate } from "react-router-dom";
 import { Role } from "../enum/permission";
-import BHomePage from "../pages/business/BHomePage.jsx/BHomePage";
+import BHomePage from "../pages/business/BHomePage/BHomePage";
 import MenuSideLayout from "../layouts/MenuSideLayout";
-import BPlacePage from "../pages/business/BPlacePage.jsx/BPlacePage";
+import BPlacePage from "../pages/business/BPlacePage/BPlacePage";
+import BDashboardPage from "../pages/business/BDashboardPage/BDashboardPage";
+import { IoAnalyticsSharp, IoLocationOutline } from "react-icons/io5";
 
-const menusideItemBusiness = [{ label: "Địa điểm", url: "/business/place" }];
+const menusideItemBusiness = [
+  {
+    label: "Dashboard",
+    url: "/business/dashboard",
+    icon: <IoAnalyticsSharp color="red" />
+  },
+  {
+    label: "Địa điểm",
+    url: "/business/place",
+    icon: <IoLocationOutline />
+  }
+];
 
 export const routesBusiness = [
   {
     path: "/business",
     component: <BHomePage />,
     checkAuth: true,
-    roles: [Role.Publisher, Role.Admin],
+    roles: [Role.Business, Role.Admin],
+    errorElement: <Navigate to="/error" />,
+    layout: <MenuSideLayout items={menusideItemBusiness} />,
+  },
+  {
+    path: "/business/dashboard",
+    component: <BDashboardPage />,
+    checkAuth: true,
+    roles: [Role.Business, Role.Admin],
     errorElement: <Navigate to="/error" />,
     layout: <MenuSideLayout items={menusideItemBusiness} />,
   },
@@ -19,7 +40,7 @@ export const routesBusiness = [
     path: "/business/place",
     component: <BPlacePage />,
     checkAuth: true,
-    roles: [Role.Publisher, Role.Admin],
+    roles: [Role.Business, Role.Admin],
     errorElement: <Navigate to="/error" />,
     layout: <MenuSideLayout items={menusideItemBusiness} />,
   },

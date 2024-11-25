@@ -69,5 +69,23 @@ namespace HoTroDuLichAI.API.Controllers
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
+        #region report
+        [HttpPost("report/viewcontact")]
+        [Authorize(Roles = RoleDescription.Business)]
+        public async Task<IActionResult> GetMyViewContactReport(ReportRequestDto requestDto)
+        {
+            var result = await _businessService.GetMyViewContactReportAsync(requestDto: requestDto);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpPost("report/serviceused")]
+        [Authorize(Roles = RoleDescription.Business)]
+        public async Task<IActionResult> GetMyServiceUsedReport(ReportRequestDto requestDto)
+        {
+            var result = await _businessService.GetMyServiceUsedReportAsync(requestDto: requestDto);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+        #endregion report
+
     }
 }

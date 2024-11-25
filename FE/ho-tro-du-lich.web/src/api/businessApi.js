@@ -13,4 +13,9 @@ export const businessApi = {
   // my
   Business_My_GetWithPaging: "api/v1/admin/business/my/paging",
   // my
+
+  // report
+  Business_Report_ViewContact: "api/v1/admin/business/report/viewcontact",
+  Business_Report_ServiceUsed: "api/v1/admin/business/report/serviceused",
+  // report
 };

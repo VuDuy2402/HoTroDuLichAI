@@ -33,30 +33,27 @@ const MenuSide = ({ items, status, onChangeStatus, onClickItem }) => {
 
   return (
     <div
-      className={`menu-side ${
-        status ? "open" : "hide"
-      } h-100 bg-white d-flex flex-column ${
-        status ? "border border-end" : ""
-      } m-0`}
+      className={`menu-side ${status ? "open" : "hide"
+        } h-100 bg-white d-flex flex-column ${status ? "border border-end" : ""
+        } m-0`}
       style={
         status
           ? {
-              minWidth: "250px",
-              width: "250px",
-              maxWidth: "250px",
-            }
+            minWidth: "250px",
+            width: "250px",
+            maxWidth: "250px",
+          }
           : {
-              minWidth: "50px",
-              width: "50px",
-              maxWidth: "50px",
-            }
+            minWidth: "50px",
+            width: "50px",
+            maxWidth: "50px",
+          }
       }
     >
       <div className="navbar__toggle position-sticky p-1" style={{ top: 0 }}>
         <button
-          className={`d-block btn-toggle btn btn-light border bg-white ${
-            status ? "ms-auto" : ""
-          }`}
+          className={`d-block btn-toggle btn btn-light border bg-white ${status ? "ms-auto" : ""
+            }`}
           onClick={onChangeStatus}
         >
           <IoMenuOutline />
@@ -84,16 +81,14 @@ const MenuSide = ({ items, status, onChangeStatus, onClickItem }) => {
                     onClick={() =>
                       item.url ? navigate(item.url) : handleClickItem(item)
                     }
-                    className={`btn btn-light d-flex align-items-center ${
-                      item.url === location.pathname ||
-                      (selectId && item.id === selectId)
+                    className={`btn btn-light d-flex align-items-center ${item.url === location.pathname ||
+                        (selectId && item.id === selectId)
                         ? "text-success fw-bold"
                         : ""
-                    } w-100 py-3 rounded-0 text-start`}
+                      } w-100 py-3 rounded-0 text-start`}
                   >
-                    {item.progressLesson >= 0 &&
-                      getProgressIcon(item.progressLesson)}
-                    <span className="ms-2">{item.label}</span>
+                    {item.icon && <span className="me-2">{item.icon}</span>}
+                    <span>{item.label}</span>
                     {item.progressLesson >= 0 && (
                       <div
                         className="ms-auto text-end"

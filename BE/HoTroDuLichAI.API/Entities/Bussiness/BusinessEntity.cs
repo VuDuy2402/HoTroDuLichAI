@@ -16,7 +16,7 @@ namespace HoTroDuLichAI.API
         [Column("TongHopDichVuDoanhNghiep")]
         public string Service { get; set; } = string.Empty;
         [NotMapped]
-        public BusinessServiceProperty ServiceProperty { get; set; } = null!;
+        public List<BusinessServiceProperty> ServiceProperties { get; set; } = new();
         [Column("LoaiDichVuDoanhNghiep")]
         public CBusinessServiceType BusinessServiceType { get; set; }
         [Column("LoaiPheDuyet")]

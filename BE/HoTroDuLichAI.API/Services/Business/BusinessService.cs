@@ -28,6 +28,145 @@ namespace HoTroDuLichAI.API
             _userManager = userManager;
         }
 
+        #region  report
+        public async Task<ApiResponse<BusinessViewContactReportResponseDto>> GetMyViewContactReportAsync(ReportRequestDto requestDto)
+        {
+            var requestError = ErrorHelper.GetReportError<BusinessViewContactReportResponseDto>(requestDto: requestDto);
+            if (requestError != null)
+            {
+                return requestError;
+            }
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<BusinessViewContactReportResponseDto>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var bussinessExist = await _dbContext.Businesses.Where(b => b.UserId == currentUser.Id).FirstOrDefaultAsync();
+                if (bussinessExist == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var report = await _dbContext.BusinessAnalytics.Include(by => by.Business)
+                    .Where(by => by.Business.UserId == currentUser.Id).FirstOrDefaultAsync();
+                if (report == null)
+                {
+                    var businessAnaly = new BusinessAnalyticEntity()
+                    {
+                        BusinessId = bussinessExist.Id,
+                        TotalContact = 0,
+                        TotalView = 0,
+                        LastViewedDate = DateTimeOffset.UtcNow
+                    };
+                    _dbContext.BusinessAnalytics.Add(entity: businessAnaly);
+                    await _dbContext.SaveChangesAsync();
+                    var data = new BusinessViewContactReportResponseDto()
+                    {
+                        BusinessId = bussinessExist.Id,
+                        BusinessName = bussinessExist.BusinessName,
+                        TotalContact = businessAnaly.TotalContact,
+                        TotalView = businessAnaly.TotalView
+                    };
+                    response.Result.Data = data;
+                }
+                else
+                {
+                    response.Result.Data = new BusinessViewContactReportResponseDto()
+                    {
+                        BusinessId = bussinessExist.Id,
+                        BusinessName = bussinessExist.BusinessName,
+                        TotalContact = report.TotalContact,
+                        TotalView = report.TotalView
+                    };
+                }
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch(Exception ex)
+            {
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+
+        public async Task<ApiResponse<List<BusinessServiceUsedReportResponseDto>>> GetMyServiceUsedReportAsync(ReportRequestDto requestDto)
+        {
+            var requestError = ErrorHelper.GetReportError<List<BusinessServiceUsedReportResponseDto>>(requestDto: requestDto);
+            if (requestError != null)
+            {
+                return requestError;
+            }
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<List<BusinessServiceUsedReportResponseDto>>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var bussinessExist = await _dbContext.Businesses.Where(b => b.UserId == currentUser.Id).FirstOrDefaultAsync();
+                if (bussinessExist == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                // lấy ra tất cả những service đã được sử dụng trong các chi tiết hành trình
+                var itineraryDetails = await _dbContext.ItineraryDetails
+                    .Include(it => it.Itinerary)
+                    .Include(it => it.Business)
+                    .Where(id => id.BusinessId == bussinessExist.Id && id.CreatedDate > requestDto.FromDate && id.CreatedDate < requestDto.ToDate)
+                    .Select(item => new
+                    {
+                        BusinessServiceIds = item.BusinessServiceIds,
+                        CreatedDate = item.CreatedDate
+                    })
+                    .OrderByDescending(item => item.CreatedDate)
+                    .ToListAsync();
+                var businessServiceInfos = itineraryDetails.Select(item => new
+                {
+                    ServiceIds = item.BusinessServiceIds.FromJson<List<Guid>>(),
+                });
+                // get những dịch được sử dụng trong thời gian trên
+                var serviceIdCounts = businessServiceInfos
+                    .SelectMany(serviceInfo => serviceInfo.ServiceIds)
+                    .GroupBy(serviceId => serviceId)
+                    .Select(group => new 
+                    {
+                        ServiceId = group.Key,
+                        UseCount = group.Count()
+                    })
+                    .ToList();
+
+                // sau khi get ra được những dịch vụ và số lần sử dụng của các dịch vụ đó tiếp theo là select những field cần trả về
+                var services = bussinessExist.Service.FromJson<List<BusinessServiceProperty>>();
+                var data = services.Select(service =>
+                {
+                    var reportService = serviceIdCounts.Where(si => si.ServiceId == service.ServiceId).FirstOrDefault();
+                    return new BusinessServiceUsedReportResponseDto()
+                    {
+                        ServiceId = service.ServiceId,
+                        ServiceName = service.Name,
+                        TotalAmount = reportService == null ? 0 : (reportService.UseCount * service.Amount),
+                        TotalUse = reportService == null ? 0 : reportService.UseCount
+                    };
+                }).ToList();
+                response.Result.Data = data;
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+        #endregion report
+
         #region get business with paging
         public async Task<ApiResponse<BasePagedResult<BusinessDetailResponseDto>>> GetWithPagingAsync(BusinessPagingAndFilterParams param, ModelStateDictionary? modelState = null)
         {

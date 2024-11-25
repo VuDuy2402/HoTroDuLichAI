@@ -10,6 +10,12 @@ namespace HoTroDuLichAI.API
         Task<ApiResponse<ResultMessage>> UpdateBusinessAsync(UpdateBusinessRequestDto requestDto,
             ModelStateDictionary? modelState = null);
         Task<ApiResponse<ResultMessage>> DeleteBusinessAsync(Guid businessId);
+
+
+        #region report
+        Task<ApiResponse<BusinessViewContactReportResponseDto>> GetMyViewContactReportAsync(ReportRequestDto requestDto);
+        Task<ApiResponse<List<BusinessServiceUsedReportResponseDto>>> GetMyServiceUsedReportAsync(ReportRequestDto requestDto);
+        #endregion report
         
     }
 }
