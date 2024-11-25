@@ -6,6 +6,7 @@ namespace HoTroDuLichAI.API
         public string BusinessName { get; set; } = string.Empty;
         public int TotalView { get; set; }
         public int TotalContact { get; set; }
+        public decimal TotalAmount { get; set; }
     }
 
     public class BusinessServiceUsedReportResponseDto

@@ -16,7 +16,11 @@ namespace HoTroDuLichAI.API
         [Column("TongHopDichVuDoanhNghiep")]
         public string Service { get; set; } = string.Empty;
         [NotMapped]
-        public List<BusinessServiceProperty> ServiceProperties { get; set; } = new();
+        public List<BusinessServiceProperty> ServiceProperties
+        {
+            get => Service.FromJson<List<BusinessServiceProperty>>();
+            set => Service = ServiceProperties.ToJson();
+        }
         [Column("LoaiDichVuDoanhNghiep")]
         public CBusinessServiceType BusinessServiceType { get; set; }
         [Column("LoaiPheDuyet")]
@@ -26,7 +30,18 @@ namespace HoTroDuLichAI.API
         [Column("ThongTinNguoiLienHeDoanhNghiep")]
         public string BusinessContactPerson { get; set; } = string.Empty;
         [NotMapped]
-        public BusinessContactProperty BusinessContactProperty { get; set; } = null!;
+        public BusinessContactProperty BusinessContactProperty
+        {
+            get => BusinessContactPerson.FromJson<BusinessContactProperty>();
+            set => BusinessContactPerson = BusinessContactProperty.ToJson();
+        }
+        [Column("NgayTao")]
+        private DateTimeOffset _createdDate = DateTimeOffset.UtcNow;
+        public DateTimeOffset CreatedDate
+        {
+            get => _createdDate.ToLocalTime();
+            private set => _createdDate = value;
+        }
 
         #region inverse property
         [Column("NguoiDungId")]

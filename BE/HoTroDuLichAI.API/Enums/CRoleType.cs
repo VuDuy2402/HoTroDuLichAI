@@ -13,11 +13,11 @@ namespace HoTroDuLichAI.API
         [Description(description: "Standard user with access to basic features.")]
         NormalUser = 2,
 
-        [Description(description: "User with access to premium features.")]
-        Publisher = 3,
-
         [Description(description: "Represents a company with access to business-specific features.")]
-        Company = 4
+        Business = 3,
+
+        // [Description(description: "Represents a company with access to business-specific features.")]
+        // Company = 4
     }
 
 }

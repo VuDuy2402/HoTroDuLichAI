@@ -50,6 +50,14 @@ namespace HoTroDuLichAI.API
                 {
                     return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
                 }
+                var itineraryDetails = await _dbContext.ItineraryDetails
+                    .Include(id => id.Business)
+                    .Where(id => id.BusinessId == bussinessExist.Id).ToListAsync();
+                decimal totalAmount = 0;
+                foreach (var item in itineraryDetails)
+                {
+                    totalAmount += item.Business.ServiceProperties.Where(sp => item.BusinessServiceListIds.Contains(sp.ServiceId)).Sum(sp => sp.Amount);
+                }
                 var report = await _dbContext.BusinessAnalytics.Include(by => by.Business)
                     .Where(by => by.Business.UserId == currentUser.Id).FirstOrDefaultAsync();
                 if (report == null)
@@ -68,7 +76,8 @@ namespace HoTroDuLichAI.API
                         BusinessId = bussinessExist.Id,
                         BusinessName = bussinessExist.BusinessName,
                         TotalContact = businessAnaly.TotalContact,
-                        TotalView = businessAnaly.TotalView
+                        TotalView = businessAnaly.TotalView,
+                        TotalAmount = totalAmount
                     };
                     response.Result.Data = data;
                 }
@@ -79,7 +88,8 @@ namespace HoTroDuLichAI.API
                         BusinessId = bussinessExist.Id,
                         BusinessName = bussinessExist.BusinessName,
                         TotalContact = report.TotalContact,
-                        TotalView = report.TotalView
+                        TotalView = report.TotalView,
+                        TotalAmount = totalAmount
                     };
                 }
                 response.Result.Success = true;

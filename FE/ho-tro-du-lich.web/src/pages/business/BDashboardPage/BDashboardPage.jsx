@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Row, Col, Form, Card, Button, Container } from 'react-bootstrap';
-import { Line, Bar, Pie, Doughnut, Radar, PolarArea, Scatter, Bubble } from 'react-chartjs-2';
+import { Line, Bar, Pie, Doughnut, Radar, PolarArea, Bubble, Scatter } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -15,7 +15,13 @@ import {
     Legend
 } from 'chart.js';
 import Select from 'react-select';
-import { IoPersonCircle, IoBarChartOutline, IoStatsChartOutline, IoPieChartSharp, IoAtCircleSharp, IoCompassOutline, IoBulbOutline, IoEllipseOutline, IoGridOutline } from 'react-icons/io5';
+import { IoPersonCircle, IoBarChartOutline, IoStatsChartOutline, IoPieChartSharp, IoAtCircleSharp, IoCompassOutline, IoBulbOutline, IoEllipseOutline, IoGridOutline, IoWalletOutline, IoEyeOutline } from 'react-icons/io5';
+import { businessService } from "../../../services/businessService";
+import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ErrorField from "@/common/components/ErrorField/ErrorField";
+import { systemAction } from "../../../redux/slices/systemSlice";
+import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
 
 ChartJS.register(
     CategoryScale,
@@ -33,6 +39,15 @@ ChartJS.register(
 const BDashboardPage = () => {
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
+    const [cards, setCards] = useState([]);
+    const [errors, setErrors] = useState([]);
+    // #region : chart
+    const [totalRevenueChart, setTotalRevenueChart] = useState("line");
+    const [totalUseChart, setTotalUseChart] = useState("line");
+    const [dataTotalRevenueChart, setDataTotalRevenueChart] = useState({});
+    const [dataTotalUseChart, setDataTotalUseChart] = useState({});
+    // #endregion : chart
+    const dispatch = useDispatch();
 
     const randomColor = () => {
         const letters = '0123456789ABCDEF';
@@ -42,43 +57,6 @@ const BDashboardPage = () => {
         }
         return color;
     };
-
-    // Dữ liệu ví dụ cho biểu đồ với màu ngẫu nhiên cho từng phần
-    const chartData = {
-        labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-        datasets: [
-            {
-                label: 'Sample Data',
-                data: [12, 19, 3, 5, 2, 3],
-                backgroundColor: [
-                    randomColor(),
-                    randomColor(),
-                    randomColor(),
-                    randomColor(),
-                    randomColor(),
-                    randomColor()
-                ], // Mỗi phần của Pie/Bar có màu riêng
-                borderColor: [
-                    randomColor(),
-                    randomColor(),
-                    randomColor(),
-                    randomColor(),
-                    randomColor(),
-                    randomColor()
-                ], // Màu viền cho Pie/Bar
-                borderWidth: 1,
-                fill: false,
-                tension: 0.1,
-            },
-        ],
-    };
-
-    const cards = [
-        { name: 'Total Sales', icon: <IoBarChartOutline />, quantity: 1200 },
-        { name: 'Customers', icon: <IoPersonCircle />, quantity: 350 },
-        { name: 'New Orders', icon: <IoStatsChartOutline />, quantity: 78 },
-    ];
-
 
     const chartOptions = [
         { value: "bar", label: "Bar Chart", icon: <IoBarChartOutline /> },
@@ -91,24 +69,24 @@ const BDashboardPage = () => {
         { value: "scatter", label: "Scatter Chart", icon: <IoGridOutline /> },
     ];
 
-
-    const [selectedChart1, setSelectedChart1] = useState("line");
-    const [selectedChart2, setSelectedChart2] = useState("line");
-
     const handleChartChange = (selectedOption, chartIndex) => {
         if (chartIndex === 1) {
-            setSelectedChart1(selectedOption.value);
+            setTotalRevenueChart(selectedOption.value);
         } else if (chartIndex === 2) {
-            setSelectedChart2(selectedOption.value);
+            setTotalUseChart(selectedOption.value);
         }
     };
 
-    const renderChart = (selectedChart) => {
+    const renderChart = (selectedChart, chartData) => {
         const chartHeight = 250;
         const chartStyle = {
             height: `${chartHeight}px`,
             overflow: 'hidden',
         };
+
+        if (!chartData.datasets || chartData.datasets.length === 0) {
+            return <div>Loading chart data...</div>;
+        }
 
         switch (selectedChart) {
             case 'bar':
@@ -130,11 +108,94 @@ const BDashboardPage = () => {
         }
     };
 
+
+
+    const fetchData = async () => {
+        const requestData = {
+            FromDate: new Date(fromDate).toISOString(),
+            ToDate: new Date(toDate).toISOString(),
+        };
+        dispatch(systemAction.enableLoading());
+        try {
+            const businessViewContactReport = await businessService.businessReportViewContact(requestData);
+            if (businessViewContactReport && businessViewContactReport.success) {
+                const { data } = businessViewContactReport;
+
+                setCards([
+                    {
+                        name: `Tổng doanh thu từ ngày ${fromDate} đến ${toDate}`,
+                        icon: <IoWalletOutline />,
+                        quantity: data.totalAmount
+                    },
+                    {
+                        name: `Tổng số lượt liên hệ từ ngày ${fromDate} đến ${toDate}`,
+                        icon: <IoPersonCircle />,
+                        quantity: data.totalContact
+                    },
+                    {
+                        name: `Tổng số lượt xem từ ngày ${fromDate} đến ${toDate}`,
+                        icon: <IoEyeOutline />,
+                        quantity: data.totalView
+                    },
+                ]);
+            }
+            else if (businessViewContactReport && businessViewContactReport.errors) {
+                setErrors(businessViewContactReport.errors)
+            }
+
+            const businessServiceUsedReport = await businessService.businessReportServiceUsed(requestData);
+            if (businessServiceUsedReport && businessServiceUsedReport.success) {
+                const { data } = businessServiceUsedReport;
+
+                const serviceLabels = data.map(item => item.serviceName);
+                const totalAmountData = data.map(item => item.totalAmount);
+                const totalUseData = data.map(item => item.totalUse);
+
+                setDataTotalRevenueChart({
+                    labels: serviceLabels,
+                    datasets: [{
+                        label: 'Total Amount',
+                        data: totalAmountData,
+                        backgroundColor: totalAmountData.map(() => randomColor()),
+                        borderColor: totalAmountData.map(() => randomColor()),
+                        borderWidth: 1,
+                    }],
+                });
+
+                setDataTotalUseChart({
+                    labels: serviceLabels,
+                    datasets: [{
+                        label: 'Total Use',
+                        data: totalUseData,
+                        backgroundColor: totalUseData.map(() => randomColor()),
+                        borderColor: totalUseData.map(() => randomColor()),
+                        borderWidth: 1,
+                    }],
+                });
+            }
+            else if (businessViewContactReport && businessViewContactReport.errors) {
+                setErrors(businessViewContactReport.errors)
+            }
+        } catch (error) {
+            toast.error('Đã xảy ra lỗi:' + error);
+        }
+        finally {
+            dispatch(systemAction.disableLoading());
+        }
+    };
+
+    const handleSubmit = () => {
+        if (fromDate && toDate) {
+            fetchData();
+        }
+    };
+
     return (
         <Container>
             <Row className="my-4">
                 <Col md={6}>
                     <Form>
+                        <FormErrorAlert errors={errors} />
                         <Row>
                             <Col>
                                 <Form.Label>Từ ngày</Form.Label>
@@ -143,6 +204,7 @@ const BDashboardPage = () => {
                                     value={fromDate}
                                     onChange={(e) => setFromDate(e.target.value)}
                                 />
+                                <ErrorField errorList={errors} field={"FromDate_Error"} />
                             </Col>
                             <Col>
                                 <Form.Label>Đến ngày</Form.Label>
@@ -151,21 +213,22 @@ const BDashboardPage = () => {
                                     value={toDate}
                                     onChange={(e) => setToDate(e.target.value)}
                                 />
+                                <ErrorField errorList={errors} field={"ToDate_Error"} />
                             </Col>
                         </Row>
-                        <Button variant="outline-secondary" className="mt-3">
+                        <Button variant="outline-secondary" className="mt-3" onClick={handleSubmit}>
                             Xác nhận
                         </Button>
                     </Form>
                 </Col>
                 <Col md={6} className="d-flex justify-content-end align-items-center">
-                    <div className="text-center d-flex">
-                        <div>Hi, UserName</div>
+                    <div className="d-flex align-items-center text-center">
+                        <div className="me-2">Hi, UserName</div>
                         <img
                             src="https://via.placeholder.com/100"
                             alt="User"
                             className="rounded-circle mb-2"
-                            style={{ width: '80px', height: '80px' }}
+                            style={{ width: '50px', height: '50px' }}
                         />
                     </div>
                 </Col>
@@ -174,24 +237,34 @@ const BDashboardPage = () => {
             <Row className="mb-4">
                 {cards.map((card, idx) => (
                     <Col key={idx} md={4}>
-                        <Card>
+                        <Card className="text-center">
                             <Card.Body>
-                                <Card.Title>{card.name}</Card.Title>
-                                <Card.Text>{card.icon} {card.quantity}</Card.Text>
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <div className="icon-wrapper" style={{ fontSize: '30px', color: '#007bff', marginRight: '10px' }}>
+                                        {card.icon}
+                                    </div>
+                                    <Card.Title className='text-end' style={{ fontSize: '13px', fontWeight: '300' }}>
+                                        {card.name}
+                                    </Card.Title>
+                                </div>
+                                <Card.Text style={{ fontSize: '30px', fontWeight: 'bold', marginTop: '10px' }}>
+                                    {card.quantity.toLocaleString()}
+                                </Card.Text>
                             </Card.Body>
                         </Card>
                     </Col>
                 ))}
             </Row>
 
+
             <Row className="mb-4">
                 <Col md={6}>
                     <Card>
                         <Card.Body>
-                            <Card.Title>Chart 1</Card.Title>
+                            <Card.Title>Doanh thu theo loại dịch vụ từ ngày {fromDate} đến {toDate}</Card.Title>
                             <Select
                                 options={chartOptions}
-                                value={chartOptions.find(option => option.value === selectedChart1)}
+                                value={chartOptions.find(option => option.value === totalRevenueChart)}
                                 onChange={(selectedOption) => handleChartChange(selectedOption, 1)}
                                 getOptionLabel={(e) => (
                                     <div className="d-flex align-items-center">
@@ -200,17 +273,17 @@ const BDashboardPage = () => {
                                     </div>
                                 )}
                             />
-                            {renderChart(selectedChart1)}
+                            {renderChart(totalRevenueChart, dataTotalRevenueChart)}
                         </Card.Body>
                     </Card>
                 </Col>
                 <Col md={6}>
                     <Card>
                         <Card.Body>
-                            <Card.Title>Chart 2</Card.Title>
+                            <Card.Title>Loại dịch vụ được sử dụng trong các chuyến hành trình từ ngày {fromDate} đến {toDate}</Card.Title>
                             <Select
                                 options={chartOptions}
-                                value={chartOptions.find(option => option.value === selectedChart2)}
+                                value={chartOptions.find(option => option.value === totalUseChart)}
                                 onChange={(selectedOption) => handleChartChange(selectedOption, 2)}
                                 getOptionLabel={(e) => (
                                     <div className="d-flex align-items-center">
@@ -219,7 +292,7 @@ const BDashboardPage = () => {
                                     </div>
                                 )}
                             />
-                            {renderChart(selectedChart2)}
+                            {renderChart(totalUseChart, dataTotalUseChart)}
                         </Card.Body>
                     </Card>
                 </Col>

@@ -23,7 +23,11 @@ namespace HoTroDuLichAI.API
         [Column("DanhSachDichVuDoanhNghiepIdJson")]
         public string BusinessServiceIds { get; set; } = string.Empty;
         [NotMapped]
-        public List<Guid> BusinessServiceListIds { get; set; } = new();
+        public List<Guid> BusinessServiceListIds
+        {
+            get => BusinessServiceIds.FromJson<List<Guid>>();
+            set => BusinessServiceIds = BusinessServiceListIds.ToJson();
+        }
         [Column("DoanhNghiepId")]
         public Guid BusinessId { get; set; }
         [ForeignKey("BusinessId")]
