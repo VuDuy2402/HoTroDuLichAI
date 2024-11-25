@@ -10,6 +10,7 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import "./MapCustom.scss";
+import { marker } from "leaflet";
 const MapCustom = ({
   latitude = 16.047079,
   longtitude = 108.20623,
@@ -19,11 +20,13 @@ const MapCustom = ({
   pin = true,
   onChangePosition,
 }) => {
-  const [positionState, setPositionState] = useState([latitude, longtitude]);
+  const [positionState, setPositionState] = useState();
   const handleChangePosition = (position) => {
     if (pin) {
       return;
     }
+    console.log(position);
+
     setPositionState([position.latitude, position.longtitude]);
     onChangePosition &&
       onChangePosition([position.latitude, position.longtitude]);
@@ -42,20 +45,26 @@ const MapCustom = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        <Marker position={positionState}>
-          <Popup>{name}</Popup>
-        </Marker>
+        {positionState && (
+          <Marker position={positionState}>
+            <Popup>{name}</Popup>
+          </Marker>
+        )}
         <MapClickHandler onChangePosition={handleChangePosition} />
-        <GeoCoder position={"topright"} />
+        <GeoCoder
+          position={"topright"}
+          onReset={() => setPositionState(null)}
+          onChangePosition={handleChangePosition}
+        />
       </MapContainer>
     </div>
   );
 };
 
-const GeoCoder = ({ position = "topright" }) => {
+const GeoCoder = ({ position = "topright", onReset, onChangePosition }) => {
   const map = useMap();
   const geocoderRef = useRef(null);
-  const handleClickTest = () => {
+  const handleClickReset = () => {
     console.log(geocoderRef.current);
     const GeoContainer = geocoderRef.current.getContainer();
     const listItem = GeoContainer.querySelector(
@@ -66,16 +75,17 @@ const GeoCoder = ({ position = "topright" }) => {
       ".leaflet-control-geocoder-form"
     ).querySelector("input");
     inputSearch.value = "";
+    onReset();
   };
   useEffect(() => {
     const geocoder = L.Control.geocoder({
-      defaultMarkGeocode: true, // Tự động đánh dấu vị trí sau khi tìm
+      defaultMarkGeocode: false, // Tự động đánh dấu vị trí sau khi tìm
       position: position,
     })
       .on("markgeocode", function (e) {
         const { center } = e.geocode;
+        onChangePosition({ latitude: center.lat, longtitude: center.lng });
         map.setView(center, 13); // Di chuyển bản đồ đến vị trí tìm thấy
-        L.marker(center).addTo(map); // Thêm marker vào vị trí
       })
       .addTo(map);
     geocoderRef.current = geocoder;
@@ -87,7 +97,7 @@ const GeoCoder = ({ position = "topright" }) => {
     customButton.className = "btn btn-light";
     customButton.innerHTML = resetSVG;
     customButton.addEventListener("click", () => {
-      handleClickTest();
+      handleClickReset();
     });
     geocoderContainer.appendChild(customButton);
     return () => map.removeControl(geocoder); // Cleanup khi component unmount
