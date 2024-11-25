@@ -141,7 +141,13 @@ namespace HoTroDuLichAI.API
                 }
                 if (param.IsNew)
                 {
-                    collection = collection.Where(c => c.IsNew);
+                    collection = collection.Where(c => c.IsNew && c.Appoved == CApprovalType.Accepted);
+                }
+                if (param.IsRequestNewPlace)
+                {
+                    collection = collection.Where(pl => pl.Appoved != CApprovalType.Accepted && pl.IsNew)
+                        .OrderByDescending(pl => pl.Appoved)
+                        .ThenByDescending(pl => pl.CreatedDate);
                 }
                 if (!string.IsNullOrEmpty(param.SearchQuery))
                 {
@@ -173,7 +179,7 @@ namespace HoTroDuLichAI.API
                         collection = collection.Where(pl => pl.CreatedDate <= filter.ToDate.Value);
                     }
                 }
-                if (!param.IsMy && !param.IsAdmin)
+                if (!param.IsMy && !param.IsAdmin && !param.IsRequestNewPlace)
                 {
                     // collection = collection.Where(c => c.Appoved == CApprovalType.Accepted)
                     //     .OrderByDescending(pl => ((pl.TotalView * 0.3) +

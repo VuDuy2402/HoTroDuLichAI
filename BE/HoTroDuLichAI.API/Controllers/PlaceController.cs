@@ -31,6 +31,15 @@ namespace HoTroDuLichAI.API
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
+        [HttpPost("manage/requestnewplace/paging")]
+        [Authorize(Roles = RoleDescription.Admin)]
+        public async Task<IActionResult> GetRequestNewPlaceWithPaging(PlacePagingAndFilterParams param)
+        {
+            param.IsRequestNewPlace = true;
+            var result = await _placeService.GetWithPagingAsync(param: param, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
         [HttpPost("manage/paging")]
         [Authorize(Roles = RoleDescription.Admin)]
         public async Task<IActionResult> GetWithPagingManage(PlacePagingAndFilterParams param)
