@@ -11,6 +11,8 @@ namespace HoTroDuLichAI.API
         public bool IsMy { get; set; }
         [JsonIgnore]
         public bool IsNew { get; set; }
+        [JsonIgnore]
+        public bool IsRequestNewPlace { get; set; }
         public PlaceFilterProperty? FilterProperty { get; set; }
         public SortProperty? SortProperty { get; set; }
     }
