@@ -697,7 +697,7 @@ namespace HoTroDuLichAI.API
                         response.StatusCode = StatusCodes.Status406NotAcceptable;
                         return response;
                     }
-                    if (placeEntity.Appoved != CApprovalType.Accepted)
+                    if (placeEntity.Appoved != CApprovalType.PendingAprroval)
                     {
                         await transaction.RollbackAsync();
                         errors.Add(new ErrorDetail()
