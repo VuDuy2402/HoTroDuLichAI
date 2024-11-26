@@ -33,7 +33,7 @@ const MenuSideLayout = ({ items, children }) => {
             status={statusMenuside}
             onChangeStatus={() => setStatusMenuside((pre) => !pre)}
           />
-          <div className="overflow-hidden" style={{ marginLeft: "10px" }}>
+          <div className="overflow-auto h-100" style={{ marginLeft: "10px" }}>
             {children}
           </div>
         </div>

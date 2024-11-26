@@ -9,5 +9,6 @@ namespace HoTroDuLichAI.API
         public string BusinessName { get; set; } = string.Empty;
         public CBusinessServiceType BusinessType { get; set; }
         public Guid ProvinceId { get; set; }
+        public BusinessContactPersonInfoResponseDto ContactPersonInfo  { get; set; } = null!;
     }
 }

@@ -12,6 +12,7 @@ namespace HoTroDuLichAI.API
         private readonly UserManager<UserEntity> _userManager;
         private readonly IImageKitIOService _imagekitIOService;
         private readonly IHubContext<NotificationHub> _notificationHubContext;
+        private readonly IEmailService _emailService;
         private readonly ILogger<BusinessService> _logger;
 
         public BusinessService(
@@ -19,6 +20,7 @@ namespace HoTroDuLichAI.API
             IHubContext<NotificationHub> notificationHubContext,
             IImageKitIOService imagekitIOService,
             ILogger<BusinessService> logger,
+            IEmailService emailService,
             UserManager<UserEntity> userManager)
         {
             _dbContext = dbContext;
@@ -26,6 +28,7 @@ namespace HoTroDuLichAI.API
             _notificationHubContext = notificationHubContext;
             _logger = logger;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         #region  report
@@ -96,7 +99,7 @@ namespace HoTroDuLichAI.API
                 response.StatusCode = StatusCodes.Status200OK;
                 return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
@@ -144,7 +147,7 @@ namespace HoTroDuLichAI.API
                 var serviceIdCounts = businessServiceInfos
                     .SelectMany(serviceInfo => serviceInfo.ServiceIds)
                     .GroupBy(serviceId => serviceId)
-                    .Select(group => new 
+                    .Select(group => new
                     {
                         ServiceId = group.Key,
                         UseCount = group.Count()
@@ -169,13 +172,13 @@ namespace HoTroDuLichAI.API
                 response.StatusCode = StatusCodes.Status200OK;
                 return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
         }
-        
+
         public async Task<ApiResponse<BusinessContactPersonInfoResponseDto>> GetBusinessContactPersonAsync()
         {
             var errors = new List<ErrorDetail>();
@@ -208,7 +211,7 @@ namespace HoTroDuLichAI.API
                 response.StatusCode = StatusCodes.Status200OK;
                 return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
@@ -217,7 +220,7 @@ namespace HoTroDuLichAI.API
         #endregion report
 
         #region become to a business
-        public async Task<ApiResponse<ResultMessage>> RequestToCreateBusinessAsyn(RequestToCreateBusinessRequestDto requestDto,
+        public async Task<ApiResponse<ResultMessage>> RequestToRegisterBusinessAsyn(RequestToCreateBusinessRequestDto requestDto,
             ModelStateDictionary? modelState = null)
         {
             var errors = new List<ErrorDetail>();
@@ -246,8 +249,14 @@ namespace HoTroDuLichAI.API
                 {
                     return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
                 }
+                var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: requestDto.ContactPersonInfo.FileId);
+                var imageProperty = new ImageProperty();
+                if (imageResponse.StatusCode == StatusCodes.Status200OK && imageResponse.Result.Data is ImageFileInfo imageInfo)
+                {
+                    imageProperty = ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Avatar, isDefault: true);
+                }
                 var businessEntity = await _dbContext.Businesses.Where(b => b.UserId == currentUser.Id
-                    || (b.Longitude != 0 && b.Latitude != 0 && b.Longitude == requestDto.Longitude 
+                    || (b.Longitude != 0 && b.Latitude != 0 && b.Longitude == requestDto.Longitude
                         && b.Latitude == requestDto.Latitude)).FirstOrDefaultAsync();
                 if (businessEntity != null)
                 {
@@ -261,7 +270,13 @@ namespace HoTroDuLichAI.API
                     response.StatusCode = StatusCodes.Status409Conflict;
                     return response;
                 }
-
+                var businessContactProperty = new BusinessContactProperty()
+                {
+                    Email = requestDto.ContactPersonInfo.Email,
+                    ImageProperty = imageProperty,
+                    Name = requestDto.ContactPersonInfo.Name,
+                    PhoneNumber = requestDto.ContactPersonInfo.PhoneNumber
+                };
                 businessEntity = new BusinessEntity()
                 {
                     Address = requestDto.Address,
@@ -272,14 +287,53 @@ namespace HoTroDuLichAI.API
                     Longitude = requestDto.Longitude,
                     ProvinceId = requestDto.ProvinceId,
                     UserId = currentUser.Id,
+                    BusinessContactPerson = businessContactProperty.ToJson()
                 };
                 _dbContext.Businesses.Add(entity: businessEntity);
                 await _dbContext.SaveChangesAsync();
                 // notifcation to admin
-
+                var adminUsers = await _userManager.GetUsersInRoleAsync(roleName: CRoleType.Admin.ToString());
+                if (!adminUsers.IsNullOrEmpty())
+                {
+                    List<NotificationEntity> notifications = new List<NotificationEntity>();
+                    foreach (var adminUser in adminUsers)
+                    {
+                        var notificationEntity = new NotificationEntity()
+                        {
+                            IsRead = false,
+                            Title = "Yêu cầu xác nhận Doanh nghiệp mới.",
+                            Content = $"{requestDto.BusinessName} - {requestDto.Address}",
+                            Type = CNotificationType.Business,
+                            UserId = adminUser.Id
+                        };
+                        notifications.Add(notificationEntity);
+                        await _notificationHubContext.Clients.User(adminUser.Id.ToString())
+                            .SendAsync("ReceiveNotification", $"Có doanh nghiệp mới: {requestDto.BusinessName}.");
+                        notifications.Add(notificationEntity);
+                    }
+                    _dbContext.Notifications.AddRange(entities: notifications);
+                }
                 // email to admin
+                await _emailService.SendEmailAsync(email: RuntimeContext.AppSettings.AdminSetting.Email,
+                    subject: $"YÊU CẦU ĐĂNG KÝ DOANH NGHIỆP",
+                    htmlTemplate: string.Empty,
+                    fileTemplateName: "RequestToBecomeBusinessEmailTemplate.html",
+                    replaceProperty: new RequestToBecomeBusinessEmailTemplateModel()
+                    {
+                        Address = businessEntity.Address,
+                        BusinessName = businessEntity.BusinessName,
+                        BusinessType = businessEntity.BusinessServiceType.ToDescription(),
+                        Latitude = businessEntity.Latitude,
+                        Longitude = businessEntity.Longitude,
+                        ContactPersonAvatar = businessContactProperty.ImageProperty.Url,
+                        ContactPersonEmail = businessContactProperty.Email,
+                        ContactPersonName = businessContactProperty.Name,
+                        ContactPersonPhoneNumber = businessContactProperty.PhoneNumber,
+                        ProvinceName = (await _dbContext.Provinces.FindAsync(requestDto.ProvinceId))?.Name ?? string.Empty,
+                        RedirectUrl = $"{RuntimeContext.AppSettings.ClientApp.ClientEndpoint}/admin/business/confirmrequestnewbusiness/?businessId={businessEntity.Id}"
+                    },
+                    emailProviderType: CEmailProviderType.Gmail);
 
-                
                 response.Result.Data = new ResultMessage()
                 {
                     Level = CNotificationLevel.Success,
@@ -290,10 +344,173 @@ namespace HoTroDuLichAI.API
                 response.StatusCode = StatusCodes.Status201Created;
                 return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<ApiResponse<ResultMessage>> ApprovalNewBusinessRequestAsync(ApproveNewBusinessRequestDto requestDto,
+            ModelStateDictionary? modelState = null)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            if (requestDto == null)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Dữ liệu gửi về không đúng định dạng. Vui lòng kiểm tra lại.",
+                    ErrorScope = CErrorScope.PageSumarry
+                });
+                response.Result.Success = false;
+                response.Result.Errors.AddRange(errors);
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
+            errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+            if (requestDto.ApprovalType == CApprovalType.Rejected && string.IsNullOrEmpty(requestDto.Reason))
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Bạn cần thêm lý do từ chối yêu cầu.",
+                    ErrorScope = CErrorScope.Field,
+                    Field = $"{nameof(requestDto.Reason)}_Error"
+                });
+                response.Result.Errors.AddRange(errors);
+                response.Result.Success = false;
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
+            using (var transaction = await _dbContext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var businessEntity = await _dbContext.Businesses.FindAsync(requestDto.BusinessId);
+                    if (businessEntity == null)
+                    {
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = $"Không tìm thấy doanh nghiệp.",
+                            ErrorScope = CErrorScope.PageSumarry
+                        });
+                        response.Result.Errors.AddRange(errors);
+                        response.Result.Success = false;
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                        return response;
+                    }
+                    var userEntity = await _userManager.FindByIdAsync(businessEntity.Id.ToString());
+                    if (userEntity == null)
+                    {
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = $"Không tìm thấy thông tin người dùng cho doanh nghiệp",
+                            ErrorScope = CErrorScope.PageSumarry
+                        });
+                        response.Result.Success = false;
+                        response.Result.Errors.AddRange(errors);
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                        return response;
+                    }
+                    if (businessEntity.Appoved != CApprovalType.PendingAprroval)
+                    {
+                        errors.Add(new ErrorDetail()
+                        {
+                            Error = $"Doanh nghiệp đã được xác nhận trước đó.",
+                            ErrorScope = CErrorScope.PageSumarry
+                        });
+                        response.Result.Success = false;
+                        response.Result.Errors.AddRange(errors);
+                        response.StatusCode = StatusCodes.Status409Conflict;
+                        return response;
+                    }
+                    // update request
+                    businessEntity.Appoved = requestDto.ApprovalType;
+                    _dbContext.Businesses.Update(entity: businessEntity);
+                    string content = string.Empty;
+                    if (requestDto.ApprovalType == CApprovalType.Accepted)
+                    {
+                        var businessAnalyticEntity = await _dbContext.BusinessAnalytics.Where(b => b.BusinessId == businessEntity.Id).FirstOrDefaultAsync();
+                        // need create business analytic entity
+                        if (businessAnalyticEntity == null)
+                        {
+                            businessAnalyticEntity = new BusinessAnalyticEntity()
+                            {
+                                BusinessId = businessEntity.Id,
+                                TotalContact = 0,
+                                TotalView = 0,
+                            };
+                            _dbContext.BusinessAnalytics.Add(entity: businessAnalyticEntity);
+                        }
+                        // add business role and remove all login session
+                        var userRoles = await _userManager.GetRolesAsync(user: userEntity);
+                        if (!userRoles.Contains(CRoleType.Business.ToString()))
+                        {
+                            await _userManager.AddToRoleAsync(user: userEntity, role: CRoleType.Business.ToString());
+                            var userRefreshTokens = await _dbContext.UserRefreshTokens.Where(ur => ur.UserId == userEntity.Id).ToListAsync();
+                            userRefreshTokens.ForEach(ur => 
+                            {
+                                ur.ExpireTime = DateTimeOffset.UtcNow.AddHours(-1);
+                                ur.IsRevoked = true;
+                                ur.LastRevoked = DateTimeOffset.UtcNow.AddHours(-1);
+                            });
+                            _dbContext.UserRefreshTokens.UpdateRange(entities: userRefreshTokens);
+                            await _dbContext.SaveChangesAsync();
+                        }
+                        content = $"Yêu cầu đăng ký doanh nghiệp của bạn đã được chấp nhập. Vui lòng truy cập Doanh Nghiệp Portal để hoàn tất các thông tin cần thiết.";
+                    }
+                    else if (requestDto.ApprovalType == CApprovalType.Rejected)
+                    {
+                        content = $"Yêu cầu đăng ký doanh nghiệp của bạn đã bị từ chối vì : {requestDto.Reason}";
+                    }
+                    await _notificationHubContext.Clients.User(businessEntity.UserId.ToString())
+                        .SendAsync("ReceiveNotification", $"Thông báo xác nhận yêu cầu đăng ký doanh nghiệp");
+                    var notificationEntity = new NotificationEntity()
+                    {
+                        Content = content,
+                        Title = $"Thông báo kết quả đăng ký doanh nghiệp",
+                        Type = CNotificationType.Business,
+                        UserId = businessEntity.UserId
+                    };
+                    _dbContext.Notifications.Add(entity: notificationEntity);
+                    await _dbContext.SaveChangesAsync();
+                    // send email to user
+                    await _emailService.SendEmailAsync(email: businessEntity.BusinessContactProperty.Email,
+                        subject: "THÔNG BÁO KẾT QUẢ ĐĂNG KÝ DOANH NGHIỆP",
+                        htmlTemplate: string.Empty,
+                        fileTemplateName: "ApproveNewBusinessRequestEmailTemplate.html",
+                        replaceProperty: new ApproveNewBusinessRequestEmailTemplateModel()
+                        {
+                            Address = businessEntity.Address,
+                            BusinessName = businessEntity.BusinessName,
+                            BusinessType = businessEntity.BusinessServiceType.ToDescription(),
+                            Name = businessEntity.BusinessContactProperty.Name,
+                            ProvinceName = (await _dbContext.Provinces.FindAsync(businessEntity.ProvinceId))?.Name ?? string.Empty,
+                            Reason = content,
+                            Status = requestDto.ApprovalType.ToString(),
+                            ImageUrl = string.Empty
+                        });
+                    await transaction.CommitAsync();
+                    response.Result.Data = new ResultMessage()
+                    {
+                        Level = CNotificationLevel.Success,
+                        Message = $"Đã hoàn tất xác nhận yêu cầu đăng ký cho doanh nghiệp",
+                        NotificationType = CNotificationType.Business
+                    };
+                    response.Result.Success = true;
+                    response.StatusCode = StatusCodes.Status202Accepted;
+                    return response;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex.Message);
+                    return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+                }
             }
         }
         #endregion become to a business
@@ -433,7 +650,7 @@ namespace HoTroDuLichAI.API
                                                                         }).ToListAsync();
 
                 var businessEntity = await _dbContext.Businesses
-                    .Include(b=>b.User)
+                    .Include(b => b.User)
                     .Include(b => b.ItineraryDetails)
                     .Where(b => b.Id == businessId)
                     .Select(b => new

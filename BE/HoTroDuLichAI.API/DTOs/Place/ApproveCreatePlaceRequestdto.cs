@@ -1,6 +1,6 @@
 namespace HoTroDuLichAI.API
 {
-    public class ApproveCreatePlaceRequestdto
+    public class ApproveCreatePlaceRequestDto
     {
         public Guid PlaceId { get; set; }
         public CApprovalType Type { get; set; }
