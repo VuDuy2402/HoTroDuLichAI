@@ -15,5 +15,6 @@ namespace HoTroDuLichAI.API
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Avatar { get; set; } = string.Empty;
+        public string FileId { get; set; } = string.Empty;
     }
 }
