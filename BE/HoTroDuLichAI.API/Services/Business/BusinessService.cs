@@ -175,6 +175,40 @@ namespace HoTroDuLichAI.API
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
         }
+        
+
+        public async Task<ApiResponse<BusinessContactProperty>> GetBusinessContactPersonAsync()
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<BusinessContactProperty>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var businessContact = await _dbContext.Businesses.Where(b => b.UserId == currentUser.Id).FirstOrDefaultAsync();
+                if (businessContact == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var contact = businessContact.BusinessContactProperty;
+                if (string.IsNullOrEmpty(contact.Email) || string.IsNullOrEmpty(contact.Name))
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                response.Result.Data = contact;
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
         #endregion report
 
         #region get business with paging

@@ -15,6 +15,7 @@ namespace HoTroDuLichAI.API
         #region report
         Task<ApiResponse<BusinessViewContactReportResponseDto>> GetMyViewContactReportAsync(ReportRequestDto requestDto);
         Task<ApiResponse<List<BusinessServiceUsedReportResponseDto>>> GetMyServiceUsedReportAsync(ReportRequestDto requestDto);
+        Task<ApiResponse<BusinessContactProperty>> GetBusinessContactPersonAsync();
         #endregion report
         
     }

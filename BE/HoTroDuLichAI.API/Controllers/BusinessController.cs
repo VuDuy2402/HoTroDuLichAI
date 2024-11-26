@@ -85,6 +85,14 @@ namespace HoTroDuLichAI.API.Controllers
             var result = await _businessService.GetMyServiceUsedReportAsync(requestDto: requestDto);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
+
+        [HttpGet("contactperson")]
+        [Authorize(Roles = RoleDescription.Business)]
+        public async Task<IActionResult> GetBusinessContactPerson()
+        {
+            var result = await _businessService.GetBusinessContactPersonAsync();
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
         #endregion report
 
     }
