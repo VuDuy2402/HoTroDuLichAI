@@ -66,7 +66,7 @@ namespace HoTroDuLichAI.API
 
         [HttpPost("manage/approverequestcreateplace")]
         [Authorize(Roles = RoleDescription.Admin)]
-        public async Task<IActionResult> ApprovalRequestCreatePlace(ApproveCreatePlaceRequestdto requestDto)
+        public async Task<IActionResult> ApprovalRequestCreatePlace(ApproveCreatePlaceRequestDto requestDto)
         {
             var result = await _placeService.ApprovalRequestCreatePlaceAsync(requestDto: requestDto);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
