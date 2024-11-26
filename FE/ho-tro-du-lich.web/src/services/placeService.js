@@ -70,14 +70,10 @@ export const placeService = {
     }
   },
 
-
   updatePlaceAdmin: async (data) => {
     const token = localStorageService.getToken();
     if (token) {
-      const response = await reqApi.put(
-        placeApi.Place_Admin_UpdatePlace,
-        data
-      );
+      const response = await reqApi.put(placeApi.Place_Admin_UpdatePlace, data);
       if (response) {
         return response;
       }
@@ -99,7 +95,32 @@ export const placeService = {
     }
   },
 
-
+  requestNewPlacePaging: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        placeApi.Place_Admin_RequestNewPlace_Page,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+  approveNewPlace: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        placeApi.Place_Admin_ApproveNewPlace_Page,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
 
   // normal user
   requestCreatePlace: async (data) => {
@@ -114,7 +135,7 @@ export const placeService = {
       }
       return null;
     }
-  }
+  },
 
   // normal user
 };

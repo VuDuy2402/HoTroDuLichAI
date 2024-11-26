@@ -10,7 +10,6 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import "./MapCustom.scss";
-import { marker } from "leaflet";
 const MapCustom = ({
   latitude = 16.047079,
   longtitude = 108.20623,
@@ -19,13 +18,13 @@ const MapCustom = ({
   zoom = 13,
   pin = true,
   onChangePosition,
+  label,
 }) => {
   const [positionState, setPositionState] = useState();
   const handleChangePosition = (position) => {
     if (pin) {
       return;
     }
-    console.log(position);
 
     setPositionState([position.latitude, position.longtitude]);
     onChangePosition &&
@@ -36,6 +35,7 @@ const MapCustom = ({
     <div
       style={styleMap ? styleMap : { height: "400px", marginBottom: "20px" }}
     >
+      {label && <label className="fw-bold">{label}</label>}
       <MapContainer
         center={[latitude, longtitude]}
         zoom={zoom}
@@ -47,6 +47,11 @@ const MapCustom = ({
         />
         {positionState && (
           <Marker position={positionState}>
+            <Popup>{name}</Popup>
+          </Marker>
+        )}
+        {!positionState && pin && (
+          <Marker position={[latitude, longtitude]}>
             <Popup>{name}</Popup>
           </Marker>
         )}

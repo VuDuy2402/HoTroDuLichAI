@@ -60,6 +60,7 @@ const Navbar = ({ className }) => {
   );
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [pagingNotification, setPagingNotification] = useState(1);
+  const [maxPagingNotification, setMaxPagingNotification] = useState();
   const [notificationItem, setNotificationItem] = useState([]);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -124,9 +125,9 @@ const Navbar = ({ className }) => {
       }
     }
   };
-  const loadNotification = async () => {
+  const loadNotification = async (page) => {
     const result = await notificationService.getWithPaging({
-      pageNumber: pagingNotification,
+      pageNumber: page,
       pageSize: 10,
       searchQuery: "",
       filterProperty: {},
@@ -134,7 +135,8 @@ const Navbar = ({ className }) => {
     if (result) {
       if (result.success) {
         const newArr = result.data.items.map((item) => ({ label: item.title }));
-        setNotificationItem(newArr);
+        setNotificationItem((pre) => [...pre, ...newArr]);
+        setMaxPagingNotification(result.data.totalPages);
       }
     }
   };
@@ -309,7 +311,15 @@ const Navbar = ({ className }) => {
                   }}
                   onOpen={() => {
                     resetUnreadCount();
-                    loadNotification();
+                    if (notificationItem.length === 0) {
+                      loadNotification(1);
+                    }
+                  }}
+                  onClickMore={() => {
+                    if (pagingNotification < maxPagingNotification) {
+                      setPagingNotification((pre) => pre + 1);
+                      loadNotification(pagingNotification + 1);
+                    }
                   }}
                 />
                 {windowSize.width > 768 && (
