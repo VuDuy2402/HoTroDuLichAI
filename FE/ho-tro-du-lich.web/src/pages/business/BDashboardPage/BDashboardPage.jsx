@@ -22,6 +22,7 @@ import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
+import UserInfo from '../../../common/components/UserTag/UserInfo';
 
 ChartJS.register(
     CategoryScale,
@@ -41,6 +42,8 @@ const BDashboardPage = () => {
     const [toDate, setToDate] = useState('');
     const [cards, setCards] = useState([]);
     const [errors, setErrors] = useState([]);
+
+    const [userInfo, setUserInfo] = useState(null);
     // #region : chart
     const [totalRevenueChart, setTotalRevenueChart] = useState("line");
     const [totalUseChart, setTotalUseChart] = useState("line");
@@ -108,9 +111,21 @@ const BDashboardPage = () => {
         }
     };
 
+    const fetchUserInfo = async () => {
+        try {
+            const businessContactInfo = await businessService.businessGetContactInfo();
+            if (businessContactInfo && businessContactInfo.success) {
+                setUserInfo(businessContactInfo.data);
+            }
+            else if (businessContactInfo && businessContactInfo.errors) {
+                setErrors(businessContactInfo.errors);
+            }
+        } catch (error) {
+            toast.error('Đã xảy ra lỗi khi tải thông tin người dùng: ' + error);
+        }
+    };
 
-
-    const fetchData = async () => {
+    const fetchDataForChart = async () => {        
         const requestData = {
             FromDate: new Date(fromDate).toISOString(),
             ToDate: new Date(toDate).toISOString(),
@@ -186,9 +201,28 @@ const BDashboardPage = () => {
 
     const handleSubmit = () => {
         if (fromDate && toDate) {
-            fetchData();
+            fetchDataForChart();
         }
     };
+
+    useEffect(() => {
+        const today = new Date();
+        const oneMonthAgo = new Date(today);
+        oneMonthAgo.setMonth(today.getMonth() - 1);
+
+        const fromDateString = oneMonthAgo.toISOString().split('T')[0];
+        const toDateString = today.toISOString().split('T')[0];
+
+        setFromDate(fromDateString);
+        setToDate(toDateString);
+        fetchUserInfo();
+    }, []);
+
+    useEffect(() => {
+        if (fromDate && toDate) {
+            fetchDataForChart();
+        }
+    }, [fromDate, toDate]);
 
     return (
         <Container>
@@ -222,15 +256,9 @@ const BDashboardPage = () => {
                     </Form>
                 </Col>
                 <Col md={6} className="d-flex justify-content-end align-items-center">
-                    <div className="d-flex align-items-center text-center">
-                        <div className="me-2">Hi, UserName</div>
-                        <img
-                            src="https://via.placeholder.com/100"
-                            alt="User"
-                            className="rounded-circle mb-2"
-                            style={{ width: '50px', height: '50px' }}
-                        />
-                    </div>
+                    {userInfo && (
+                        <UserInfo userInfo={userInfo} />
+                    )}
                 </Col>
             </Row>
 

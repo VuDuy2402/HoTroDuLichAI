@@ -25,8 +25,14 @@ namespace HoTroDuLichAI.API
         public CBusinessServiceType BusinessServiceType { get; set; }
         [Column("LoaiPheDuyet")]
         public CApprovalType Appoved { get; set; }
-        [Column("CoPhaiDiaDiemMoi")]
-        public bool IsNew { get; set; }
+        // [Column("CoPhaiDiaDiemMoi")]
+        // public bool IsNew { get; set; }
+        [Column("KinhDo")]
+        public float Longitude { get; set; }
+        [Column("ViDo")]
+        public float Latitude { get; set; }
+        [Column("TinhId")]
+        public Guid ProvinceId { get; set; }
         [Column("ThongTinNguoiLienHeDoanhNghiep")]
         public string BusinessContactPerson { get; set; } = string.Empty;
         [NotMapped]

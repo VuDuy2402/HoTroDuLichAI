@@ -17,5 +17,6 @@ export const businessApi = {
   // report
   Business_Report_ViewContact: "api/v1/admin/business/report/viewcontact",
   Business_Report_ServiceUsed: "api/v1/admin/business/report/serviceused",
+  Business_Report_GetContactInfo: "api/v1/admin/business/contactperson",
   // report
 };

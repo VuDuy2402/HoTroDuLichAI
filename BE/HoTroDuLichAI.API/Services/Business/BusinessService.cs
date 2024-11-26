@@ -176,11 +176,10 @@ namespace HoTroDuLichAI.API
             }
         }
         
-
-        public async Task<ApiResponse<BusinessContactProperty>> GetBusinessContactPersonAsync()
+        public async Task<ApiResponse<BusinessContactPersonInfoResponseDto>> GetBusinessContactPersonAsync()
         {
             var errors = new List<ErrorDetail>();
-            var response = new ApiResponse<BusinessContactProperty>();
+            var response = new ApiResponse<BusinessContactPersonInfoResponseDto>();
             try
             {
                 var currentUser = RuntimeContext.CurrentUser;
@@ -198,7 +197,13 @@ namespace HoTroDuLichAI.API
                 {
                     return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
                 }
-                response.Result.Data = contact;
+                response.Result.Data = new BusinessContactPersonInfoResponseDto()
+                {
+                    Avatar = contact.ImageProperty.Url,
+                    Email = contact.Email,
+                    Name = contact.Name,
+                    PhoneNumber = contact.PhoneNumber
+                };
                 response.Result.Success = true;
                 response.StatusCode = StatusCodes.Status200OK;
                 return response;
@@ -210,6 +215,90 @@ namespace HoTroDuLichAI.API
             }
         }
         #endregion report
+
+        #region become to a business
+        public async Task<ApiResponse<ResultMessage>> RequestToCreateBusinessAsyn(RequestToCreateBusinessRequestDto requestDto,
+            ModelStateDictionary? modelState = null)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            if (requestDto == null)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Dữ liệu gửi về không hợp lệ. Vui lòng kiểm tra lại.",
+                    ErrorScope = CErrorScope.FormSummary
+                });
+                response.Result.Errors.AddRange(errors);
+                response.Result.Success = false;
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
+            errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var businessEntity = await _dbContext.Businesses.Where(b => b.UserId == currentUser.Id
+                    || (b.Longitude != 0 && b.Latitude != 0 && b.Longitude == requestDto.Longitude 
+                        && b.Latitude == requestDto.Latitude)).FirstOrDefaultAsync();
+                if (businessEntity != null)
+                {
+                    errors.Add(new ErrorDetail()
+                    {
+                        Error = $"Mỗi người dùng chỉ có thể đăng ký duy nhất 1 doanh nghiệp và không được trùng về địa điểm của các doanh nghiệp khác trên hệ thống.",
+                        ErrorScope = CErrorScope.PageSumarry
+                    });
+                    response.Result.Errors.AddRange(errors);
+                    response.Result.Success = false;
+                    response.StatusCode = StatusCodes.Status409Conflict;
+                    return response;
+                }
+
+                businessEntity = new BusinessEntity()
+                {
+                    Address = requestDto.Address,
+                    Appoved = CApprovalType.PendingAprroval,
+                    BusinessName = requestDto.BusinessName,
+                    BusinessServiceType = requestDto.BusinessType,
+                    Latitude = requestDto.Latitude,
+                    Longitude = requestDto.Longitude,
+                    ProvinceId = requestDto.ProvinceId,
+                    UserId = currentUser.Id,
+                };
+                _dbContext.Businesses.Add(entity: businessEntity);
+                await _dbContext.SaveChangesAsync();
+                // notifcation to admin
+
+                // email to admin
+
+                
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Success,
+                    Message = $"Yêu cầu đăng ký doanh nghiệp của bạn đã được gửi đi thành công. Vui lòng kiểm tra email bạn đã đăng ký trong vòng 2 ngày tới để biết được kết quả.",
+                    NotificationType = CNotificationType.Business
+                };
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status201Created;
+                return response;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+        #endregion become to a business
+
+
 
         #region get business with paging
         public async Task<ApiResponse<BasePagedResult<BusinessDetailResponseDto>>> GetWithPagingAsync(BusinessPagingAndFilterParams param, ModelStateDictionary? modelState = null)
@@ -292,7 +381,7 @@ namespace HoTroDuLichAI.API
                     BusinessName = b.BusinessName,
                     Address = b.Address,
                     Appoved = b.Appoved,
-                    IsNew = b.IsNew,
+                    // IsNew = b.IsNew,
                     BusinessContactProperty = b.BusinessContactPerson.FromJson<BusinessContactProperty>(),
                     OwnerProperty = new OwnerProperty()
                     {
@@ -354,7 +443,7 @@ namespace HoTroDuLichAI.API
                         BusinessName = b.BusinessName,
                         Service = b.Service,
                         Appoved = b.Appoved,
-                        IsNew = b.IsNew,
+                        // IsNew = b.IsNew,
                         OwnerProperty = new OwnerProperty()
                         {
                             Avatar = b.User.Avatar,
@@ -464,7 +553,7 @@ namespace HoTroDuLichAI.API
                     BusinessName = requestDto.BusinessName,
                     Address = requestDto.Address,
                     Service = businessSeviceProperty.ToJson(),
-                    IsNew = hasAdminRole ? requestDto.IsNew : true,
+                    // IsNew = hasAdminRole ? requestDto.IsNew : true,
                     BusinessContactPerson = businessContactPerson.ToJson(),
                     UserId = currentUser.Id,
                 };

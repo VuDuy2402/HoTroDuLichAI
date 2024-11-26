@@ -129,5 +129,18 @@ export const businessService = {
     }
   },
 
+  businessGetContactInfo: async () => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.get(
+        businessApi.Business_Report_GetContactInfo
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  }
+
   //report
 };

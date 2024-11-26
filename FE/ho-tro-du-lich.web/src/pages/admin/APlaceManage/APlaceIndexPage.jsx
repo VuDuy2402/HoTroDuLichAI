@@ -189,6 +189,7 @@ const APlaceIndexPlace = () => {
 
 const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
   const [showModal, setShowConfirmDeleteModal] = useState(false);
+  const [errors, setErrors] = useState(false);
 
   const getInitials = (name) => {
     const names = name.split(" ");
@@ -202,7 +203,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
       onDelete(placeId);
     } else {
       if (result.errors) {
-        setErrorList(result.errors);
+        setErrors(result.errors);
       }
     }
     setShowConfirmDeleteModal(false);

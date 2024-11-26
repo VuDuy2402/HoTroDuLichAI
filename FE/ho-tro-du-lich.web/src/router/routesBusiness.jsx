@@ -4,18 +4,18 @@ import BHomePage from "../pages/business/BHomePage/BHomePage";
 import MenuSideLayout from "../layouts/MenuSideLayout";
 import BPlacePage from "../pages/business/BPlacePage/BPlacePage";
 import BDashboardPage from "../pages/business/BDashboardPage/BDashboardPage";
-import { IoAnalyticsSharp, IoLocationOutline } from "react-icons/io5";
+import {  IoLocationOutline, IoStatsChartOutline } from "react-icons/io5";
 
 const menusideItemBusiness = [
   {
     label: "Dashboard",
     url: "/business/dashboard",
-    icon: <IoAnalyticsSharp color="red" />
+    icon: <IoStatsChartOutline color="red" />
   },
   {
     label: "Địa điểm",
     url: "/business/place",
-    icon: <IoLocationOutline />
+    icon: <IoLocationOutline  />
   }
 ];
 
