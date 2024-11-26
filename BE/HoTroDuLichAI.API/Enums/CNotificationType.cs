@@ -17,7 +17,9 @@ namespace HoTroDuLichAI.API
         [Description(description: "Địa điểm")]
         Place = 5,
         [Description(description: "Doanh nghiệp")]
-        Business = 6
+        Business = 6,
+        [Description(description: "Bài đăng")]
+        Article = 7,
     }
 
     public enum CNotificationLevel

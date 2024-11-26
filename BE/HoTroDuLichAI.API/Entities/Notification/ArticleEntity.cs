@@ -33,7 +33,7 @@ namespace HoTroDuLichAI.API
             private set => _createdDate = value;
         }
         [Column("PheDuyetBaiViet")]
-        public bool Approved { get; set; }
+        public CApprovalType Approved { get; set; }
         [Column("NguoiDungId")]
         public Guid UserId { get; set; }
         [ForeignKey(name: "UserId")]
