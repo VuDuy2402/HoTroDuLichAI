@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace HoTroDuLichAI.API
 {
     public class BusinessServiceProperty
@@ -22,8 +24,11 @@ namespace HoTroDuLichAI.API
     public enum CBusinessServiceType
     {
         None = 0,
+        [Description("Khách sạn")]
         Room = 1,
+        [Description("Nhà nghỉ")]
         Food = 2,
+        [Description("Quán ăn")]
         Drink = 3
     }
 }

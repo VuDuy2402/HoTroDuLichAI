@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Báo Kết Quả Yêu Cầu Tạo Doanh Nghiệp</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .email-wrapper {
+            width: 100%;
+            max-width: 750px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            background-color: #003366;
+            color: #ffffff;
+            padding: 35px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .email-body {
+            padding: 25px;
+            color: #333333;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .email-body p {
+            margin: 15px 0;
+        }
+        .status-box {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            text-align: center;
+            font-weight: bold;
+        }
+        .status-box.accepted {
+            background-color: #d4edda;
+            border-left: 6px solid #28a745;
+        }
+        .status-box.rejected {
+            background-color: #f8d7da;
+            border-left: 6px solid #dc3545;
+        }
+        .status-box img {
+            max-width: 50px;
+            margin-bottom: 15px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 12px 25px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-top: 25px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #777777;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-header">
+            <h1>Thông Báo Kết Quả Yêu Cầu Đăng Ký Doanh Nghiệp</h1>
+        </div>
+
+        <div class="email-body">
+            <p>Kính gửi [Name],</p>
+
+            <div class="status-box [Status]">
+                <img src="[ImageUrl]" alt="" />
+                <p>[Reason]</p>
+            </div>
+
+            <p>Đây là thông tin chi tiết về yêu cầu của bạn:</p>
+            
+            <div class="info-box">
+                <p><strong>Tên Doanh Nghiệp:</strong> [BusinessName]</p>
+                <p><strong>Loại Hình Doanh Nghiệp:</strong> [BusinessType]</p>
+                <p><strong>Địa Chỉ:</strong> [Address]</p>
+                <p><strong>Tỉnh/Thành Phố:</strong> [ProvinceName]</p>
+            </div>
+
+
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 Công ty của bạn. Tất cả quyền lợi được bảo lưu.</p>
+        </div>
+    </div>
+</body>
+</html>

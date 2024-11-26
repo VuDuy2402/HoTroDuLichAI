@@ -15,6 +15,6 @@ namespace HoTroDuLichAI.API
         Task<ApiResponse<ResultMessage>> DeletePlaceImagesAsync(DeletePlaceImagesRequestDto requestDto,
             ModelStateDictionary? modelState = null);
         Task<ApiResponse<ResultMessage>> ApprovalRequestCreatePlaceAsync(
-            ApproveCreatePlaceRequestdto requestDto);
+            ApproveCreatePlaceRequestDto requestDto);
     }
 }

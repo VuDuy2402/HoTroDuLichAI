@@ -95,5 +95,23 @@ namespace HoTroDuLichAI.API.Controllers
         }
         #endregion report
 
+        #region become to a business
+        [HttpPost("becometobusiness/request")]
+        [Authorize(Roles = RoleDescription.NormalUser)]
+        public async Task<IActionResult> RequestToRegisterBusiness(RequestToCreateBusinessRequestDto requestDto)
+        {
+            var result = await _businessService.RequestToRegisterBusinessAsyn(requestDto: requestDto, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpPost("becometobusiness/approve")]
+        [Authorize(Roles = RoleDescription.Admin)]
+        public async Task<IActionResult> ApproveNewBusinessRequest(ApproveNewBusinessRequestDto requestDto)
+        {
+            var result = await _businessService.ApprovalNewBusinessRequestAsync(requestDto: requestDto, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+        #endregion become to a business
+
     }
 }

@@ -658,7 +658,7 @@ namespace HoTroDuLichAI.API
 
         #region Approval new place request
         public async Task<ApiResponse<ResultMessage>> ApprovalRequestCreatePlaceAsync(
-            ApproveCreatePlaceRequestdto requestDto)
+            ApproveCreatePlaceRequestDto requestDto)
         {
             var errors = new List<ErrorDetail>();
             var response = new ApiResponse<ResultMessage>();

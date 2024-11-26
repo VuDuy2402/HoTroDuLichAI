@@ -19,7 +19,9 @@ namespace HoTroDuLichAI.API
         #endregion report
 
         #region become to a business
-        Task<ApiResponse<ResultMessage>> RequestToCreateBusinessAsyn(RequestToCreateBusinessRequestDto requestDto,
+        Task<ApiResponse<ResultMessage>> RequestToRegisterBusinessAsyn(RequestToCreateBusinessRequestDto requestDto,
+            ModelStateDictionary? modelState = null);
+        Task<ApiResponse<ResultMessage>> ApprovalNewBusinessRequestAsync(ApproveNewBusinessRequestDto requestDto,
             ModelStateDictionary? modelState = null);
         #endregion become to a business
         
