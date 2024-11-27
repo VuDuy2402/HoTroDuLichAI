@@ -7,13 +7,15 @@ import APlaceIndexPlace from "../pages/admin/APlaceManage/APlaceIndexPage";
 import ARequestNewPlacePage from "../pages/admin/ARequestNewPlacePage/ARequestNewPlacePage";
 import ARequestNewPlaceDetailPage from "../pages/admin/ARequestNewPlaceDetailPage/ARequestNewPlaceDetailPage";
 import AArticlePage from "../pages/admin/AArticlePage/AArticlePage";
+import ADashboardPage from "../pages/admin/ADashboardPage/ADashboardPage";
+import { IoLocationOutline, IoNotificationsOffCircleOutline, IoPeopleCircleOutline, IoPieChartOutline, IoTextOutline } from "react-icons/io5";
 
 const menuSideItemAdmin = [
-  { label: "Đơn yêu cầu", url: "/admin/requestnewplace" },
-  { label: "Người dùng", url: "/admin/manageuser" },
-  { label: "Địa điểm", url: "/admin/manageplace" },
-  { label: "Tin tức", url: "/admin/article" },
-  { label: "Thống kê", url: "/admin/dashboard" },
+  { label: "Đơn yêu cầu", url: "/admin/requestnewplace", icon: <IoTextOutline /> },
+  { label: "Người dùng", url: "/admin/manageuser", icon: <IoPeopleCircleOutline /> },
+  { label: "Địa điểm", url: "/admin/manageplace", icon: <IoLocationOutline />, },
+  { label: "Tin tức", url: "/admin/article", icon: <IoNotificationsOffCircleOutline /> },
+  { label: "Thống kê", url: "/admin/dashboard", icon: <IoPieChartOutline />},
 ];
 
 export const routersAdmin = [
@@ -28,6 +30,14 @@ export const routersAdmin = [
   {
     path: "/admin/manageuser",
     component: <AUserIndex />,
+    checkAuth: true,
+    roles: [Role.Admin],
+    errorElement: <Navigate to="/error" />,
+    layout: <MenuSideLayout items={menuSideItemAdmin} />,
+  },
+  {
+    path: "/admin/dashboard",
+    component: <ADashboardPage />,
     checkAuth: true,
     roles: [Role.Admin],
     errorElement: <Navigate to="/error" />,
