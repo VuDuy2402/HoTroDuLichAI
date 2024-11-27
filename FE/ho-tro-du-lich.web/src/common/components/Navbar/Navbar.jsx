@@ -164,6 +164,15 @@ const Navbar = ({ className }) => {
       return listBtn;
     }
     if (getUserRoles && getUserRoles.length > 0) {
+      if (
+        getUserRoles.includes(Role.Admin) ||
+        (getUserRoles.includes(Role.NormalUser) &&
+          !getUserRoles.includes(Role.Business))
+      ) {
+        listBtn.push({ label: "Đăng ký Doanh nghiệp", id: 0 });
+      }
+    }
+    if (getUserRoles && getUserRoles.length > 0) {
       if (getUserRoles.includes(Role.Business)) {
         listBtn.push({ label: "Doanh nghiệp", id: 1 });
       }
@@ -207,6 +216,9 @@ const Navbar = ({ className }) => {
     navigate(data.url);
   };
   const handleClickDropdownRole = (data) => {
+    if (data.id === 0) {
+      navigate("/registerbusiness");
+    }
     if (data.id === 1) {
       navigate("/business");
     }
@@ -273,7 +285,7 @@ const Navbar = ({ className }) => {
                   classDropdown={"bg-white p-2 shadow"}
                   classItem="p-1 d-flex justify-content-center"
                   items={generateBtnRole()}
-                  styleDropdown={{ right: 0, width: "150px" }}
+                  styleDropdown={{ right: 0, width: "200px" }}
                   autoClose
                   onClick={handleClickDropdownRole}
                 />

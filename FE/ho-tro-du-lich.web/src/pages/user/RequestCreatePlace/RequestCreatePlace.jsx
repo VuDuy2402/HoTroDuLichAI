@@ -45,7 +45,7 @@ const RequestCreatePlacePage = () => {
       return;
     }
     data.latitude = positionMap[0];
-    data.longtidute = positionMap[1];
+    data.longtitude = positionMap[1];
     data.fileIds = fileIds;
 
     // if (!isAgreed) {
@@ -109,7 +109,7 @@ const RequestCreatePlacePage = () => {
                 />
               )}
             />
-          <ErrorField errorList={errorList} field={"PlaceType_Error"} />
+            <ErrorField errorList={errorList} field={"PlaceType_Error"} />
           </div>
           <Input
             label={"Địa chỉ"}
@@ -139,7 +139,7 @@ const RequestCreatePlacePage = () => {
             }
           />
           <ErrorField errorList={errorList} field={"FileIds_Error"} />
-          
+
           {/* <div className="terms-and-conditions my-3">
             <div className="d-flex align-items-center">
               <input

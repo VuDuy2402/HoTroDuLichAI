@@ -7,7 +7,12 @@ import { FaFileUpload, FaTimes } from "react-icons/fa";
 import styles from "./ImageUploadGallery.module.scss";
 import { Button } from "react-bootstrap";
 import { MdOutlineUploadFile } from "react-icons/md";
-const ImageUploadGallery = ({ onImagesUploaded, onImagesRemove, label }) => {
+const ImageUploadGallery = ({
+  onImagesUploaded,
+  onImagesRemove,
+  label,
+  multiple = true,
+}) => {
   const ikUploadRef = useRef(null);
   const dispatch = useDispatch();
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -54,24 +59,26 @@ const ImageUploadGallery = ({ onImagesUploaded, onImagesRemove, label }) => {
             onUploadProgress={onUploadProgress}
             multiple
           />
-          <Button
-            type="button"
-            className="d-flex flex-column align-items-center justify-content-center p-0"
-            variant="outline-secondary"
-            size=""
-            onClick={() => ikUploadRef.current?.click()}
-            disabled={uploading}
-            style={{
-              borderStyle: "dashed",
-              minWidth: "100px",
-              width: "100px",
-              minHeight: "100px",
-              height: "100px",
-            }}
-          >
-            <FaFileUpload size={25} />
-            {uploading ? "Đang tải..." : "Tải ảnh lên"}
-          </Button>
+          {((!multiple && uploadedImages.length === 0) || multiple) && (
+            <Button
+              type="button"
+              className="d-flex flex-column align-items-center justify-content-center p-0"
+              variant="outline-secondary"
+              size=""
+              onClick={() => ikUploadRef.current?.click()}
+              disabled={uploading}
+              style={{
+                borderStyle: "dashed",
+                minWidth: "100px",
+                width: "100px",
+                minHeight: "100px",
+                height: "100px",
+              }}
+            >
+              <FaFileUpload size={25} />
+              {uploading ? "Đang tải..." : "Tải ảnh lên"}
+            </Button>
+          )}
         </div>
       </div>
 

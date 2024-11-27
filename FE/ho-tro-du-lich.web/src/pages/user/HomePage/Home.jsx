@@ -112,22 +112,22 @@ const Home = () => {
         </div>
       </div>
       {/* ---------------------- */}
-      <div className="row py-3 border-1 border-bottom">
-        <div className="col-12 col-md-4 py-4">
+      <div className="row py-3 border-1 border-bottom w-100">
+        <div className="col-12 col-md-4 p-0">
           <StepIntroduce
             number={1}
             title={"Địa Điểm Hot Nhất"}
             description={"Cập nhật các địa điểm hot nhanh chóng"}
           />
         </div>
-        <div className="col-12 col-md-4 py-4">
+        <div className="col-12 col-md-4 p-0">
           <StepIntroduce
             number={2}
             title={"Tin Tức Du Lịch Mới Nhất"}
             description={"Tin tức về các địa điểm du lịch mới nhất"}
           />
         </div>
-        <div className="col-12 col-md-4 py-4">
+        <div className="col-12 col-md-4 p-0">
           <StepIntroduce
             number={3}
             title={"Định Vị Chính Xác"}
@@ -305,7 +305,7 @@ const Home = () => {
 
 const StepIntroduce = ({ number, title, description }) => {
   return (
-    <div className="step-introduce d-flex flex-column justify-content-center align-items-center gap-1">
+    <div className="step-introduce d-flex flex-column justify-content-center align-items-center gap-1 py-4">
       <h1 className="fw-bold text-secondary m-0" style={{ fontSize: "4rem" }}>
         {number}
       </h1>

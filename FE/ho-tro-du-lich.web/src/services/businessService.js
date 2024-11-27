@@ -4,14 +4,20 @@ import { localStorageService } from "./localstorageService";
 
 export const businessService = {
   getWithPaging: async (data) => {
-    const response = await reqApi.post(businessApi.Business_GetWithPaging, data);
+    const response = await reqApi.post(
+      businessApi.Business_GetWithPaging,
+      data
+    );
     if (response) {
       return response;
     }
     return null;
   },
   getNewPlacePaging: async (data) => {
-    const response = await reqApi.post(businessApi.Business_GetNewBusiness, data);
+    const response = await reqApi.post(
+      businessApi.Business_GetNewBusiness,
+      data
+    );
     if (response) {
       return response;
     }
@@ -35,7 +41,10 @@ export const businessService = {
   getWithPagingMy: async (data) => {
     const token = localStorageService.getToken();
     if (token) {
-      const response = await reqApi.post(businessApi.Business_My_GetWithPaging, data);
+      const response = await reqApi.post(
+        businessApi.Business_My_GetWithPaging,
+        data
+      );
       if (response) {
         return response;
       }
@@ -70,7 +79,6 @@ export const businessService = {
     }
   },
 
-
   updateBusinesseAdmin: async (data) => {
     const token = localStorageService.getToken();
     if (token) {
@@ -99,6 +107,19 @@ export const businessService = {
     }
   },
 
+  sendRequestBecomeBusiness: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        businessApi.Business_SendRequest_BecomeBusiness,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
 
   //report
   businessReportViewContact: async (data) => {
@@ -140,7 +161,7 @@ export const businessService = {
       }
       return null;
     }
-  }
+  },
 
   //report
 };

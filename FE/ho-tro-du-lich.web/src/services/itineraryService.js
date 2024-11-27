@@ -21,4 +21,11 @@ export const itineraryService = {
     }
     return null;
   },
+  getAllProvince: async () => {
+    const response = await reqApi.get(itineraryApi.Itinerary_Province);
+    if (response) {
+      return response;
+    }
+    return null;
+  },
 };

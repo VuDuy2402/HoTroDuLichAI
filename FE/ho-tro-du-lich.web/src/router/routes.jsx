@@ -12,6 +12,8 @@ import PlaceDetailPage from "../pages/user/PlaceDetailPage/PlaceDetailPage";
 import NavbarLayout from "../layouts/NavbarLayout";
 import ItineraryDetailPage from "../pages/user/ItineraryDetailPage/ItineraryDetailPage";
 import RequestCreatePlacePage from "../pages/user/RequestCreatePlace/RequestCreatePlace";
+import RegisterBusinessPage from "../pages/user/RegisterBusinessPage/RegisterBusinessPage";
+import { Role } from "../enum/permission";
 
 export const routes = [
   {
@@ -88,6 +90,14 @@ export const routes = [
     component: <ItineraryDetailPage />,
     checkAuth: false,
     roles: [],
+    layout: <NavbarLayout />,
+    errorElement: <Navigate to="/error" />,
+  },
+  {
+    path: "/registerbusiness",
+    component: <RegisterBusinessPage />,
+    checkAuth: true,
+    roles: [Role.NormalUser],
     layout: <NavbarLayout />,
     errorElement: <Navigate to="/error" />,
   },

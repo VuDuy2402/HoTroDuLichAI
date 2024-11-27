@@ -1,3 +1,4 @@
+import { ErrorMessage } from "@hookform/error-message";
 const Input = ({
   id,
   label,
@@ -7,6 +8,7 @@ const Input = ({
   className,
   classLabel,
   validate,
+  errors,
   ...others
 }) => {
   return (
@@ -27,6 +29,13 @@ const Input = ({
             {...others}
             {...register(name, validate)}
           />
+          {errors && (
+            <ErrorMessage
+              errors={errors}
+              name={name}
+              render={({ message }) => <p className="text-danger">{message}</p>}
+            />
+          )}
         </div>
       )}
       {!register && (
