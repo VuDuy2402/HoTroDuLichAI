@@ -7,6 +7,8 @@ import Select from "react-select";
 import { CPlaceType, PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";
 import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGallery";
 import MapCustom from "../../../common/components/MapCustom/MapCustom";
+import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -16,6 +18,7 @@ const options = Object.keys(CPlaceType).map((key) => ({
   label: PlaceTypeDescriptions[CPlaceType[key]],
   value: CPlaceType[key],
 }));
+
 const RequestCreatePlacePage = () => {
   const {
     register,
@@ -29,6 +32,9 @@ const RequestCreatePlacePage = () => {
   const dispatch = useDispatch();
   const [positionMap, setPositionMap] = useState(null);
   const [fileIds, setFileIds] = useState([]);
+  const [errorList, setErrorList] = useState([]);
+  // const [isAgreed, setIsAgreed] = useState(false);
+
   const handleSubmitRequestNewPlace = async (data) => {
     data.isNew = true;
     if (!positionMap) {
@@ -41,6 +47,12 @@ const RequestCreatePlacePage = () => {
     data.latitude = positionMap[0];
     data.longtidute = positionMap[1];
     data.fileIds = fileIds;
+
+    // if (!isAgreed) {
+    //   toast.error("Vui lòng đồng ý với các quy định về việc đăng địa điểm.");
+    //   return;
+    // }
+
     dispatch(systemAction.enableLoading());
     const result = await placeService.requestCreatePlace(data);
     dispatch(systemAction.disableLoading());
@@ -48,18 +60,20 @@ const RequestCreatePlacePage = () => {
       if (result.success) {
         toast.success("Gửi yêu cầu thành công.");
         navigate("/");
-      } else {
-        toast.error("Error:" + result.errors[0].error);
+      } else if (result.errors) {
+        setErrorList(result.errors);
       }
     } else {
       navigate("/error");
     }
   };
+
   useEffect(() => {
     clearErrors("map");
   }, [positionMap]);
+
   return (
-    <div className="frame-create-newplace p-2 container">
+    <div className="frame-create-newplace p-2 container mt-5">
       <form onSubmit={handleSubmit(handleSubmitRequestNewPlace)}>
         <div className="header-newplace d-flex justify-content-between border-1 border-bottom py-2">
           <h4>Tạo địa điểm mới</h4>
@@ -71,12 +85,14 @@ const RequestCreatePlacePage = () => {
           </button>
         </div>
         <div className="newplace-body py-2">
+          <FormErrorAlert errors={errorList} />
           <Input
             label={"Tên địa điểm"}
             placeholder={"Điền tên địa điểm"}
             register={register}
             name={"name"}
           />
+          <ErrorField errorList={errorList} field={"Name_Error"} />
           <div className="placeType my-2">
             <label className="fw-bold my-1">Loại địa điểm</label>
             <Controller
@@ -93,6 +109,7 @@ const RequestCreatePlacePage = () => {
                 />
               )}
             />
+          <ErrorField errorList={errorList} field={"PlaceType_Error"} />
           </div>
           <Input
             label={"Địa chỉ"}
@@ -100,13 +117,15 @@ const RequestCreatePlacePage = () => {
             register={register}
             name={"address"}
           />
+          <ErrorField errorList={errorList} field={"Address_Error"} />
           <Textarea
-            className={"mb-2 form-control"}
+            className={"mb-4 form-control"}
             label={"Mô tả"}
             placeholder={"Mô tả"}
             register={register}
             name={"description"}
           />
+          <ErrorField errorList={errorList} field={"Description_Error"} />
           <MapCustom
             pin={false}
             onChangePosition={(data) => setPositionMap(data)}
@@ -119,6 +138,24 @@ const RequestCreatePlacePage = () => {
               setFileIds((pre) => [...pre.filter((i) => i !== data)])
             }
           />
+          <ErrorField errorList={errorList} field={"FileIds_Error"} />
+          
+          {/* <div className="terms-and-conditions my-3">
+            <div className="d-flex align-items-center">
+              <input
+                type="checkbox"
+                id="agree"
+                checked={isAgreed}
+                onChange={() => setIsAgreed(!isAgreed)}
+              />
+              <label htmlFor="agree" className="ms-2">
+                Tôi đồng ý với{" "}
+                <a href="/terms" target="_blank" rel="noopener noreferrer">
+                  các quy định về việc đăng địa điểm
+                </a>
+              </label>
+            </div>
+          </div> */}
         </div>
       </form>
     </div>

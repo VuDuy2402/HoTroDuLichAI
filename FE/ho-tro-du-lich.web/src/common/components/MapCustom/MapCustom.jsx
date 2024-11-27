@@ -1,6 +1,6 @@
-/* eslint-disable react/prop-types */
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { GrPowerReset } from "react-icons/gr";
+import { Card, Form } from "react-bootstrap";
 import {
   MapContainer,
   Marker,
@@ -10,6 +10,7 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import "./MapCustom.scss";
+
 const MapCustom = ({
   latitude = 16.047079,
   longtitude = 108.20623,
@@ -20,15 +21,33 @@ const MapCustom = ({
   onChangePosition,
   label,
 }) => {
-  const [positionState, setPositionState] = useState();
-  const handleChangePosition = (position) => {
-    if (pin) {
-      return;
-    }
+  const [positionState, setPositionState] = useState([latitude, longtitude]);
+  const [coordinates, setCoordinates] = useState({
+    latitude,
+    longitude: longtitude,
+  });
 
-    setPositionState([position.latitude, position.longtitude]);
-    onChangePosition &&
-      onChangePosition([position.latitude, position.longtitude]);
+  const handleChangePosition = (position) => {
+    if (pin) return;
+
+    setPositionState([position.latitude, position.longitude]);
+    setCoordinates({ latitude: position.latitude, longitude: position.longitude });
+
+    if (onChangePosition) {
+      onChangePosition([position.latitude, position.longitude]);
+    }
+  };
+
+  const handleLatLngChange = (e, type) => {
+    const value = parseFloat(e.target.value);
+    if (isNaN(value)) return;
+
+    const updatedCoordinates = { ...coordinates, [type]: value };
+    setCoordinates(updatedCoordinates);
+    setPositionState([updatedCoordinates.latitude, updatedCoordinates.longitude]);
+    if (onChangePosition) {
+      onChangePosition([updatedCoordinates.latitude, updatedCoordinates.longitude]);
+    }
   };
 
   return (
@@ -39,7 +58,7 @@ const MapCustom = ({
       <MapContainer
         center={[latitude, longtitude]}
         zoom={zoom}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", borderRadius: "0.5rem" }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -61,6 +80,41 @@ const MapCustom = ({
           onReset={() => setPositionState(null)}
           onChangePosition={handleChangePosition}
         />
+
+        <Card
+          className="position-absolute p-2 d-flex"
+          style={{
+            bottom: 0,
+            right: 0,
+            zIndex: 1000,
+            width: "fit-content",
+            minWidth: "auto",
+            maxWidth: "100px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          <Form.Group>
+            <Form.Label style={{ fontSize: "0.7rem" }}>Kinh độ</Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="Longitude"
+              value={coordinates.longitude || ""}
+              onChange={(e) => handleLatLngChange(e, "longitude")}
+              style={{ fontSize: "0.7rem", padding: "3px", width: "100%" }}
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.Label style={{ fontSize: "0.7rem" }}>Vĩ độ</Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="Latitude"
+              value={coordinates.latitude || ""}
+              onChange={(e) => handleLatLngChange(e, "latitude")}
+              style={{ fontSize: "0.7rem", padding: "3px", width: "100%" }}
+            />
+          </Form.Group>
+        </Card>
       </MapContainer>
     </div>
   );
@@ -70,7 +124,6 @@ const GeoCoder = ({ position = "topright", onReset, onChangePosition }) => {
   const map = useMap();
   const geocoderRef = useRef(null);
   const handleClickReset = () => {
-    console.log(geocoderRef.current);
     const GeoContainer = geocoderRef.current.getContainer();
     const listItem = GeoContainer.querySelector(
       ".leaflet-control-geocoder-alternatives"
@@ -82,6 +135,7 @@ const GeoCoder = ({ position = "topright", onReset, onChangePosition }) => {
     inputSearch.value = "";
     onReset();
   };
+
   useEffect(() => {
     const geocoder = L.Control.geocoder({
       defaultMarkGeocode: false, // Tự động đánh dấu vị trí sau khi tìm
@@ -89,7 +143,7 @@ const GeoCoder = ({ position = "topright", onReset, onChangePosition }) => {
     })
       .on("markgeocode", function (e) {
         const { center } = e.geocode;
-        onChangePosition({ latitude: center.lat, longtitude: center.lng });
+        onChangePosition({ latitude: center.lat, longitude: center.lng });
         map.setView(center, 13); // Di chuyển bản đồ đến vị trí tìm thấy
       })
       .addTo(map);
@@ -105,7 +159,7 @@ const GeoCoder = ({ position = "topright", onReset, onChangePosition }) => {
       handleClickReset();
     });
     geocoderContainer.appendChild(customButton);
-    return () => map.removeControl(geocoder); // Cleanup khi component unmount
+    return () => map.removeControl(geocoder);
   }, [map]);
 
   return null;
@@ -117,7 +171,7 @@ const MapClickHandler = ({ onChangePosition }) => {
       onChangePosition &&
         onChangePosition({
           latitude: e.latlng.lat,
-          longtitude: e.latlng.lng,
+          longitude: e.latlng.lng,
         });
     },
   });

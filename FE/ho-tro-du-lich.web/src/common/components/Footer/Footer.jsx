@@ -36,9 +36,10 @@ const listIntroduce = [
 const Footer = () => {
   return (
     <div className="container-fluid footer m-0 pt-3 bg-white">
+      <hr />
       <div className="container">
         <div className="footer__header">
-          <p>COURSE WEBSITE</p>
+          {/* <p>COURSE WEBSITE</p> */}
         </div>
         <div className="footer__body d-flex gap-2 justify-content-between">
           {listIntroduce.map((introduce, idx) => (
@@ -50,7 +51,7 @@ const Footer = () => {
           ))}
         </div>
         <div className="footer__end border-1 border-top mt-3">
-          <p className="m-0">COURSE WEBSITE</p>
+          {/* <p className="m-0">COURSE WEBSITE</p> */}
         </div>
       </div>
     </div>

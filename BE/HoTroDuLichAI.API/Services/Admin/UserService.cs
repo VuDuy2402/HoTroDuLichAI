@@ -422,15 +422,40 @@ namespace HoTroDuLichAI.API
                     return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
                 }
                 bool hasAdminRole = (await _userManager.GetRolesAsync(user: currentUser)).Contains(CRoleType.Admin.ToString());
-                var users = await _userManager.GetUsersInRoleAsync(!hasAdminRole ? CRoleType.Admin.ToString() : CRoleType.NormalUser.ToString());
+                IEnumerable<UserEntity> users = new List<UserEntity>();
 
                 if (hasAdminRole)
                 {
-                    users = users.Where(user =>
+                    var normalUsers = await _userManager.GetUsersInRoleAsync(CRoleType.NormalUser.ToString());
+                    var businessUsers = await _userManager.GetUsersInRoleAsync(CRoleType.Business.ToString());
+                    users = normalUsers.Concat(businessUsers).Distinct();
+                }
+                else
+                {
+                    users = await _userManager.GetUsersInRoleAsync(CRoleType.Admin.ToString());
+                }
+
+                if (hasAdminRole)
+                {
+                    var filteredUsers = new List<UserEntity>();
+
+                    foreach (var user in users)
                     {
-                        var roles = _userManager.GetRolesAsync(user).Result;
-                        return roles.Count == 1 && roles.Contains(CRoleType.NormalUser.ToString());
-                    }).ToList();
+                        var roles = await _userManager.GetRolesAsync(user);
+
+                        if (roles.Count == 1)
+                        {
+                            if (roles.Contains(CRoleType.NormalUser.ToString()) || roles.Contains(CRoleType.Business.ToString()))
+                            {
+                                filteredUsers.Add(user);
+                            }
+                        }
+                        else if (roles.Count == 2 && roles.Contains(CRoleType.Business.ToString()) && roles.Contains(CRoleType.NormalUser.ToString()))
+                        {
+                            filteredUsers.Add(user);
+                        }
+                    }
+                    users = filteredUsers;
                 }
 
 
