@@ -8,7 +8,7 @@ namespace HoTroDuLichAI.API
         public CArticleType Type { get; set; }
         public string Thumbnail { get; set; } = string.Empty;
         public DateTimeOffset CreatedDate { get; set; }
-        public bool Approved { get; set; }
+        public CApprovalType Approved { get; set; }
         public OwnerProperty OwnerProperty { get; set; } = null!;
         public List<string> FileIds { get; set; } = new();
 
