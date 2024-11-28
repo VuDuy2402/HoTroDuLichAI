@@ -8,6 +8,10 @@ import { businessService } from "../../../services/businessService";
 import { toast } from "react-toastify";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
+import { toQueryString } from "@/utils/queryParams";
+import { useDispatch } from "react-redux";
+import { systemAction } from "@/redux/slices/systemSlice";
+import { useNavigate } from "react-router-dom";
 
 // Create options for business types
 const options = Object.keys(CBusinessType).map((key) => ({
@@ -16,6 +20,8 @@ const options = Object.keys(CBusinessType).map((key) => ({
 }));
 
 const RegisterBusinessPage = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [positionMap, setPositionMap] = useState();
   const [avtFilId, setAvtFileId] = useState();
   const [provinceList, setProvinceList] = useState([]);
@@ -35,16 +41,25 @@ const RegisterBusinessPage = () => {
 
   // Fetch provinces list
   const handleGetAllProvince = async () => {
-    const result = await itineraryService.getAllProvince();
-    if (result && result.success) {
-      const listConvert = result.data.map((item) => ({
-        label: item.provinceName,
-        value: item.provinceId,
-      }));
-      setProvinceList(listConvert);
+    try {
+      dispatch(systemAction.enableLoading());
+      const result = await itineraryService.getAllProvince();
+      if (result && result.success) {
+        const listConvert = result.data.map((item) => ({
+          label: item.provinceName,
+          value: item.provinceId,
+        }));
+        setProvinceList(listConvert);
+      }
+      else if (result && result.errors) {
+        setErrors(result.errors);
+      }
     }
-    else if (result && result.errors) {
-      setErrors(result.errors);
+    catch (err) {
+      toast.error(`Đã có lỗi xảy ra ${err}`)
+    }
+    finally {
+      dispatch(systemAction.disableLoading());
     }
   };
 
@@ -73,26 +88,38 @@ const RegisterBusinessPage = () => {
 
   const handleSubmitForm = async (e) => {
     e.preventDefault();
+    try {
+      dispatch(systemAction.enableLoading());
+      const data = {
+        ...formData,
+        businessType: Number(formData.businessType),
+        latitude: positionMap ? positionMap[0] : 0,
+        longitude: positionMap ? positionMap[1] : 0,
+        contactPersonInfo: {
+          ...formData.contactPersonInfo,
+          fileId: avtFilId,
+          avatar: "",
+        }
+      };
 
-    const data = {
-      ...formData,
-      businessType: Number(formData.businessType),
-      latitude: positionMap ? positionMap[0] : 0,
-      longitude: positionMap ? positionMap[1] : 0,
-      contactPersonInfo: {
-        ...formData.contactPersonInfo,
-        fileId: avtFilId,
-        avatar: "",
+      const result = await businessService.sendRequestBecomeBusiness(data);
+      if (result) {
+        if (result.success) {
+          const queryString = toQueryString(result.data || {});
+          navigate(`/thongbao/?${queryString}`);
+        } else if (result.errors) {
+          setErrors(result.errors);
+        }
       }
-    };
-
-    const result = await businessService.sendRequestBecomeBusiness(data);
-    if (result) {
-      if (result.success) {
-        toast.success("Gửi yêu cầu thành công.");
-      } else if (result.errors) {
-        setErrors(result.errors);
+      else {
+        toast.error("Không thể kết nối đến server.");
       }
+    }
+    catch (err) {
+      toast.error(`Đã có lỗi xảy ra: ${err}`);
+    }
+    finally {
+      dispatch(systemAction.disableLoading());
     }
   };
 

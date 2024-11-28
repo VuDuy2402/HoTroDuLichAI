@@ -19,9 +19,10 @@ namespace HoTroDuLichAI.API
         [EmailFormat]
         public string Email { get; set; } = string.Empty;
         [Required(ErrorMessage = "Số điện thoại không được để trống.")]
+        [PhoneNumber(CPINType.Vietnam_CCCD)]
         public string PhoneNumber { get; set; } = string.Empty;
         public string Avatar { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Avatar không được để trống.")]
+        // [Required(ErrorMessage = "Avatar không được để trống.")]
         public string FileId { get; set; } = string.Empty;
     }
 }

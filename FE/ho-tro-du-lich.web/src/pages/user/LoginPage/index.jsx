@@ -1,33 +1,29 @@
 import LoginForm from "./LoginForm";
-import styles from "./Login.module.scss";
+import { Row, Col, Container } from "react-bootstrap";
 import cauVangImg from "@/assets/img/cauvang.jpg";
+
 const LoginPage = () => {
   return (
-    <div
-      className={`login-page container-fluid position-relative p-0 m-0 ${styles.loginpage}`}
-    >
-      <div
-        className={`login-page__card rounded-2 d-flex overflow-hidden ${styles.loginpage__card}`}
-      >
-        <div className="p-5 w-50 d-flex align-items-center bg-success-subtle">
+    <Container fluid className="p-0 m-0 position-relative reset-margin-padding">
+      <Row style={{ height: "100vh", width: "100%", margin: 0, padding: 0 }}>
+        <Col xs={12} md={6} style={{
+          padding: "0",
+          margin: "0"
+        }}>
           <LoginForm />
-        </div>
-        <div
-          className="login-form__image w-50 h-100 d-flex justify-content-center overflow-hidden"
-          style={{ objectFit: "cover" }}
-        >
+        </Col>
+        <Col xs={12} md={6} style={{
+          padding: "0",
+          margin: "0"
+        }}>
           <img
             src={cauVangImg}
-            className="h-100"
-            style={{ transform: "transition(-50%,0)" }}
+            alt="Cau Vang"
+            className="w-100 h-100 object-cover"
           />
-        </div>
-      </div>
-      <div
-        className={`login-page__background w-100 h-100 ${styles.loginpage__background}`}
-        // style={{ backgroundImage: `url(${bgDanang})` }}
-      ></div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

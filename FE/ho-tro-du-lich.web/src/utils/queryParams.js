@@ -1,27 +1,31 @@
 // src/utils/queryParams.js
+
 export const getQueryParameters = () => {
   const params = new URLSearchParams(window.location.search);
   const result = {};
 
   for (let [key, value] of params.entries()) {
-    result[key.toLowerCase()] = value;
+    result[key.toLowerCase()] = value !== null && value !== undefined ? value : '';
   }
 
   return result;
 };
 
 export const getEnumValue = (enumObj, value) => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
   if (!isNaN(parseInt(value))) {
     return parseInt(value);
   }
+
   const enumKey = Object.keys(enumObj).find(
     (key) => key.toLowerCase() === value.toLowerCase()
   );
 
   return enumKey ? enumObj[enumKey] : null;
 };
-
-
 
 export const toQueryString = (obj) => {
   if (!obj) {

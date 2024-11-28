@@ -24,7 +24,7 @@ namespace HoTroDuLichAI.API
 
             if (currentValue != comparisonValue)
             {
-                return new ValidationResult("Password and ConfirmPassword do not match.");
+                return new ValidationResult("Mật khẩu và xác nhận mật khẩu không khớp.");
             }
 
             return ValidationResult.Success;

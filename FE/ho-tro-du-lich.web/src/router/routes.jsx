@@ -14,6 +14,7 @@ import ItineraryDetailPage from "../pages/user/ItineraryDetailPage/ItineraryDeta
 import RequestCreatePlacePage from "../pages/user/RequestCreatePlace/RequestCreatePlace";
 import RegisterBusinessPage from "../pages/user/RegisterBusinessPage/RegisterBusinessPage";
 import { Role } from "../enum/permission";
+import AuthLayout from "../layouts/AuthLayout";
 
 export const routes = [
   {
@@ -38,7 +39,7 @@ export const routes = [
     checkAuth: false,
     roles: [],
     errorElement: <Navigate to="/error" />,
-    // layout: <MainLayout />,
+    layout: <MainLayout />,
   },
   {
     path: "/dangnhap",
@@ -46,6 +47,7 @@ export const routes = [
     checkAuth: false,
     roles: [],
     errorElement: <Navigate to="/error" />,
+    // layout: <AuthLayout />
   },
   {
     path: "/dangky",
@@ -53,6 +55,7 @@ export const routes = [
     checkAuth: false,
     roles: [],
     errorElement: <Navigate to="/error" />,
+    // layout: <AuthLayout />
   },
   {
     path: "/thongbao",
@@ -60,6 +63,7 @@ export const routes = [
     checkAuth: false,
     roles: [],
     errorElement: <Navigate to="/error" />,
+    layout: <AuthLayout />
   },
   {
     path: "/diadiem",

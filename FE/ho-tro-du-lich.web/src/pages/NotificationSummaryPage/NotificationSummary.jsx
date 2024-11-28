@@ -5,7 +5,6 @@ import { toast, ToastContainer } from "react-toastify";
 import Lottie from "lottie-react";
 import "react-toastify/dist/ReactToastify.css";
 import { Container } from "react-bootstrap";
-import "./notification.css";
 import {
   CNotificationType,
   CNotificationLevel,
@@ -92,11 +91,27 @@ const NotificationSummary = () => {
   return (
     <div
       className="auth-layout bg-white"
-      style={{ height: "100vh", minHeight: "fit-content" }}
+      style={{
+        height: "100vh",
+        minHeight: "fit-content",
+        background: 'url("../../assets/img//Background_1.jpg") no-repeat center center fixed',
+        backgroundSize: 'cover',
+      }}
     >
       <ToastContainer />
       {resultMessage ? (
-        <Container className="h-100">
+        <Container
+          className="h-100"
+          style={{
+            maxWidth: '580px',
+            margin: '50px auto',
+            padding: '20px',
+            boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px',
+            borderRadius: '8px',
+            backgroundColor: '#ffffff80',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
           <div className="d-flex flex-column h-100 justify-content-center align-items-center p-2">
             <div className="content-notify d-flex flex-column justify-content-center">
               <h4 className="text-center">
@@ -107,10 +122,7 @@ const NotificationSummary = () => {
             </div>
             <div className="content-animation h-50">
               {animationData && (
-                <Lottie
-                  animationData={animationData}
-                  style={{ height: "100%" }}
-                />
+                <Lottie animationData={animationData} style={{ height: "100%" }} />
               )}
             </div>
             <div>
@@ -128,6 +140,7 @@ const NotificationSummary = () => {
         </Container>
       ) : null}
     </div>
+
   );
 };
 

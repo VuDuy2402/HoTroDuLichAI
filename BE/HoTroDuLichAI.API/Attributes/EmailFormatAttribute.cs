@@ -9,7 +9,7 @@ namespace HoTroDuLichAI.API
     {
         if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
         {
-            return new ValidationResult("Email address is required.");
+            return new ValidationResult("Email không được để trống.");
         }
 
         string email = value.ToString() ?? string.Empty;
@@ -17,7 +17,7 @@ namespace HoTroDuLichAI.API
 
         if (!regex.IsMatch(email))
         {
-            return new ValidationResult("Invalid email address format.");
+            return new ValidationResult("Email không đúng định dạng.");
         }
 
         return ValidationResult.Success;

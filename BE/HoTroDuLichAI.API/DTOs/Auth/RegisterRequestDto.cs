@@ -5,16 +5,16 @@ namespace HoTroDuLichAI.API
 {
     public class RegisterRequestDto
     {
-        [Required(ErrorMessage = "{0} is required.")]
+        [Required(ErrorMessage = "Họ tên không được để trống.")]
         public string FullName { get; set; } = string.Empty;
-        [EmailAddress(ErrorMessage = "{0} is invalid email format.")]
+        [EmailFormat]
         public string Email { get; set; } = string.Empty;
-        [Required(ErrorMessage = "{0} is required.")]
+        [Required(ErrorMessage = "Mật khẩu không được để trống.")]
         [PasswordValidation(MinimumLength = 8, MaximumLength = 50)]
         public string Password { get; set; } = string.Empty;
-        [Required(ErrorMessage = "{0} is required.")]
+        [Required(ErrorMessage = "Xác nhận lại mật khẩu không được để trống.")]
         [PasswordValidation(MinimumLength = 8, MaximumLength = 50)]
-        [ComparePasswords(nameof(RegisterRequestDto.Password), ErrorMessage = "Password and ConfirmPassword do not match.")]
+        [ComparePasswords(nameof(RegisterRequestDto.Password), ErrorMessage = "Xác nhận mật khẩu không khớp.")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }
