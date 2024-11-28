@@ -1,196 +1,225 @@
-import { Controller, useForm } from "react-hook-form";
-import Input from "../../../common/components/Input/Input";
-import Select from "react-select";
+import { useState, useEffect } from "react";
+import { Form, Button } from "react-bootstrap";
 import MapCustom from "../../../common/components/MapCustom/MapCustom";
-import { useEffect, useState } from "react";
 import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGallery";
 import { itineraryService } from "../../../services/itineraryService";
-import {
-  CBusinessType,
-  PlaceTypeDescriptions,
-} from "../../../enum/businessTypeEnum";
+import { CBusinessType, PlaceTypeDescriptions } from "../../../enum/businessTypeEnum";
 import { businessService } from "../../../services/businessService";
 import { toast } from "react-toastify";
+import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ErrorField from "@/common/components/ErrorField/ErrorField";
+
+// Create options for business types
 const options = Object.keys(CBusinessType).map((key) => ({
   label: PlaceTypeDescriptions[CBusinessType[key]],
   value: CBusinessType[key],
 }));
+
 const RegisterBusinessPage = () => {
-  const {
-    register,
-    control,
-    handleSubmit,
-    formState: { errors },
-    setError,
-    clearErrors,
-  } = useForm();
   const [positionMap, setPositionMap] = useState();
   const [avtFilId, setAvtFileId] = useState();
   const [provinceList, setProvinceList] = useState([]);
+  const [errors, setErrors] = useState([]);
 
+  const [formData, setFormData] = useState({
+    businessName: '',
+    provinceId: null,
+    businessType: 0,
+    address: '',
+    contactPersonInfo: {
+      name: '',
+      email: '',
+      phoneNumber: ''
+    }
+  });
+
+  // Fetch provinces list
   const handleGetAllProvince = async () => {
     const result = await itineraryService.getAllProvince();
-    if (result) {
-      if (result.success) {
-        const listConvert = result.data.map((item) => ({
-          label: item.provinceName,
-          value: item.provinceId,
-        }));
-        setProvinceList(listConvert);
-      }
+    if (result && result.success) {
+      const listConvert = result.data.map((item) => ({
+        label: item.provinceName,
+        value: item.provinceId,
+      }));
+      setProvinceList(listConvert);
+    }
+    else if (result && result.errors) {
+      setErrors(result.errors);
     }
   };
+
   useEffect(() => {
     handleGetAllProvince();
   }, []);
-  console.log(errors);
 
-  const handleSubmitRegisterForm = async (data) => {
-    if (!positionMap) {
-      setError("map", { type: "custom", message: "Vui lòng chọn vị trí" });
-      return;
-    }
-    if (!avtFilId) {
-      setError("avatar", { type: "custom", message: "Vui lòng chọn avatar" });
-      return;
-    }
-    data.latitude = positionMap[0];
-    data.longitude = positionMap[1];
-    data.contactPersonInfo.fileId = avtFilId;
-    data.contactPersonInfo.avatar = "";
-    console.log(data);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleContactPersonChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      contactPersonInfo: {
+        ...prevData.contactPersonInfo,
+        [name]: value,
+      },
+    }));
+  };
+
+  const handleSubmitForm = async (e) => {
+    e.preventDefault();
+
+    const data = {
+      ...formData,
+      businessType: Number(formData.businessType),
+      latitude: positionMap ? positionMap[0] : 0,
+      longitude: positionMap ? positionMap[1] : 0,
+      contactPersonInfo: {
+        ...formData.contactPersonInfo,
+        fileId: avtFilId,
+        avatar: "",
+      }
+    };
+
     const result = await businessService.sendRequestBecomeBusiness(data);
     if (result) {
       if (result.success) {
         toast.success("Gửi yêu cầu thành công.");
-      } else {
-        toast.error("Xảy ra lỗi.");
+      } else if (result.errors) {
+        setErrors(result.errors);
       }
     }
   };
-  useEffect(() => {
-    if (avtFilId) {
-      clearErrors("avatar");
-    }
-    if (positionMap) {
-      clearErrors("map");
-    }
-  }, [avtFilId, positionMap]);
+
   return (
     <div className="request-business p-2 container">
       <h4>Đăng ký trở thành Doanh nghiệp</h4>
-      <form
-        className="form-register"
-        onSubmit={handleSubmit(handleSubmitRegisterForm)}
-      >
+      <Form onSubmit={handleSubmitForm}>
+        <FormErrorAlert errors={errors} />
+
         <h5>Thông tin doanh nghiệp</h5>
-        <Input
-          label={"Tên Doanh Nghiệp"}
-          register={register}
-          name={"businessName"}
-          validate={{ required: "Vui lòng điền tên doanh nghiệp" }}
-          errors={errors}
-        />
+
+        <Form.Group controlId="businessName">
+          <Form.Label>Tên Doanh Nghiệp</Form.Label>
+          <Form.Control
+            type="text"
+            name="businessName"
+            value={formData.businessName}
+            onChange={handleInputChange}
+          />
+          <ErrorField errorList={errors} field={"BusinessName_Error"} />
+        </Form.Group>
+
         <MapCustom
-          label={"Vị trí"}
+          label="Vị trí"
           pin={false}
           onChangePosition={(data) => setPositionMap(data)}
         />
-        {errors && errors["map"] && (
-          <p className="text-danger">{errors["map"].message}</p>
-        )}
-        <div className="my-2">
-          <label className="fw-bold">Tỉnh</label>
-          <Controller
+        <ErrorField errorList={errors} field={"Longitude_Error"} />
+        <ErrorField errorList={errors} field={"Latitude_Error"} />
+
+        <Form.Group controlId="provinceId" className="my-2">
+          <Form.Label>Tỉnh</Form.Label>
+          <Form.Select
             name="provinceId"
-            control={control}
-            defaultValue={null}
-            rules={{ required: "Vui lòng chọn tỉnh" }}
-            render={({ field }) => (
-              <Select
-                options={provinceList}
-                placeholder="Tỉnh"
-                styles={{ zIndex: "999" }}
-                onChange={(selectedOption) =>
-                  field.onChange(selectedOption ? selectedOption.value : "")
-                }
-              />
-            )}
-          />
-          {errors && errors["provinceId"] && (
-            <p className="text-danger">{errors["provinceId"].message}</p>
-          )}
-        </div>
-        <div>
-          <label className="fw-bold">Loại doanh nghiệp</label>
-          <Controller
+            value={formData.provinceId}
+            onChange={handleInputChange}
+          >
+            <option value="">Chọn tỉnh</option>
+            {provinceList.map((province) => (
+              <option key={province.value} value={province.value}>
+                {province.label}
+              </option>
+            ))}
+          </Form.Select>
+          <ErrorField errorList={errors} field="ProvinceId_Error" />
+        </Form.Group>
+
+        <Form.Group controlId="businessType">
+          <Form.Label>Loại doanh nghiệp</Form.Label>
+          <Form.Select
             name="businessType"
-            control={control}
-            defaultValue={null}
-            rules={{ required: "Vui lòng chọn loại doanh nghiệp" }}
-            render={({ field }) => (
-              <Select
-                options={options}
-                placeholder="Loại địa điểm"
-                onChange={(selectedOption) =>
-                  field.onChange(selectedOption ? selectedOption.value : "")
-                }
-              />
-            )}
+            value={formData.businessType}
+            onChange={handleInputChange}
+          >
+            <option value="">Chọn loại doanh nghiệp</option>
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Form.Select>
+          <ErrorField errorList={errors} field="BusinessType_Error" />
+        </Form.Group>
+
+        <Form.Group controlId="address">
+          <Form.Label>Địa chỉ</Form.Label>
+          <Form.Control
+            type="text"
+            name="address"
+            value={formData.address}
+            onChange={handleInputChange}
           />
-          {errors && errors["businessType"] && (
-            <p className="text-danger">{errors["businessType"].message}</p>
-          )}
-        </div>
-        <Input
-          label={"Địa chỉ"}
-          name={"address"}
-          register={register}
-          validate={{ required: "Vui lòng điền địa chỉ" }}
-          errors={errors}
-        />
-        <br></br>
+          <ErrorField errorList={errors} field="Address_Error" />
+        </Form.Group>
+
         <h5>Thông tin người liên hệ</h5>
-        <Input
-          label={"Tên người Liên hệ"}
-          register={register}
-          name={"contactPersonInfo.name"}
-          validate={{ required: "Vui lòng điền tên người liên hệ" }}
-          errors={errors}
-        />
-        <Input
-          label={"Email người Liên hệ"}
-          register={register}
-          name={"contactPersonInfo.email"}
-          type="email"
-          validate={{ required: "Vui lòng điền email người liên hệ" }}
-          errors={errors}
-        />
-        <Input
-          label={"Số điện thoại liên hệ"}
-          register={register}
-          name={"contactPersonInfo.phoneNumber"}
-          validate={{ required: "Vui lòng điền số điện thoại người liên hệ" }}
-          errors={errors}
-        />
+
+        <Form.Group controlId="contactPersonName">
+          <Form.Label>Tên người Liên hệ</Form.Label>
+          <Form.Control
+            type="text"
+            name="name"
+            value={formData.contactPersonInfo.name}
+            onChange={handleContactPersonChange}
+          />
+          <ErrorField errorList={errors} field="ContactPersonInfo.Name_Error" />
+        </Form.Group>
+
+        <Form.Group controlId="contactPersonEmail">
+          <Form.Label>Email người Liên hệ</Form.Label>
+          <Form.Control
+            type="email"
+            name="email"
+            value={formData.contactPersonInfo.email}
+            onChange={handleContactPersonChange}
+          />
+          <ErrorField errorList={errors} field="ContactPersonInfo.Email_Error" />
+        </Form.Group>
+
+        <Form.Group controlId="contactPersonPhone">
+          <Form.Label>Số điện thoại liên hệ</Form.Label>
+          <Form.Control
+            type="text"
+            name="phoneNumber"
+            value={formData.contactPersonInfo.phoneNumber}
+            onChange={handleContactPersonChange}
+          />
+          <ErrorField errorList={errors} field="ContactPersonInfo.PhoneNumber_Error" />
+        </Form.Group>
+
         <ImageUploadGallery
-          label={"Ảnh đại diện người liên hệ"}
+          label="Ảnh đại diện người liên hệ"
           onImagesUploaded={(data) => setAvtFileId(data)}
           onImagesRemove={() => setAvtFileId(null)}
           multiple={false}
         />
-        {errors && errors["avatar"] && (
-          <p className="text-danger">{errors["avatar"].message}</p>
-        )}
-        <div className="d-flex justify-content-end gap-2">
-          <button type="button" className="btn btn-light">
+        <ErrorField errorList={errors} field="ContactPersonInfo.FileId_Error" />
+
+        <div className="d-flex justify-content-end gap-2 mt-3">
+          <Button variant="light" type="button">
             Huỷ
-          </button>
-          <button type="submit" className="btn btn-success">
+          </Button>
+          <Button variant="success" type="submit">
             Gửi Yêu Cầu
-          </button>
+          </Button>
         </div>
-      </form>
+      </Form>
     </div>
   );
 };

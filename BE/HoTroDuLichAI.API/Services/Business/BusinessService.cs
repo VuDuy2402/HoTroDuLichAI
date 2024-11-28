@@ -242,6 +242,43 @@ namespace HoTroDuLichAI.API
             {
                 return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
             }
+            if (requestDto.Longitude == 0 && requestDto.Latitude == 0)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Kinh độ không được để trống.",
+                    ErrorScope = CErrorScope.Field,
+                    Field = $"{nameof(requestDto.Longitude)}_Error"
+                });
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Vĩ độ không được để trống.",
+                    ErrorScope = CErrorScope.Field,
+                    Field = $"{nameof(requestDto.Latitude)}_Error"
+                });
+            }
+            if (!requestDto.ProvinceId.HasValue || (requestDto.ProvinceId.HasValue && requestDto.ProvinceId.Value == Guid.Empty))
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = "Tỉnh không được để trống.",
+                    ErrorScope = CErrorScope.Field,
+                    Field = $"{nameof(requestDto.ProvinceId)}_Error"
+                });
+            }
+            if (requestDto.BusinessType == CBusinessServiceType.None)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = "Loại doanh nghiệp không được để trống.",
+                    ErrorScope = CErrorScope.Field,
+                    Field = $"{nameof(requestDto.BusinessType)}_Error"
+                });
+            }
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
             try
             {
                 var currentUser = RuntimeContext.CurrentUser;
@@ -285,7 +322,7 @@ namespace HoTroDuLichAI.API
                     BusinessServiceType = requestDto.BusinessType,
                     Latitude = requestDto.Latitude,
                     Longitude = requestDto.Longitude,
-                    ProvinceId = requestDto.ProvinceId,
+                    ProvinceId = requestDto.ProvinceId.HasValue ? requestDto.ProvinceId.Value : Guid.Empty,
                     UserId = currentUser.Id,
                     BusinessContactPerson = businessContactProperty.ToJson()
                 };
