@@ -32,6 +32,20 @@ export const placeService = {
     }
   },
 
+  getWithPagingRequestNewPlaceAdmin: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        placeApi.Place_Admin_GetRequestNewPlaceWithPaging,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
   getWithPagingMy: async (data) => {
     const token = localStorageService.getToken();
     if (token) {

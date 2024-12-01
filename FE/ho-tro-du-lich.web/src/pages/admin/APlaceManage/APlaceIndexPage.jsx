@@ -1,23 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { Button, Form, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Button, Form, Offcanvas, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { placeService } from "../../../services/placeService";
-import { FaInfoCircle, FaSearch } from "react-icons/fa";
+import { FaInfoCircle, FaSearch, FaFilter } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import AUpdatePlacePage from "./AUpdatePlacePage";
 import ACreatePlacePage from "./ACreatePlacePage";
+import APlaceDetailPage from "./APlaceDetailPage";
 import ConfirmModalPage from "../../commonpage/ModalPage/ConfirmModalPage";
 import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
-import { PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";
-import {
-  ApprovalTypeDescriptions,
-  CApprovalType,
-} from "../../../enum/approvalTypeEnum";
-import APlaceDetailPage from "./APlaceDetailPage";
+import { CPlaceType, PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";
+import { ApprovalTypeDescriptions, CApprovalType } from "../../../enum/approvalTypeEnum";
 
 const APlaceIndexPlace = () => {
   const initColumn = [
@@ -44,15 +41,23 @@ const APlaceIndexPlace = () => {
     total: 1,
     pageSize: 10,
   });
+  const [showFilterSidebar, setShowFilterSidebar] = useState(false);
+  const [filter, setFilter] = useState({
+    approvalType: null,
+    placeType: null,
+    fromDate: null,
+    toDate: null,
+  });
 
-  const fetchData = async (paging = 1, query = "", sort = {}) => {
+  // Fetch data
+  const fetchData = useCallback(async (paging = 1, query = "", filter = {}, sort = {}) => {
     dispatch(systemAction.enableLoading());
     try {
       const result = await placeService.getWithPagingAdmin({
         pageNumber: paging,
         pageSize: 10,
         searchQuery: query,
-        filterProperty: {},
+        filterProperty: filter,
         sortProperty: sort,
       });
 
@@ -73,16 +78,14 @@ const APlaceIndexPlace = () => {
     } finally {
       dispatch(systemAction.disableLoading());
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleDeletePlace = (placeId) => {
-    setDataPlaces((prevPlaces) =>
-      prevPlaces.filter((place) => place.placeId !== placeId)
-    );
+    setDataPlaces((prevPlaces) => prevPlaces.filter((place) => place.placeId !== placeId));
   };
 
   const handleOpenUpdateModal = (placeId) => {
@@ -110,11 +113,21 @@ const APlaceIndexPlace = () => {
   };
 
   const handleSubmitSearch = (data) => {
-    fetchData(1, data.searchQuery);
+    fetchData(1, data.searchQuery, filter);
   };
 
   const handleSort = (key, direction) => {
-    fetchData(1, "", { key, direction });
+    fetchData(1, "", filter, { key, direction });
+  };
+
+  const handleApplyFilter = (filter) => {
+    setFilter(filter);
+    fetchData(1, "", filter);
+  };
+
+  const handleClearFilter = () => {
+    setFilter({});
+    setShowFilterSidebar(false);
   };
 
   return (
@@ -128,10 +141,7 @@ const APlaceIndexPlace = () => {
         >
           Tạo Địa Điểm
         </Button>
-        <Form
-          className="d-flex gap-1"
-          onSubmit={handleSubmit(handleSubmitSearch)}
-        >
+        <Form className="d-flex gap-1" onSubmit={handleSubmit(handleSubmitSearch)}>
           <Form.Control
             type="text"
             placeholder="Tìm kiếm địa điểm"
@@ -139,6 +149,13 @@ const APlaceIndexPlace = () => {
           />
           <Button type="submit" variant="success">
             <FaSearch />
+          </Button>
+          <Button
+            variant="outline-secondary"
+            onClick={() => setShowFilterSidebar(true)}
+            className="ms-2"
+          >
+            <FaFilter />
           </Button>
         </Form>
       </div>
@@ -175,7 +192,6 @@ const APlaceIndexPlace = () => {
         onPlaceCreated={handlePlaceCreated}
       />
 
-      {/* Place Detail Modal */}
       {selectedPlaceId && (
         <APlaceDetailPage
           show={showDetailModal}
@@ -183,18 +199,19 @@ const APlaceIndexPlace = () => {
           onClose={handleCloseDetailModal}
         />
       )}
+
+      <FilterSidebar
+        show={showFilterSidebar}
+        onClose={() => setShowFilterSidebar(false)}
+        onApplyFilters={handleApplyFilter}
+        onClearFilters={handleClearFilter}
+      />
     </div>
   );
 };
 
 const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
   const [showModal, setShowConfirmDeleteModal] = useState(false);
-  const [errors, setErrors] = useState(false);
-
-  const getInitials = (name) => {
-    const names = name.split(" ");
-    return names[0].charAt(0).toUpperCase();
-  };
 
   const handleDelete = async (placeId) => {
     const result = await placeService.deletePlace(placeId);
@@ -202,9 +219,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
       toast.success(result.data.message);
       onDelete(placeId);
     } else {
-      if (result.errors) {
-        setErrors(result.errors);
-      }
+      toast.error(result.errors || "Error deleting place");
     }
     setShowConfirmDeleteModal(false);
   };
@@ -247,21 +262,12 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
       return (
         <OverlayTrigger
           placement="top"
-          overlay={
-            <Tooltip id="tooltip-owner">
-              {`${owner.fullName} (${owner.email})`}
-            </Tooltip>
-          }
+          overlay={<Tooltip id="tooltip-owner">{`${owner.fullName} (${owner.email})`}</Tooltip>}
         >
           <img
             src={owner.avatar}
             alt={owner.fullName}
-            style={{
-              width: "30px",
-              height: "30px",
-              borderRadius: "50%",
-              cursor: "pointer",
-            }}
+            style={{ width: "30px", height: "30px", borderRadius: "50%" }}
           />
         </OverlayTrigger>
       );
@@ -269,11 +275,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
       return (
         <OverlayTrigger
           placement="top"
-          overlay={
-            <Tooltip id="tooltip-owner">
-              {`${owner.fullName} (${owner.email})`}
-            </Tooltip>
-          }
+          overlay={<Tooltip id="tooltip-owner">{`${owner.fullName} (${owner.email})`}</Tooltip>}
         >
           <div
             style={{
@@ -289,7 +291,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
               cursor: "pointer",
             }}
           >
-            {getInitials(owner.fullName)}
+            {owner.fullName.charAt(0).toUpperCase()}
           </div>
         </OverlayTrigger>
       );
@@ -320,7 +322,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
                 fontWeight: "bold",
               }}
             >
-              {getInitials(data.name)}
+              {data.name.charAt(0).toUpperCase()}
             </div>
           )}
         </td>
@@ -334,7 +336,6 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
           <Button
             variant="outline-info"
             size="sm"
-            className="ms"
             onClick={() => onOpenDetail(data.placeId)}
             title="Xem chi tiết"
           >
@@ -343,18 +344,16 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
           <Button
             variant="outline-warning"
             size="sm"
-            className="ms-2"
-            title="Cập nhật"
             onClick={() => onEdit(data.placeId)}
+            title="Cập nhật"
           >
             <i className="bi bi-pencil-fill"></i>
           </Button>
           <Button
             variant="outline-danger"
             size="sm"
-            title="Xóa"
             onClick={() => setShowConfirmDeleteModal(true)}
-            className="ms-2"
+            title="Xóa"
           >
             <i className="bi bi-trash-fill"></i>
           </Button>
@@ -366,6 +365,118 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
         onCancel={() => setShowConfirmDeleteModal(false)}
       />
     </>
+  );
+};
+
+const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
+  const [filters, setFilters] = useState({
+    approvalType: null,
+    placeType: null,
+    fromDate: null,
+    toDate: null,
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [name]: value || null,
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    onApplyFilters(filters);
+    onClose();
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      approvalType: null,
+      placeType: null,
+      fromDate: null,
+      toDate: null,
+    });
+    onClearFilters();
+    onClose();
+  };
+
+  return (
+    <Offcanvas show={show} onHide={onClose} placement="end">
+      <Offcanvas.Header closeButton>
+        <Offcanvas.Title>Bộ lọc</Offcanvas.Title>
+      </Offcanvas.Header>
+      <Offcanvas.Body>
+        <Form>
+          <Form.Group className="mb-3" controlId="approvalType">
+            <Form.Control
+              as="select"
+              name="approvalType"
+              value={filters.approvalType || ""}
+              onChange={handleChange}
+            >
+              <option value="">Chọn trạng thái duyệt</option>
+              {Object.keys(CApprovalType).map((key) => {
+                const value = CApprovalType[key];
+                return (
+                  <option key={value} value={value}>
+                    {ApprovalTypeDescriptions[value]}
+                  </option>
+                );
+              })}
+            </Form.Control>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="placeType">
+            <Form.Label>Loại địa điểm</Form.Label>
+            <Form.Control
+              as="select"
+              name="placeType"
+              value={filters.placeType || ""}
+              onChange={handleChange}
+            >
+              <option value="">Chọn loại địa điểm</option>
+              {Object.keys(CPlaceType).map((key) => {
+                const value = CPlaceType[key];
+                return (
+                  <option key={value} value={value}>
+                    {PlaceTypeDescriptions[value]}
+                  </option>
+                );
+              })}
+            </Form.Control>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="fromDate">
+            <Form.Label>Từ ngày</Form.Label>
+            <Form.Control
+              type="date"
+              name="fromDate"
+              value={filters.fromDate || ""}
+              onChange={handleChange}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="toDate">
+            <Form.Label>Đến ngày</Form.Label>
+            <Form.Control
+              type="date"
+              name="toDate"
+              value={filters.toDate || ""}
+              onChange={handleChange}
+            />
+          </Form.Group>
+
+          <div className="d-flex justify-content-between">
+            <Button variant="primary" onClick={handleApplyFilters}>
+              Áp dụng
+            </Button>
+            <Button variant="outline-danger" onClick={handleClearFilters}>
+              Xóa bộ lọc
+            </Button>
+          </div>
+        </Form>
+      </Offcanvas.Body>
+    </Offcanvas>
   );
 };
 

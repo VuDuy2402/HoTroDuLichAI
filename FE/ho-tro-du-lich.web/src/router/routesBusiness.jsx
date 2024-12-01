@@ -10,24 +10,24 @@ import BArticlePage from "../pages/business/BArticlePage/BArticlePage";
 const menusideItemBusiness = [
   {
     label: "Dashboard",
-    url: "/business/dashboard",
+    url: "/doanhnghiep/dashboard",
     icon: <IoStatsChartOutline color="red" />,
   },
   {
     label: "Địa điểm",
-    url: "/business/place",
-    icon: <IoLocationOutline />,
+    url: "/doanhnghiep/diadiem",
+    icon: <IoLocationOutline color="" />,
   },
   {
     label: "Tin tức",
-    url: "/business/article",
-    icon: <LuNewspaper />,
+    url: "/doanhnghiep/tintuc",
+    icon: <LuNewspaper color="" />,
   },
 ];
 
 export const routesBusiness = [
   {
-    path: "/business",
+    path: "/doanhnghiep",
     component: <BHomePage />,
     checkAuth: true,
     roles: [Role.Business, Role.Admin],
@@ -35,7 +35,7 @@ export const routesBusiness = [
     layout: <MenuSideLayout items={menusideItemBusiness} />,
   },
   {
-    path: "/business/dashboard",
+    path: "/doanhnghiep/dashboard",
     component: <BDashboardPage />,
     checkAuth: true,
     roles: [Role.Business, Role.Admin],
@@ -43,7 +43,7 @@ export const routesBusiness = [
     layout: <MenuSideLayout items={menusideItemBusiness} />,
   },
   {
-    path: "/business/place",
+    path: "/doanhnghiep/diadiem",
     component: <BPlacePage />,
     checkAuth: true,
     roles: [Role.Business, Role.Admin],
@@ -51,7 +51,7 @@ export const routesBusiness = [
     layout: <MenuSideLayout items={menusideItemBusiness} />,
   },
   {
-    path: "/business/article",
+    path: "/doanhnghiep/tintuc",
     component: <BArticlePage />,
     checkAuth: true,
     roles: [Role.Business, Role.Admin],

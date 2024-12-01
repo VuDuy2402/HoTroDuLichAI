@@ -349,6 +349,7 @@ namespace HoTroDuLichAI.API
                         notifications.Add(notificationEntity);
                     }
                     _dbContext.Notifications.AddRange(entities: notifications);
+                    await _dbContext.SaveChangesAsync();
                 }
                 // email to admin
                 await _emailService.SendEmailAsync(email: RuntimeContext.AppSettings.AdminSetting.Email,
@@ -362,12 +363,12 @@ namespace HoTroDuLichAI.API
                         BusinessType = businessEntity.BusinessServiceType.ToDescription(),
                         Latitude = businessEntity.Latitude,
                         Longitude = businessEntity.Longitude,
-                        ContactPersonAvatar = businessContactProperty.ImageProperty.Url,
+                        ContactPersonAvatar = businessContactProperty.ImageProperty?.Url ?? string.Empty,
                         ContactPersonEmail = businessContactProperty.Email,
                         ContactPersonName = businessContactProperty.Name,
                         ContactPersonPhoneNumber = businessContactProperty.PhoneNumber,
                         ProvinceName = (await _dbContext.Provinces.FindAsync(requestDto.ProvinceId))?.Name ?? string.Empty,
-                        RedirectUrl = $"{RuntimeContext.AppSettings.ClientApp.ClientEndpoint}/admin/business/confirmrequestnewbusiness/?businessId={businessEntity.Id}"
+                        RedirectUrl = $"{RuntimeContext.AppSettings.ClientApp.ClientEndpoint}quantri/doanhnghiep/xacnhan/?businessId={businessEntity.Id}"
                     },
                     emailProviderType: CEmailProviderType.Gmail);
 
@@ -440,7 +441,7 @@ namespace HoTroDuLichAI.API
                         response.StatusCode = StatusCodes.Status404NotFound;
                         return response;
                     }
-                    var userEntity = await _userManager.FindByIdAsync(businessEntity.Id.ToString());
+                    var userEntity = await _userManager.FindByIdAsync(businessEntity.UserId.ToString());
                     if (userEntity == null)
                     {
                         errors.Add(new ErrorDetail()
@@ -555,9 +556,9 @@ namespace HoTroDuLichAI.API
 
 
         #region get business with paging
-        public async Task<ApiResponse<BasePagedResult<BusinessDetailResponseDto>>> GetWithPagingAsync(BusinessPagingAndFilterParams param, ModelStateDictionary? modelState = null)
+        public async Task<ApiResponse<BasePagedResult<BusinessMoreInfoResponseDto>>> GetWithPagingAsync(BusinessPagingAndFilterParams param, ModelStateDictionary? modelState = null)
         {
-            ApiResponse<BasePagedResult<BusinessDetailResponseDto>>? response = new ApiResponse<BasePagedResult<BusinessDetailResponseDto>>();
+            ApiResponse<BasePagedResult<BusinessMoreInfoResponseDto>>? response = new ApiResponse<BasePagedResult<BusinessMoreInfoResponseDto>>();
             var errors = ErrorHelper.GetModelStateError(modelState: modelState);
             if (param == null)
             {
@@ -577,16 +578,17 @@ namespace HoTroDuLichAI.API
             }
             try
             {
-                IQueryable<BusinessEntity> collection = _dbContext.Businesses
-                                                        .Include(b => b.User);
                 var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var roles = await _userManager.GetRolesAsync(user: currentUser);
+                IQueryable<BusinessEntity> collection = _dbContext.Businesses
+                    .Include(b => b.User)
+                    .Include(b => b.Province).OrderByDescending(b => b.CreatedDate);
                 if (param.IsAdmin)
                 {
-                    if (currentUser == null)
-                    {
-                        return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
-                    }
-                    var roles = await _userManager.GetRolesAsync(user: currentUser);
                     if (!roles.Contains(CRoleType.Admin.ToString()))
                     {
                         errors.Add(new ErrorDetail()
@@ -600,23 +602,48 @@ namespace HoTroDuLichAI.API
                         return response;
                     }
                 }
-                if (param.IsMy)
+                else if (param.IsMy)
                 {
-                    if (currentUser == null)
-                    {
-                        return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
-                    }
                     collection = collection.Where(c => c.UserId == currentUser.Id);
                 }
+                else if (param.IsRequest)
+                {
+                    collection = collection.Where(c => c.Appoved != CApprovalType.Accepted).OrderByDescending(s => s.Appoved);
+                }
+                else
+                {
+                    collection = collection.Where(c => c.Appoved == CApprovalType.Accepted);
+                }
+
                 if (!string.IsNullOrEmpty(param.SearchQuery))
                 {
                     collection = collection.Where(b => (
                         b.BusinessName + " " +
-                        b.Address + " " +
-                        b.Service + " " +
-                        b.BusinessContactPerson
+                        b.Address
                     ).ToLower().Contains(param.SearchQuery.ToLower()));
                 }
+
+                if (param.FilterProperty != null)
+                {
+                    var filter = param.FilterProperty;
+                    if (filter.ApprovalType.HasValue)
+                    {
+                        collection = collection.Where(c => c.Appoved == filter.ApprovalType.Value);
+                    }
+                    if (filter.BusinessServiceType.HasValue)
+                    {
+                        collection = collection.Where(c => c.BusinessServiceType == filter.BusinessServiceType.Value);
+                    }
+                    if (filter.FromDate.HasValue)
+                    {
+                        collection = collection.Where(c => c.CreatedDate >= filter.FromDate.Value);
+                    }
+                    if (filter.ToDate.HasValue)
+                    {
+                        collection = collection.Where(c => c.CreatedDate <= filter.ToDate.Value);
+                    }
+                }
+
                 if (param.SortProperty != null)
                 {
                     var sorter = param.SortProperty;
@@ -626,17 +653,43 @@ namespace HoTroDuLichAI.API
                         {
                             collection = sorter.IsASC ? collection.OrderBy(pl => pl.BusinessName) : collection.OrderByDescending(pl => pl.BusinessName);
                         }
+                        else if (sorter.KeyName.Equals(nameof(BusinessEntity.CreatedDate), StringComparison.OrdinalIgnoreCase))
+                        {
+                            collection = sorter.IsASC ? collection.OrderBy(pl => pl.CreatedDate) : collection.OrderByDescending(pl => pl.CreatedDate);
+                        }
+                        else if (sorter.KeyName.Equals(nameof(BusinessEntity.Appoved), StringComparison.OrdinalIgnoreCase))
+                        {
+                            collection = sorter.IsASC ? collection.OrderBy(pl => pl.Appoved) : collection.OrderByDescending(pl => pl.Appoved);
+                        }
+                        else if (sorter.KeyName.Equals(nameof(BusinessEntity.BusinessServiceType), StringComparison.OrdinalIgnoreCase))
+                        {
+                            collection = sorter.IsASC ? collection.OrderBy(pl => pl.BusinessServiceType) : collection.OrderByDescending(pl => pl.BusinessServiceType);
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"{sorter.KeyName} not support sort.");
+                        }
                     }
                 }
                 var pagedList = await PagedList<BusinessEntity>.ToPagedListAsync(
                     source: collection, pageNumber: param.PageNumber, pageSize: param.PageSize);
-                var selected = pagedList.Select(b => new BusinessDetailResponseDto
+                var selected = pagedList.Select(b => new BusinessMoreInfoResponseDto
                 {
                     BusinessName = b.BusinessName,
                     Address = b.Address,
                     Appoved = b.Appoved,
-                    // IsNew = b.IsNew,
-                    BusinessContactProperty = b.BusinessContactPerson.FromJson<BusinessContactProperty>(),
+                    BusinessType = b.BusinessServiceType,
+                    Latitude = b.Latitude,
+                    Longitude = b.Longitude,
+                    ProvinceId = b.ProvinceId,
+                    ProvinceName = b.Province.Name,
+                    BusinessContactProperty = new BusinessContactPersonInfoResponseDto()
+                    {
+                        Avatar = b.BusinessContactProperty.ImageProperty.Url,
+                        Email = b.BusinessContactProperty.Email,
+                        Name = b.BusinessContactProperty.Name,
+                        PhoneNumber = b.BusinessContactProperty.PhoneNumber
+                    },
                     OwnerProperty = new OwnerProperty()
                     {
                         Avatar = b.User.Avatar,
@@ -645,7 +698,7 @@ namespace HoTroDuLichAI.API
                         UserId = b.UserId
                     }
                 }).ToList();
-                var data = new BasePagedResult<BusinessDetailResponseDto>()
+                var data = new BasePagedResult<BusinessMoreInfoResponseDto>()
                 {
                     CurrentPage = pagedList.CurrentPage,
                     Items = selected,
@@ -675,47 +728,37 @@ namespace HoTroDuLichAI.API
             var response = new ApiResponse<BusinessMoreInfoResponseDto>();
             try
             {
-
-                var BusinessAnalyticEntities = await _dbContext.BusinessAnalytics.Where(b => b.BusinessId == businessId)
-                                                                        .Select(b => new
-                                                                        {
-                                                                            Id = b.Id,
-                                                                            TotalView = b.TotalView,
-                                                                            TotalContact = b.TotalContact,
-                                                                            LastViewedDate = b.LastViewedDate,
-                                                                            BusinessId = b.BusinessId,
-                                                                        }).ToListAsync();
-
-                var businessEntity = await _dbContext.Businesses
-                    .Include(b => b.User)
-                    .Include(b => b.ItineraryDetails)
-                    .Where(b => b.Id == businessId)
-                    .Select(b => new
-                    {
-                        Id = b.Id,
-                        Address = b.Address,
-                        BusinessName = b.BusinessName,
-                        Service = b.Service,
-                        Appoved = b.Appoved,
-                        // IsNew = b.IsNew,
-                        OwnerProperty = new OwnerProperty()
-                        {
-                            Avatar = b.User.Avatar,
-                            Email = b.User.Email ?? string.Empty,
-                            FullName = b.User.FullName,
-                            UserId = b.UserId
-                        },
-                        TotalUseItinerary = b.ItineraryDetails.Count,
-                        TotalView = BusinessAnalyticEntities.Sum(b => b.TotalView),
-                        TotalContact = BusinessAnalyticEntities.Sum(b => b.TotalContact),
-                        LastViewedDate = BusinessAnalyticEntities.OrderByDescending(b => b.LastViewedDate).First(),
-                    }).FirstOrDefaultAsync();
+                var businessEntity = await _dbContext.Businesses.Include(u => u.User)
+                    .Where(b => b.Id == businessId).FirstOrDefaultAsync();
                 if (businessEntity == null)
                 {
-                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                    return await ResponseHelper.NotFoundErrorAsync(errors :errors, response: response);
                 }
-                var data = businessEntity.Adapt<BusinessMoreInfoResponseDto>();
-                data.BusinessServiceProperty = businessEntity.Service.FromJson<BusinessServiceProperty>();
+                var data = new BusinessMoreInfoResponseDto()
+                {
+                    Address = businessEntity.Address,
+                    Appoved = businessEntity.Appoved,
+                    BusinessName = businessEntity.BusinessName,
+                    Latitude = businessEntity.Latitude,
+                    Longitude = businessEntity.Longitude,
+                    OwnerProperty = new OwnerProperty()
+                    {
+                        Avatar = businessEntity.User.Avatar,
+                        Email = businessEntity.User.Email ?? string.Empty,
+                        FullName = businessEntity.User.FullName,
+                        UserId = businessEntity.UserId
+                    },
+                    BusinessContactProperty = new BusinessContactPersonInfoResponseDto()
+                    {
+                        Avatar = businessEntity.BusinessContactProperty.ImageProperty.Url,
+                        Email = businessEntity.BusinessContactProperty.Email,
+                        Name = businessEntity.BusinessContactProperty.Name,
+                        PhoneNumber = businessEntity.BusinessContactProperty.PhoneNumber
+                    },
+                    ProvinceId = businessEntity.ProvinceId,
+                    ProvinceName = (await _dbContext.Provinces.FindAsync(businessEntity.ProvinceId))?.Name ?? string.Empty,
+                    Id = businessEntity.Id
+                };
                 response.Result.Success = true;
                 response.Result.Data = data;
                 response.StatusCode = StatusCodes.Status200OK;

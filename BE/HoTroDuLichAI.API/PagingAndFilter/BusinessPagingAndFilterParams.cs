@@ -9,7 +9,8 @@ namespace HoTroDuLichAI.API
         public bool IsAdmin { get; set; }
         [JsonIgnore]
         public bool IsMy { get; set; }
-        public bool IsNew { get; set; }
+        [JsonIgnore]
+        public bool IsRequest { get; set; }
         public BusinessFilterProperty FilterProperty { get; set; } = null!;
         public SortProperty SortProperty { get; set; } = null!;
     }

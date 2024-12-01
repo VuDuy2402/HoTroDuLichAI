@@ -4,7 +4,8 @@ namespace HoTroDuLichAI.API
 {
     public interface IBusinessService
     {
-        Task<ApiResponse<BasePagedResult<BusinessDetailResponseDto>>> GetWithPagingAsync(BusinessPagingAndFilterParams param, ModelStateDictionary? modelState = null);
+        Task<ApiResponse<BasePagedResult<BusinessMoreInfoResponseDto>>> GetWithPagingAsync(BusinessPagingAndFilterParams param,
+            ModelStateDictionary? modelState = null);
         Task<ApiResponse<BusinessMoreInfoResponseDto>> GetBusinessDetailByIdAsync(Guid businessId);
         Task<ApiResponse<BusinessDetailResponseDto>> CreateBusinessAsync(CreateBusinessRequestDto requestDto, ModelStateDictionary? modelState = null);
         Task<ApiResponse<ResultMessage>> UpdateBusinessAsync(UpdateBusinessRequestDto requestDto,

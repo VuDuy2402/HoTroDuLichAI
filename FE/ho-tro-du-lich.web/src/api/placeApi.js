@@ -3,6 +3,7 @@ export const placeApi = {
   Place_GetNewPlace: "api/v1/admin/place/newplace/paging",
   // admin
   Place_Admin_GetWithPaging: "api/v1/admin/place/manage/paging",
+  Place_Admin_GetRequestNewPlaceWithPaging: "api/v1/admin/place/manage/requestnewplace/paging",
   Place_Admin_GetPlaceById: "api/v1/admin/place/manage",
 
   Place_Admin_CreatePlace: "api/v1/admin/place/manage",

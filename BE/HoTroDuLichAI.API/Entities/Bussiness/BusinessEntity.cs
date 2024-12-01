@@ -33,6 +33,9 @@ namespace HoTroDuLichAI.API
         public float Latitude { get; set; }
         [Column("TinhId")]
         public Guid ProvinceId { get; set; }
+        [ForeignKey("ProvinceId")]
+        [InverseProperty("Businesses")]
+        public virtual ProvinceEntity Province { get; set; } = null!;
         [Column("ThongTinNguoiLienHeDoanhNghiep")]
         public string BusinessContactPerson { get; set; } = string.Empty;
         [NotMapped]

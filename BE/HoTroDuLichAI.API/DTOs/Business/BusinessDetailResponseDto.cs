@@ -8,10 +8,12 @@ namespace HoTroDuLichAI.API
         public float Longitude { get; set; }
         public float Latitude { get; set; }
         public Guid ProvinceId { get; set; }
+        public string ProvinceName { get; set; } = string.Empty;
+        public CBusinessServiceType BusinessType { get; set; }
         public CApprovalType Appoved { get; set; }
         // public bool IsNew { get; set; }
         public BusinessServiceProperty BusinessServiceProperty { get; set; } = new BusinessServiceProperty();
-        public BusinessContactProperty BusinessContactProperty { get; set; } = null!;
+        public BusinessContactPersonInfoResponseDto BusinessContactProperty { get; set; } = null!;
         public OwnerProperty OwnerProperty { get; set; } = null!;
     }
 
@@ -20,7 +22,5 @@ namespace HoTroDuLichAI.API
         public int TotalView { get; set; } = 0;
         public int TotalContact { get; set; } = 0;
         public DateTimeOffset? LastViewedDate { get; set; }
-
-
     }
 }

@@ -24,4 +24,6 @@ export const businessApi = {
   //request send
   Business_SendRequest_BecomeBusiness:
     "/api/v1/admin/business/becometobusiness/request",
+  Business_SendRequest_ConfirmRegisterNewBusiness:
+    "/api/v1/admin/business/becometobusiness/approve",
 };

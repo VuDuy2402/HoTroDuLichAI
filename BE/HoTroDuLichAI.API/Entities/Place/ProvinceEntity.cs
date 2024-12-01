@@ -25,5 +25,7 @@ namespace HoTroDuLichAI.API
         public string PhoneCode { get; set; } = string.Empty;
         [InverseProperty("Province")]
         public ICollection<ItineraryEntity> Itineraries { get; set; } = new List<ItineraryEntity>();
+        [InverseProperty("Province")]
+        public virtual ICollection<BusinessEntity> Businesses { get; set; } = new List<BusinessEntity>();
     }
 }

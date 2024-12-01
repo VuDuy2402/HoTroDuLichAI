@@ -10,6 +10,7 @@ import { localStorageService } from "@/services/localstorageService";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
 import PasswordStrengthIndicator from "../../../common/components/Password/PasswordStrengthIndicator";
+import { FaSignInAlt, FaUserPlus } from "react-icons/fa";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -72,11 +73,11 @@ const LoginForm = () => {
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <div className="login-form d-flex flex-column gap-2 w-100">
-        <div className="login-form__header d-flex gap-1 justify-content-center">
+      <div className="d-flex flex-column gap-2 w-100">
+        <div className="d-flex gap-1 justify-content-center">
           <h4 className="rounded-0 fw-bold mb-3">Đăng nhập</h4>
         </div>
-        <div className="login-form__body">
+        <div>
           <Form onSubmit={handleSubmitForm}>
             <FormErrorAlert errors={errorList} />
 
@@ -112,6 +113,7 @@ const LoginForm = () => {
             </Form.Group>
 
             <Button type="submit" variant="success" className="fw-bold w-100 mt-4">
+              <FaSignInAlt className="me-2" />
               Đăng nhập
             </Button>
           </Form>
@@ -121,6 +123,7 @@ const LoginForm = () => {
             className="w-100 mt-2 text-decoration-none"
             onClick={() => navigate("/dangky")}
           >
+            <FaUserPlus className="me-2" />
             Đăng ký ngay
           </Button>
 

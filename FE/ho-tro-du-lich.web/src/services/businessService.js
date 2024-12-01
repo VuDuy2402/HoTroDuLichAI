@@ -107,6 +107,7 @@ export const businessService = {
     }
   },
 
+  // become to a business
   sendRequestBecomeBusiness: async (data) => {
     const token = localStorageService.getToken();
     if (token) {
@@ -120,6 +121,21 @@ export const businessService = {
       return null;
     }
   },
+
+  confirmRegisterNewBusiness: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        businessApi.Business_SendRequest_ConfirmRegisterNewBusiness,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+  // become to a business
 
   //report
   businessReportViewContact: async (data) => {

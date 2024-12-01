@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Modal, Button, Table, Row, Col, Badge, Card, Image, Spinner } from "react-bootstrap";
-import { FaEye, FaStar, FaImage, FaRoute, FaUser } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { Modal, Button, Row, Col, Badge, Card, Image, Spinner } from "react-bootstrap";
+import { FaEye, FaStar, FaImage, FaRoute } from "react-icons/fa";
 import { placeService } from "../../../services/placeService";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import { PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";

@@ -3,18 +3,17 @@ import Home from "../pages/user/HomePage/Home";
 import MainLayout from "../layouts/MainLayout";
 import LoginPage from "../pages/user/LoginPage/index";
 import RegisterPage from "../pages/user/RegisterPage/index";
-
-import NotificationSummary from "../pages/NotificationSummaryPage/NotificationSummary";
+import NotificationSummary from "../pages/commonpage/NotificationSummaryPage/NotificationSummary";
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
 import ChatUI from "../common/components/Chat/ChatUI";
 import PlacePage from "../pages/user/PlacePage/PlacePage";
 import PlaceDetailPage from "../pages/user/PlaceDetailPage/PlaceDetailPage";
 import NavbarLayout from "../layouts/NavbarLayout";
 import ItineraryDetailPage from "../pages/user/ItineraryDetailPage/ItineraryDetailPage";
-import RequestCreatePlacePage from "../pages/user/RequestCreatePlace/RequestCreatePlace";
-import RegisterBusinessPage from "../pages/user/RegisterBusinessPage/RegisterBusinessPage";
 import { Role } from "../enum/permission";
 import AuthLayout from "../layouts/AuthLayout";
+import RegisterNewPlacePage from "../pages/user/RequestPage/RegisterNewPlacePage";
+import RegisterNewBusinessPage from "../pages/user/RequestPage/RegisterNewBusinessPage";
 
 export const routes = [
   {
@@ -22,17 +21,8 @@ export const routes = [
     component: <Home />,
     checkAuth: false,
     roles: [],
-    // errorElement: <Navigate to="/error" />,
     layout: <MainLayout />,
   },
-  // {
-  //   path: "/test",
-  //   component: <Test />,
-  //   checkAuth: false,
-  //   roles: [],
-  //   // errorElement: <Navigate to="/error" />,
-  //   layout: <MainLayout />,
-  // },
   {
     path: "/chat",
     component: <ChatUI />,
@@ -47,7 +37,6 @@ export const routes = [
     checkAuth: false,
     roles: [],
     errorElement: <Navigate to="/error" />,
-    // layout: <AuthLayout />
   },
   {
     path: "/dangky",
@@ -55,7 +44,6 @@ export const routes = [
     checkAuth: false,
     roles: [],
     errorElement: <Navigate to="/error" />,
-    // layout: <AuthLayout />
   },
   {
     path: "/thongbao",
@@ -74,8 +62,8 @@ export const routes = [
     errorElement: <Navigate to="/error" />,
   },
   {
-    path: "/diadiem/dangdiadiemmoi",
-    component: <RequestCreatePlacePage />,
+    path: "/diadiem/dangky",
+    component: <RegisterNewPlacePage />,
     checkAuth: false,
     roles: [],
     layout: <MainLayout />,
@@ -98,8 +86,8 @@ export const routes = [
     errorElement: <Navigate to="/error" />,
   },
   {
-    path: "/registerbusiness",
-    component: <RegisterBusinessPage />,
+    path: "/doanhnghiep/dangky",
+    component: <RegisterNewBusinessPage />,
     checkAuth: true,
     roles: [Role.NormalUser],
     layout: <NavbarLayout />,

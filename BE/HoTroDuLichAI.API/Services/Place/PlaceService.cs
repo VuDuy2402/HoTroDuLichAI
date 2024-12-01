@@ -218,7 +218,8 @@ namespace HoTroDuLichAI.API
                         Email = pl.User.Email ?? string.Empty,
                         FullName = pl.User.FullName,
                         UserId = pl.UserId
-                    }
+                    },
+                    CreatedDate = pl.CreatedDate
                 }).ToList();
                 var data = new BasePagedResult<PlaceDetailResponseDto>()
                 {

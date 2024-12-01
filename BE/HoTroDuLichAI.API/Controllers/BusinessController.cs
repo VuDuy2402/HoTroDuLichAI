@@ -14,17 +14,20 @@ namespace HoTroDuLichAI.API.Controllers
             _businessService = businessService;
         }
 
-        [HttpPost("paging")]
+        [HttpPost("my/paging")]
+        [Authorize(Roles = RoleDescription.Business)]
         public async Task<IActionResult> GetWithPaging(BusinessPagingAndFilterParams param)
         {
+            param.IsMy = true;
             var result = await _businessService.GetWithPagingAsync(param: param, modelState: ModelState);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
-        [HttpPost("newbusiness/paging")]
+        [HttpPost("manage/request/paging")]
+        [Authorize(Roles = RoleDescription.Admin)]
         public async Task<IActionResult> GetNewBusinessWithPaging(BusinessPagingAndFilterParams param)
         {
-            param.IsNew = true;
+            param.IsRequest = true;
             var result = await _businessService.GetWithPagingAsync(param: param, modelState: ModelState);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }

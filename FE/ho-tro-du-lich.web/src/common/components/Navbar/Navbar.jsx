@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { authAction } from "../../../redux/slices/authSlices";
 import { memo, useEffect, useState } from "react";
 import { userService } from "../../../services/userSerivce";
-import { publisherService } from "../../../services/publisherService";
 import { notificationService } from "../../../services/notificationService";
 import { FiBell } from "react-icons/fi";
 import { MdAddLocation } from "react-icons/md";
@@ -17,10 +16,9 @@ import {
   getUserProfileSelector,
   getUserRoleSelector,
 } from "../../../redux/selectors/authSelector";
-import * as signalR from "@microsoft/signalr";
 import LinkCustom from "../LinkCustom/LinkCustom";
 import { Role } from "../../../enum/permission";
-import { Modal, Button, Form, Badge } from "react-bootstrap";
+import { Modal} from "react-bootstrap";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { TbLogin } from "react-icons/tb";
@@ -28,8 +26,6 @@ import { FaUserPlus } from "react-icons/fa";
 import { MdOutlineApps } from "react-icons/md";
 import DropdownCustom from "../Dropdown/Dropdown";
 import { IoLogOutSharp } from "react-icons/io5";
-import { toast } from "react-toastify";
-import NotificationPage from "../../../pages/commonpage/Notification/NotificationPage";
 import { getNoticeNumberSelector } from "../../../redux/selectors/systemSelector";
 import { IoMenu } from "react-icons/io5";
 import { getSignalR } from "../../../redux/selectors/signalRSelector";
@@ -105,7 +101,7 @@ const Navbar = ({ className }) => {
           setErrorList(response.errors);
         }
       } catch (error) {
-        toast.error("Không thể lấy số lượng thông báo.");
+        // toast.error("Không thể lấy số lượng thông báo.");
       }
     };
     fetchUnreadCount();
@@ -217,13 +213,13 @@ const Navbar = ({ className }) => {
   };
   const handleClickDropdownRole = (data) => {
     if (data.id === 0) {
-      navigate("/registerbusiness");
+      navigate("/doanhnghiep/dangky");
     }
     if (data.id === 1) {
-      navigate("/business");
+      navigate("/doanhnghiep");
     }
     if (data.id === 2) {
-      navigate("/admin");
+      navigate("/quantri");
     }
     if (data.id === 4) {
       handleClickUserTag();
@@ -291,7 +287,7 @@ const Navbar = ({ className }) => {
                 />
                 <button
                   className="btn btn-light rounded-0"
-                  onClick={() => navigate("/diadiem/dangdiadiemmoi")}
+                  onClick={() => navigate("/diadiem/dangky")}
                 >
                   <MdAddLocation size={24} />
                   {windowSize.width > 1024 ? "Đăng địa điểm mới" : null}
