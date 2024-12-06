@@ -675,14 +675,16 @@ namespace HoTroDuLichAI.API
                     source: collection, pageNumber: param.PageNumber, pageSize: param.PageSize);
                 var selected = pagedList.Select(b => new BusinessMoreInfoResponseDto
                 {
+                    Id = b.Id,
                     BusinessName = b.BusinessName,
                     Address = b.Address,
                     Appoved = b.Appoved,
-                    BusinessType = b.BusinessServiceType,
+                    BusinessServiceType = b.BusinessServiceType,
                     Latitude = b.Latitude,
                     Longitude = b.Longitude,
                     ProvinceId = b.ProvinceId,
                     ProvinceName = b.Province.Name,
+                    CreatedDate = b.CreatedDate,
                     BusinessContactProperty = new BusinessContactPersonInfoResponseDto()
                     {
                         Avatar = b.BusinessContactProperty.ImageProperty.Url,
@@ -738,6 +740,7 @@ namespace HoTroDuLichAI.API
                 {
                     Address = businessEntity.Address,
                     Appoved = businessEntity.Appoved,
+                    BusinessServiceType = businessEntity.BusinessServiceType,
                     BusinessName = businessEntity.BusinessName,
                     Latitude = businessEntity.Latitude,
                     Longitude = businessEntity.Longitude,
@@ -757,7 +760,8 @@ namespace HoTroDuLichAI.API
                     },
                     ProvinceId = businessEntity.ProvinceId,
                     ProvinceName = (await _dbContext.Provinces.FindAsync(businessEntity.ProvinceId))?.Name ?? string.Empty,
-                    Id = businessEntity.Id
+                    Id = businessEntity.Id,
+                    BusinessServiceProperties = businessEntity.ServiceProperties
                 };
                 response.Result.Success = true;
                 response.Result.Data = data;

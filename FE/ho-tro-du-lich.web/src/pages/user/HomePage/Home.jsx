@@ -255,7 +255,7 @@ const Home = () => {
               }}
             >
               {article.map((news) => (
-                <SwiperSlide className="pt-3" key={news.placeId}>
+                <SwiperSlide className="pt-3" key={news.articleId}>
                   <NewsTravel
                     img={news.thumbnail}
                     month={new Date(news.createdDate).getMonth() + 1}

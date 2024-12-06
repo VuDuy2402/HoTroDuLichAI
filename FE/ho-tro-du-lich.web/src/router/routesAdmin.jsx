@@ -6,13 +6,14 @@ import AUserIndex from "../pages/admin/AUserManagePage/AUserIndex";
 import APlaceIndexPlace from "../pages/admin/APlaceManage/APlaceIndexPage";
 import AArticlePage from "../pages/admin/AArticlePage/AArticlePage";
 import ADashboardPage from "../pages/admin/ADashboardPage/ADashboardPage";
-import { IoLocationOutline, IoNotificationsOffCircleOutline, IoPeopleCircleOutline, IoPieChartOutline, IoTextOutline } from "react-icons/io5";
+import { IoBusinessOutline, IoLocationOutline, IoNotificationsOffCircleOutline, IoPeopleCircleOutline, IoPieChartOutline, IoTextOutline } from "react-icons/io5";
 import AConfirmRegisterBusinessPage from "../pages/admin/ABusinessManage/AConfirmRegisterBusinessPage";
 import AConfirmNewPlaceRequestPage from "../pages/admin/ARequestNewPlaceDetailPage/AConfirmNewPlaceRequestPage";
 import AConfirmRegisterArticleRequestPage from "../pages/admin/AArticlePage/AConfirmRegisterArticleRequestPage";
 import ANewPlaceRequestPagingPage from "../pages/admin/ARequestPage/ANewPlaceRequestPagingPage";
 import ANewBusinessRequestPagingPage from "../pages/admin/ARequestPage/ANewBusinessRequestPagingPage";
 import ANewArticleRequestPagingPage from "../pages/admin/ARequestPage/ANewArticleRequestPagingPage";
+import ABusinessIndexPage from "../pages/admin/ABusinessManage/ABusinessIndexPage";
 
 const menuSideItemAdmin = [
   {
@@ -27,6 +28,7 @@ const menuSideItemAdmin = [
   { label: "Người dùng", url: "/quantri/nguoidung", icon: <IoPeopleCircleOutline /> },
   { label: "Địa điểm", url: "/quantri/diadiem", icon: <IoLocationOutline />, },
   { label: "Tin tức", url: "/quantri/baiviet", icon: <IoNotificationsOffCircleOutline /> },
+  { label: "Doanh nghiệp", url: "/quantri/doanhnghiep", icon: <IoBusinessOutline /> },
   { label: "Thống kê", url: "/quantri/dashboard", icon: <IoPieChartOutline /> },
 ];
 
@@ -66,6 +68,14 @@ export const routersAdmin = [
   {
     path: "/quantri/baiviet",
     component: <AArticlePage />,
+    checkAuth: true,
+    roles: [Role.Admin],
+    errorElement: <Navigate to="/error" />,
+    layout: <MenuSideLayout items={menuSideItemAdmin} />,
+  },
+  {
+    path: "/quantri/doanhnghiep",
+    component: <ABusinessIndexPage />,
     checkAuth: true,
     roles: [Role.Admin],
     errorElement: <Navigate to="/error" />,

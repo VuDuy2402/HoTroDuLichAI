@@ -23,12 +23,13 @@ namespace HoTroDuLichAI.API
 
     public enum CBusinessServiceType
     {
+        [Description("Không xác định")]
         None = 0,
         [Description("Khách sạn")]
-        Room = 1,
-        [Description("Nhà nghỉ")]
-        Food = 2,
-        [Description("Quán ăn")]
-        Drink = 3
+        Hotel = 1,
+        [Description("Khu nghỉ dưỡng")]
+        Villa = 2,
+        [Description("Nhà hàng")]
+        Restaurant = 3
     }
 }

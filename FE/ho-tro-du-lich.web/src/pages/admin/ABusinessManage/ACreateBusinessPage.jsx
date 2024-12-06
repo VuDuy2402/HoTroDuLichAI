@@ -11,7 +11,7 @@ import {
   Popup,
   useMapEvents,
 } from "react-leaflet";
-import { CBusinessType, BusinessTypeDescriptions } from "../../../enum/businessTypeEnum";
+import { CBusinessServiceType, CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
 import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGallery";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
 
@@ -35,7 +35,7 @@ const ABusinessCreatePage = ({ show, onClose, onBusinessCreated }) => {
     const dispatch = useDispatch();
     const { register, handleSubmit, formState: { errors }, setValue } = useForm();
     const [coordinates, setCoordinates] = useState({ latitude: 14.0583, longitude: 108.2772 });
-    const [selectedBusinessype, setSelectedBusinessType] = useState(CBusinessType.None);
+    const [selectedBusinessType, setSelectedBusinessType] = useState(CBusinessServiceType.None);
     const [imageFileIds, setImageFileIds] = useState([]);
     const [isNew, setIsNew] = useState(false);
 
@@ -107,9 +107,9 @@ const ABusinessCreatePage = ({ show, onClose, onBusinessCreated }) => {
                         name="businessType"
                         value={selectedBusinessType}
                         onChange={e => setSelectedBussinessType(Number(e.target.value))}
-                        options={Object.keys(CBusinessType).map(key => ({
-                            value: CBusinessType[key],
-                            label: BusinessTypeDescriptions[CBusinessType[key]],
+                        options={Object.keys(CBusinessServiceType).map(key => ({
+                            value: CBusinessServiceType[key],
+                            label: CBusinessServiceTypeDescriptions[CBusinessServiceType[key]],
                         }))}
                         register={register}
                         required

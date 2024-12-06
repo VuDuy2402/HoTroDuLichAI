@@ -11,7 +11,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import RowInfo from "../../../common/components/RowInfo/RowInfo";
 import {
-  BusinessServiceTypeDescriptions,
+  CBusinessServiceTypeDescriptions,
   CBusinessServiceStatusDescription,
 } from "../../../enum/businessTypeEnum";
 import { convertFormatTimeToVN } from "../../../utils/functionUtils";
@@ -180,7 +180,7 @@ const ServiceItem = ({ data }) => {
               title={"Giới hạn"}
               color="rgb(113 193 156)"
               info={
-                data.quantity + " " + BusinessServiceTypeDescriptions[data.type]
+                data.quantity + " " + CBusinessServiceTypeDescriptions[data.type]
               }
             />
             <RowInfo

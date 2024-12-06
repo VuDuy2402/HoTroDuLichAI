@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Table, Row, Col, Badge, Card, Image, Spinner } from "react-bootstrap";
-import { FaEye, FaStar, FaImage, FaRoute, FaUser } from "react-icons/fa";
+import { Modal, Button, Row, Col, Badge, Card, Image, Spinner } from "react-bootstrap";
+import { FaEye, FaStar, FaImage, FaRoute } from "react-icons/fa";
 import { businessService } from "../../../services/businessService";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
-import { BusinessTypeDescriptions } from "../../../enum/businessTypeEnum";
+import { CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
 import { ApprovalTypeDescriptions } from "../../../enum/approvalTypeEnum";
 import { toast } from "react-toastify";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -79,7 +79,7 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                                     <Card.Body className="text-center">
                                         <FaStar size={30} color="#ffc107" />
                                         <h5 className="mt-2">Đánh giá</h5>
-                                        <h4>{businessDetails.rating}</h4>
+                                        <h4>Chưa có đánh giá</h4>
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -88,7 +88,7 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                                     <Card.Body className="text-center">
                                         <FaImage size={30} color="#28a745" />
                                         <h5 className="mt-2">Số hình ảnh</h5>
-                                        <h4>{businessDetails.imageDetailProperties.length}</h4>
+                                        <h4>Chưa có hình ảnh</h4>
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -97,48 +97,40 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                                     <Card.Body className="text-center">
                                         <FaRoute size={30} color="#17a2b8" />
                                         <h5 className="mt-2">Hành trình</h5>
-                                        <h4>{businessDetails.totalUseItinerary}</h4>
+                                        <h4>Chưa có hành trình</h4>
                                     </Card.Body>
                                 </Card>
                             </Col>
                         </Row>
 
                         {/* Title & Location Info Section */}
-                        <h3>{businessDetails.name}</h3>
+                        <h3>{businessDetails.businessName}</h3>
+
+                        <div className="mb-4">
+                            <strong>Địa chỉ: </strong>
+                            <span>{businessDetails.address}</span>
+                        </div>
 
                         <div className="mb-4">
                             <strong>Loại doanh nghiệp: </strong>
-                            <Badge
-                                bg="info"
-                                className="ms-2"
-                            >
-                                {BusinessTypeDescriptions[businessDetails.businessType] || "Loại doanh nghiệp chưa xác định"}
+                            <Badge bg="info" className="ms-2">
+                                {CBusinessServiceTypeDescriptions[businessDetails.businessServiceType] || "Loại doanh nghiệp chưa xác định"}
                             </Badge>
                         </div>
 
-                        <div className="mb-4">
-                            <strong>Là doanh nghiệp mới: </strong>
-                            <Badge
-                                className="ms-2"
-                            >
-                                {businessDetails.isNew ? "Mới" : ""}
-                            </Badge>
-                        </div>
-
-                        {/* Approval Status */}
                         <div className="mb-4">
                             <strong>Trạng thái duyệt: </strong>
                             <Badge
-                                bg={businessDetails.approvalType === 1 ? "success" : businessDetails.approvalType === 2 ? "danger" : "warning"}
+                                bg={businessDetails.appoved === 1 ? "success" : businessDetails.appoved === 2 ? "danger" : "warning"}
                                 className="ms-2"
                             >
-                                {ApprovalTypeDescriptions[businessDetails.approvalType]}
+                                {ApprovalTypeDescriptions[businessDetails.appoved] || "Chưa duyệt"}
                             </Badge>
                         </div>
 
                         {/* Owner Info Section */}
                         <div className="d-flex align-items-center mb-4">
-                            <Image src={businessDetails.ownerProperty.avatar} roundedCircle width={40} height={40} className="me-3" />
+                            <Image src={businessDetails.ownerProperty.avatar || "/path/to/default-avatar.jpg"} roundedCircle width={40} height={40} className="me-3" />
                             <div>
                                 <strong>{businessDetails.ownerProperty.fullName}</strong>
                                 <p className="mb-0 text-muted">{businessDetails.ownerProperty.email}</p>
@@ -148,7 +140,7 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                         {/* Map Section */}
                         <div style={{ height: "300px", marginBottom: "20px" }}>
                             <MapContainer
-                                center={[businessDetails.latitude, businessDetails.longtitude]}
+                                center={[businessDetails.latitude, businessDetails.longitude]}
                                 zoom={13}
                                 style={{ height: "100%", width: "100%" }}
                             >
@@ -157,31 +149,20 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                 />
                                 <Marker
-                                    position={[businessDetails.latitude, businessDetails.longtitude]}
+                                    position={[businessDetails.latitude, businessDetails.longitude]}
                                 >
                                     <Popup>{businessDetails.businessName}</Popup>
                                 </Marker>
                             </MapContainer>
                         </div>
 
-                        {/* Gallery Section */}
-                        {businessDetails.imageDetailProperties && businessDetails.imageDetailProperties.length > 0 && (
-                            <div>
-                                <h5>Ảnh Gallery</h5>
-                                <Row>
-                                    {businessDetails.imageDetailProperties.map((image, index) => (
-                                        <Col md={3} key={index} className="mb-3">
-                                            <Image
-                                                src={image.url}
-                                                alt={`image-${index}`}
-                                                fluid
-                                                style={{ objectFit: "cover", height: "200px", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
-                                            />
-                                        </Col>
-                                    ))}
-                                </Row>
-                            </div>
-                        )}
+                        {/* Contact Info Section */}
+                        <div className="mb-4">
+                            <strong>Người liên hệ: </strong>
+                            <div>{businessDetails.businessContactProperty.name}</div>
+                            <div>Email: {businessDetails.businessContactProperty.email}</div>
+                            <div>Số điện thoại: {businessDetails.businessContactProperty.phoneNumber}</div>
+                        </div>
                     </div>
                 ) : (
                     <div className="text-center">Không có thông tin chi tiết</div>

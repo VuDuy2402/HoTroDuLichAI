@@ -1,17 +1,19 @@
 // src/utils/enums.js
 
 // Enums for Business Type
-export const CBusinessType = {
+export const CBusinessServiceType = {
   None: 0,
   Hotel: 1,
-  Restaurant: 2,
+  Villa: 2,
+  Restaurant: 3,
 };
 
 // Descriptions for Business Type
-export const PlaceTypeDescriptions = {
-  [CBusinessType.None]: "Không xác định",
-  [CBusinessType.Hotel]: "Khách sạn",
-  [CBusinessType.Restaurant]: "Nhà hàng",
+export const CBusinessServiceTypeDescriptions = {
+  [CBusinessServiceType.None]: "Không xác định",
+  [CBusinessServiceType.Hotel]: "Khách sạn",
+  [CBusinessServiceType.Villa]: "Khu nghỉ dưỡng",
+  [CBusinessServiceType.Restaurant]: "Nhà hàng",
 };
 
 export const CBusinessServiceStatus = {
@@ -24,18 +26,4 @@ export const CBusinessServiceStatusDescription = {
   [CBusinessServiceStatus.None]: "Không xác đinh",
   [CBusinessServiceStatus.Available]: "Đang hoạt động",
   [CBusinessServiceStatus.NotAvailable]: "Ngưng hoạt động",
-};
-
-export const CBusinessServiceType = {
-  None: 0,
-  Room: 1,
-  Food: 2,
-  Drink: 3,
-};
-
-export const BusinessServiceTypeDescriptions = {
-  [CBusinessServiceType.None]: "",
-  [CBusinessServiceType.Room]: "Phòng",
-  [CBusinessServiceType.Food]: "Bàn",
-  [CBusinessServiceType.Drink]: "Người",
 };

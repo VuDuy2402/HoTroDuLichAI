@@ -12,7 +12,7 @@ import ACreateBusinessPage from "./ACreateBusinessPage";
 import ConfirmModalPage from "../../commonpage/ModalPage/ConfirmModalPage";
 import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
-import { BusinessTypeDescriptions } from "../../../enum/businessTypeEnum";
+import { CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
 import { ApprovalTypeDescriptions, CApprovalType } from "../../../enum/approvalTypeEnum";
 import ABusinessDetailPage from "./ABusinessDetailPage";
 
@@ -20,7 +20,7 @@ const ABusinessIndexPage = () => {
     const initColumn = [
         { label: "Ảnh", row: "thumbnail", sortable: false },
         { label: "Tên doanh nghiệp", row: "businessName", sortable: true },
-        { label: "Loại doanh nghiệp", row: "businessType", sortable: true },
+        { label: "Loại doanh nghiệp", row: "businessServiceType", sortable: true },
         { label: "Ngày tạo", row: "createdDate", sortable: true },
         { label: "Trạng thái duyệt", row: "approvalType", sortable: true },
         { label: "Số lượt xem", row: "totalView", sortable: true },
@@ -97,7 +97,11 @@ const ABusinessIndexPage = () => {
     };
 
     const handleOpenDetailModal = (businessId) => {
-        setSelectedBusinessId(businessd);
+        console.log(businessId);
+        
+        setSelectedBusinessId(businessId);
+        console.log("ok");
+        
         setShowDetailModal(true);
     };
 
@@ -302,14 +306,14 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
                                 fontWeight: "bold",
                             }}
                         >
-                            {getInitials(data.name)}
+                            {getInitials(data.businessName)}
                         </div>
                     )}
                 </td>
-                <td className="fw-bold">{data.name}</td>
-                <td>{BusinessTypeDescriptions[data.businessType] || "Không xác định"}</td>
+                <td>{data.businessName}</td>
+                <td>{CBusinessServiceTypeDescriptions[data.businessServiceType] || "Không xác định"}</td>
                 <td>{new Date(data.createdDate).toLocaleDateString("vi-VN")}</td>
-                <td>{renderApprovalStatus(data.approvalType)}</td>
+                <td>{renderApprovalStatus(data.appoved)}</td>
                 <td>{data.totalView}</td>
                 <td>{renderOwner(data.ownerProperty)}</td>
                 <td>
@@ -317,7 +321,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
                         variant="outline-info"
                         size="sm"
                         className="ms"
-                        onClick={() => onOpenDetail(data.businessId)}
+                        onClick={() => onOpenDetail(data.id)}
                         title="Xem chi tiết"
                     >
                         <FaInfoCircle />
@@ -327,7 +331,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
                         size="sm"
                         className="ms-2"
                         title="Cập nhật"
-                        onClick={() => onEdit(data.businessId)}
+                        onClick={() => onEdit(data.id)}
                     >
                         <i className="bi bi-pencil-fill"></i>
                     </Button>
@@ -344,7 +348,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
             </tr>
             <ConfirmModalPage
                 show={showModal}
-                onConfirm={() => handleDelete(data.businessId)}
+                onConfirm={() => handleDelete(data.id)}
                 onCancel={() => setShowConfirmDeleteModal(false)}
             />
         </>

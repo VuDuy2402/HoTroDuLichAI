@@ -6,14 +6,14 @@ import { useForm } from "react-hook-form";
 import { businessService } from "../../../services/businessService";
 import { toast } from "react-toastify";
 import { systemAction } from "../../../redux/slices/systemSlice";
-import { CBusinessType, BusinessTypeDescriptions } from "../../../enum/businessTypeEnum";
+import { CBusinessServiceType, CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
 
 const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) => {
     const [businessDetail, setBusinesssDetail] = useState(null);
     const [imageFiles, setImageFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { handleSubmit, setValue, formState: { errors } } = useForm();
-    const [selectedBusinessType, setSelectedBusinessType] = useState(CBusinessType.None);
+    const [selectedBusinessType, setSelectedBusinessType] = useState(CBusinessServiceType.None);
     const [errorMessages, setErrorMessages] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [selectAll, setSelectAll] = useState(false);
@@ -247,16 +247,16 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                 <Form.Group className="mb-3">
                                     <Form.Label>Loại doanh nghiệp</Form.Label>
                                     <Form.Select
-                                        value={selectedbusinessType}
+                                        value={selectedBusinessType}
                                         onChange={(e) => {
                                             const newValue = Number(e.target.value);
                                             setSelectedBusinessType(newValue);
                                             setValue("businessType", newValue);
                                         }}
                                     >
-                                        {Object.keys(CBusinessType).map(key => (
-                                            <option key={key} value={CBusinessType[key]}>
-                                                {BusinessTypeDescriptions[CBusinessType[key]]}
+                                        {Object.keys(CBusinessServiceType).map(key => (
+                                            <option key={key} value={CBusinessServiceType[key]}>
+                                                {CBusinessServiceTypeDescriptions[CBusinessServiceType[key]]}
                                             </option>
                                         ))}
                                     </Form.Select>
