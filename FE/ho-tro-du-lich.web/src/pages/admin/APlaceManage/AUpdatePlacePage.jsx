@@ -34,13 +34,13 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                 setValue("name", result.data.name);
                 setValue("address", result.data.address);
                 setValue("latitude", result.data.latitude);
-                setValue("longitude", result.data.longtitude);
+                setValue("longitude", result.data.longitude);
                 setValue("description", result.data.description);
                 setSelectedPlaceType(result.data.placeType || CPlaceType.None);
                 setValue("isNew", result.data.isNew);
                 setImageFiles(result.data.imageDetailProperties || []);
-            } else {
-                toast.error("Failed to load place details.");
+            } else if (result && result.errors) {
+                setErrorMessages(result.errors);
             }
         } catch (error) {
             toast.error("Error fetching place details:", error);
@@ -225,7 +225,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     <Form.Control
                                         type="number"
                                         step="0.0001"
-                                        defaultValue={placeDetail.longtitude}
+                                        defaultValue={placeDetail.longitude}
                                         isInvalid={!!errors.longitude}
                                     />
                                 </Form.Group>

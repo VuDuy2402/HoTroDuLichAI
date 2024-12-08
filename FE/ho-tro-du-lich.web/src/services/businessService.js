@@ -13,7 +13,7 @@ export const businessService = {
     }
     return null;
   },
-  getNewPlacePaging: async (data) => {
+  getNewBusinessPaging: async (data) => {
     const response = await reqApi.post(
       businessApi.Business_GetNewBusiness,
       data
@@ -57,6 +57,19 @@ export const businessService = {
     if (token) {
       const response = await reqApi.get(
         `${businessApi.Business_Admin_GetBusinessById}/${businessId}`
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  getBusinessForUpdateById: async (businessId) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.get(
+        `${businessApi.Business_Admin_GetBusinessForUpdateById}/${businessId}`
       );
       if (response) {
         return response;

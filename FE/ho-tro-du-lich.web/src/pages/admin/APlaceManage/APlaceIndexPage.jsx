@@ -380,7 +380,9 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
     const { name, value } = e.target;
     setFilters((prevFilters) => ({
       ...prevFilters,
-      [name]: value || null,
+      [name]: ['placeType', 'approvalType'].includes(name)
+        ? Number(value) || null
+        : value || null,
     }));
   };
 
@@ -411,7 +413,7 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
             <Form.Control
               as="select"
               name="approvalType"
-              value={filters.approvalType || ""}
+              value={filters.approvalType || null}
               onChange={handleChange}
             >
               <option value="">Chọn trạng thái duyệt</option>

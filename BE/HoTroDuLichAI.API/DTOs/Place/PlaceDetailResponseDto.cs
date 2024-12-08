@@ -9,7 +9,7 @@ namespace HoTroDuLichAI.API
         public string Name { get; set; } = string.Empty;
         public bool IsNew { get; set; }
         public float Latitude { get; set; }
-        public float Longtitude { get; set; }
+        public float Longitude { get; set; }
         public int TotalView { get; set; }
         public int Rating { get; set; }
         public CPlaceType PlaceType { get; set; }

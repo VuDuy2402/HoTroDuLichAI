@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Button, Form, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Button, Form, Offcanvas, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { businessService } from "../../../services/businessService";
-import { FaInfoCircle, FaSearch } from "react-icons/fa";
+import { FaFilter, FaInfoCircle, FaSearch } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import AUpdateBusinessPage from "./AUpdateBusinessPage";
 import ACreateBusinessPage from "./ACreateBusinessPage";
+import ABusinessDetailPage from "./ABusinessDetailPage";
 import ConfirmModalPage from "../../commonpage/ModalPage/ConfirmModalPage";
 import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
-import { CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
+import { CBusinessServiceType, CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
 import { ApprovalTypeDescriptions, CApprovalType } from "../../../enum/approvalTypeEnum";
-import ABusinessDetailPage from "./ABusinessDetailPage";
 
 const ABusinessIndexPage = () => {
     const initColumn = [
@@ -22,7 +22,7 @@ const ABusinessIndexPage = () => {
         { label: "Tên doanh nghiệp", row: "businessName", sortable: true },
         { label: "Loại doanh nghiệp", row: "businessServiceType", sortable: true },
         { label: "Ngày tạo", row: "createdDate", sortable: true },
-        { label: "Trạng thái duyệt", row: "approvalType", sortable: true },
+        { label: "Trạng thái duyệt", row: "appoved", sortable: true },
         { label: "Số lượt xem", row: "totalView", sortable: true },
         { label: "Chủ sở hữu", row: "ownerProperty.fullName", sortable: true },
         { label: "Hành động", row: "actions", sortable: false },
@@ -41,15 +41,21 @@ const ABusinessIndexPage = () => {
         total: 1,
         pageSize: 10,
     });
-
-    const fetchData = async (paging = 1, query = "", sort = {}) => {
+    const [showFilterSidebar, setShowFilterSidebar] = useState(false);
+    const [filter, setFilter] = useState({
+        businessServiceType: null,
+        approvalType: null,
+        fromDate: null,
+        toDate: null,
+    });
+    const fetchData = useCallback(async (paging = 1, query = "", filter = {}, sort = {}) => {
         dispatch(systemAction.enableLoading());
         try {
             const result = await businessService.getWithPagingAdmin({
                 pageNumber: paging,
                 pageSize: 10,
                 searchQuery: query,
-                filterProperty: {},
+                filterProperty: filter,
                 sortProperty: sort,
             });
 
@@ -60,11 +66,9 @@ const ABusinessIndexPage = () => {
                     total: result.data.totalPages,
                     pageSize: result.data.pageSize,
                 });
-            }
-            else if (result.errors) {
+            } else if (result.errors) {
                 setErrorList(result.errors);
-            }
-            else {
+            } else {
                 toast.error(result);
             }
         } catch (error) {
@@ -72,14 +76,14 @@ const ABusinessIndexPage = () => {
         } finally {
             dispatch(systemAction.disableLoading());
         }
-    };
+    }, [dispatch]);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     const handleDeleteBusiness = (businessId) => {
-        setDataBusinesses((prevBusinesses) => prevBusinesses.filter(business => business.businessId !== businessId));
+        setDataBusinesses(prevBusinesses => prevBusinesses.filter(business => business.businessId !== businessId));
     };
 
     const handleOpenUpdateModal = (businessId) => {
@@ -97,11 +101,7 @@ const ABusinessIndexPage = () => {
     };
 
     const handleOpenDetailModal = (businessId) => {
-        console.log(businessId);
-        
         setSelectedBusinessId(businessId);
-        console.log("ok");
-        
         setShowDetailModal(true);
     };
 
@@ -118,26 +118,44 @@ const ABusinessIndexPage = () => {
         fetchData(1, "", { key, direction });
     };
 
+    const handleClearFilter = () => {
+        setFilter({});
+        setShowFilterSidebar(false);
+    };
+
+    const handleApplyFilter = (filter) => {
+        setFilter(filter);
+        fetchData(1, "", filter);
+    };
+
     return (
         <div className="frame-place-detail p-2 w-100 h-100 overflow-auto">
             <FormErrorAlert errors={errorList} />
             <div className="d-flex justify-content-between">
-                <Button
-                    variant="warning"
-                    className="text-white"
-                    onClick={() => setShowCreateModal(true)}
-                >
+                <Button variant="warning" className="text-white" onClick={() => setShowCreateModal(true)}>
                     Tạo Địa Điểm
                 </Button>
                 <Form className="d-flex gap-1" onSubmit={handleSubmit(handleSubmitSearch)}>
                     <Form.Control
                         type="text"
                         placeholder="Tìm kiếm doanh nghiệp"
-                        {...register("searchQuery")}
-                    />
+                        {...register("searchQuery")} />
                     <Button type="submit" variant="warning">
                         <FaSearch />
                     </Button>
+                    <Button 
+                        variant="outline-secondary"
+                        onClick={() => setShowFilterSidebar(true)}
+                        className="ms-2">
+                        <FaFilter />
+                    </Button>
+
+                    <FilterSidebar
+                        show={showFilterSidebar}
+                        onClose={() => setShowFilterSidebar(false)}
+                        onApplyFilters={handleApplyFilter}
+                        onClearFilters={handleClearFilter}
+                    />
                 </Form>
             </div>
 
@@ -171,6 +189,13 @@ const ABusinessIndexPage = () => {
                     onClose={handleCloseDetailModal}
                 />
             )}
+
+            <FilterSidebar
+                show={showFilterSidebar}
+                onClose={() => setShowFilterSidebar(false)}
+                onApplyFilters={handleApplyFilter}
+                onClearFilters={handleClearFilter}
+            />
         </div>
     );
 };
@@ -188,10 +213,8 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
         if (result && result.success) {
             toast.success(result.data.message);
             onDelete(businessId);
-        } else {
-            if (result.errors) {
-                setErrorList(result.errors);
-            }
+        } else if (result.errors) {
+            toast.error(result.errors.join(", "));
         }
         setShowConfirmDeleteModal(false);
     };
@@ -210,34 +233,38 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
             case CApprovalType.PendingAprroval:
                 statusColor = "warning";
                 break;
-            case CApprovalType.None:
-                statusColor = "secondary";
-                break;
             default:
                 statusColor = "gray";
         }
 
-        return (
-            <div className="d-flex align-items-center">
-                <div
-                    className={`rounded-circle bg-${statusColor}`}
-                    style={{ width: "10px", height: "10px" }}
-                ></div>
-                <span className="ms-2">{statusLabel}</span>
-            </div>
-        );
-    }
+        return <span className={`badge bg-${statusColor}`}>{statusLabel}</span>;
+    };
+
+    const renderBusinessServiceType = (serviceType) => {
+        const serviceTypeLabel = CBusinessServiceTypeDescriptions[serviceType] || "Không xác định";
+        let badgeColor = "secondary";
+        switch (serviceType) {
+            case 1:
+                badgeColor = "primary";
+                break;
+            case 2:
+                badgeColor = "info";
+                break;
+            case 3:
+                badgeColor = "success";
+                break;
+            default:
+                badgeColor = "secondary";
+        }
+        return <span className={`badge bg-${badgeColor}`}>{serviceTypeLabel}</span>;
+    };
 
     const renderOwner = (owner) => {
         if (owner?.avatar) {
             return (
                 <OverlayTrigger
                     placement="top"
-                    overlay={
-                        <Tooltip id="tooltip-owner">
-                            {`${owner.fullName} (${owner.email})`}
-                        </Tooltip>
-                    }
+                    overlay={<Tooltip id="tooltip-owner">{`${owner.fullName} (${owner.email})`}</Tooltip>}
                 >
                     <img
                         src={owner.avatar}
@@ -255,11 +282,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
             return (
                 <OverlayTrigger
                     placement="top"
-                    overlay={
-                        <Tooltip id="tooltip-owner">
-                            {`${owner.fullName} (${owner.email})`}
-                        </Tooltip>
-                    }
+                    overlay={<Tooltip id="tooltip-owner">{`${owner.fullName} (${owner.email})`}</Tooltip>}
                 >
                     <div
                         style={{
@@ -289,7 +312,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
                     {data.thumbnail ? (
                         <img
                             src={data.thumbnail}
-                            alt={data.name}
+                            alt={data.businessName}
                             style={{ width: "50px", height: "50px", borderRadius: "50%" }}
                         />
                     ) : (
@@ -311,7 +334,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
                     )}
                 </td>
                 <td>{data.businessName}</td>
-                <td>{CBusinessServiceTypeDescriptions[data.businessServiceType] || "Không xác định"}</td>
+                <td>{renderBusinessServiceType(data.businessServiceType)}</td>
                 <td>{new Date(data.createdDate).toLocaleDateString("vi-VN")}</td>
                 <td>{renderApprovalStatus(data.appoved)}</td>
                 <td>{data.totalView}</td>
@@ -352,6 +375,117 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
                 onCancel={() => setShowConfirmDeleteModal(false)}
             />
         </>
+    );
+};
+
+const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
+    const [filters, setFilters] = useState({
+        businessServiceType: null,
+        approvalType: null,
+        fromDate: null,
+        toDate: null,
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFilters((prevFilters) => ({
+            ...prevFilters,
+            [name]: ['businessServiceType', 'approvalType'].includes(name)
+                ? Number(value) || null
+                : value || null,
+        }));
+    };
+
+    const handleApplyFilters = () => {
+        onApplyFilters(filters);
+        onClose();
+    };
+
+    const handleClearFilters = () => {
+        setFilters({
+            approvalType: null,
+            placeType: null,
+            fromDate: null,
+            toDate: null,
+        });
+        onClearFilters();
+        onClose();
+    };
+
+    return (
+        <Offcanvas show={show} onHide={onClose} placement="end">
+            <Offcanvas.Header closeButton>
+                <Offcanvas.Title>Bộ lọc</Offcanvas.Title>
+            </Offcanvas.Header>
+            <Offcanvas.Body>
+                <Form>
+                    <Form.Group className="mb-3" controlId="businessServiceType">
+                        <Form.Label>Loại doanh nghiệp</Form.Label>
+                        <Form.Control
+                            as="select"
+                            name="businessServiceType"
+                            value={filters.businessServiceType || ""}
+                            onChange={handleChange}
+                        >
+                            <option value="">Chọn loại doanh nghiệp</option>
+                            {Object.keys(CBusinessServiceType).map((key) => {
+                                const value = CBusinessServiceType[key];
+                                return (
+                                    <option key={value} value={value}>
+                                        {CBusinessServiceTypeDescriptions[value]}
+                                    </option>
+                                );
+                            })}
+                        </Form.Control>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3" controlId="approved">
+                        <Form.Label>Trạng thái duyệt</Form.Label>
+                        <Form.Control
+                            as="select"
+                            name="approved"
+                            value={filters.approvalType || ""}
+                            onChange={handleChange}
+                        >
+                            <option value="">Chọn trạng thái duyệt</option>
+                            {Object.keys(CApprovalType).map((key) => {
+                                const value = CApprovalType[key];
+                                return (
+                                    <option key={value} value={value}>
+                                        {ApprovalTypeDescriptions[value]}
+                                    </option>
+                                );
+                            })}
+                        </Form.Control>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3" controlId="fromDate">
+                        <Form.Label>Từ ngày</Form.Label>
+                        <Form.Control
+                            type="date"
+                            name="fromDate"
+                            value={filters.fromDate || ""}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3" controlId="toDate">
+                        <Form.Label>Đến ngày</Form.Label>
+                        <Form.Control
+                            type="date"
+                            name="toDate"
+                            value={filters.toDate || ""}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
+
+                    <div className="d-flex justify-content-between">
+                        <Button variant="primary" onClick={handleApplyFilters}>Áp dụng</Button>
+                        <Button variant="outline-danger" onClick={handleClearFilters}>Xóa bộ lọc</Button>
+                    </div>
+                </Form>
+            </Offcanvas.Body>
+        </Offcanvas>
     );
 };
 

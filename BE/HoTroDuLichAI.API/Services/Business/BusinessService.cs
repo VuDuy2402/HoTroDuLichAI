@@ -761,7 +761,8 @@ namespace HoTroDuLichAI.API
                     ProvinceId = businessEntity.ProvinceId,
                     ProvinceName = (await _dbContext.Provinces.FindAsync(businessEntity.ProvinceId))?.Name ?? string.Empty,
                     Id = businessEntity.Id,
-                    BusinessServiceProperties = businessEntity.ServiceProperties
+                    BusinessServiceProperties = businessEntity.ServiceProperties,
+                    CreatedDate = businessEntity.CreatedDate
                 };
                 response.Result.Success = true;
                 response.Result.Data = data;
@@ -925,7 +926,7 @@ namespace HoTroDuLichAI.API
 
         #endregion Create business
         private ImageProperty ConvertToImageProperty(ImageFileInfo imageFileInfo,
-                    CImageType imageType, bool isDefault = false)
+            CImageType imageType, bool isDefault = false)
         {
             return new ImageProperty
             {
@@ -941,6 +942,41 @@ namespace HoTroDuLichAI.API
                 FileExtensionType = CFileExtensionType.JPEG
             };
         }
+
+        #region Get Business for Update
+        public async Task<ApiResponse<UpdateBusinessRequestDto>> GetBusinessDetailForUpdateByIdAsync(Guid businessId)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<UpdateBusinessRequestDto>();
+            try
+            {
+                var businessEntity = await _dbContext.Businesses.FindAsync(businessId);
+            if (businessEntity == null)
+            {
+                return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+            }
+            response.Result.Data = businessEntity.Adapt<UpdateBusinessRequestDto>();
+            response.Result.Data.BusinessContactProperty = new BusinessContact()
+            {
+                Avatar = businessEntity.BusinessContactProperty.ImageProperty.Url,
+                Email = businessEntity.BusinessContactProperty.Email,
+                Name = businessEntity.BusinessContactProperty.Name,
+                PhoneNumber = businessEntity.BusinessContactProperty.PhoneNumber,
+                Id = businessEntity.BusinessContactProperty.Id,
+                FileId = businessEntity.BusinessContactProperty.ImageProperty.BlobId
+            };
+            response.Result.Success = true;
+            response.StatusCode = StatusCodes.Status200OK;
+            return response;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+            
+        }
+        #endregion Get Business for Update
 
         #region Update business
         public async Task<ApiResponse<ResultMessage>> UpdateBusinessAsync(UpdateBusinessRequestDto requestDto, ModelStateDictionary? modelState = null)
@@ -970,93 +1006,72 @@ namespace HoTroDuLichAI.API
                 {
                     return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
                 }
-                var businessEntity = await _dbContext.Businesses.FindAsync(requestDto.BusinessId);
-                if (businessEntity == null)
+                var businessExist = await _dbContext.Businesses.Where(b => b.BusinessName == requestDto.BusinessName && b.Id != requestDto.BusinessId).FirstOrDefaultAsync();
+                if (businessExist != null)
                 {
                     errors.Add(new ErrorDetail()
                     {
-                        Error = $"Doanh nghiệp không tồn tại.",
-                        ErrorScope = CErrorScope.FormSummary
+                        Error = $"Tên doanh nghiệp {requestDto.BusinessName} đã được sử dụng trên hệ thống.",
+                        ErrorScope = CErrorScope.Field,
+                        Field = $"{nameof(BusinessEntity.BusinessName)}"
                     });
                     response.Result.Errors.AddRange(errors);
                     response.Result.Success = false;
-                    response.StatusCode = StatusCodes.Status404NotFound;
+                    response.StatusCode = StatusCodes.Status409Conflict;
                     return response;
                 }
-                if (businessEntity.UserId != currentUser.Id && !await _userManager.IsInRoleAsync(currentUser, CRoleType.Admin.ToString()))
+                businessExist = await _dbContext.Businesses.FindAsync(requestDto.BusinessId);
+                if (businessExist == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                if (requestDto.IsBusiness && businessExist.UserId != currentUser.Id)
                 {
                     errors.Add(new ErrorDetail()
                     {
-                        Error = $"Bạn không có quyền sửa doanh nghiệp này.",
-                        ErrorScope = CErrorScope.FormSummary
+                        Error = $"Bạn không có quyền thay đổi thông tin của doanh nghiệp khác.",
+                        ErrorScope = CErrorScope.PageSumarry,
                     });
                     response.Result.Errors.AddRange(errors);
                     response.Result.Success = false;
                     response.StatusCode = StatusCodes.Status403Forbidden;
                     return response;
                 }
-                businessEntity.BusinessName = requestDto.BusinessName;
-                businessEntity.Address = requestDto.Address;
-                var businessService = new BusinessServiceProperty()
+                businessExist.BusinessName = requestDto.BusinessName;
+                businessExist.Address = requestDto.Address;
+                if (!requestDto.IsBusiness)
                 {
-                    ServiceId = requestDto.BusinessServiceProperty.ServiceId,
-                    Name = requestDto.BusinessServiceProperty.Name,
-                    Status = requestDto.BusinessServiceProperty.Status,
-                    Type = requestDto.BusinessServiceProperty.Type,
-                    Amount = requestDto.BusinessServiceProperty.Amount,
-                    Quantity = requestDto.BusinessServiceProperty.Quantity,
-                    Thumbnail = requestDto.BusinessServiceProperty.Thumbnail,
-                };
-                businessEntity.Service = businessService.ToJson();
-                var imageProperty = new ImageProperty();
-                var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: requestDto.FileId);
-                if (imageResponse.StatusCode == StatusCodes.Status200OK)
+                    businessExist.Appoved = requestDto.Appoved;
+                }
+                businessExist.BusinessServiceType = requestDto.BusinessServiceType;
+                businessExist.Longitude = requestDto.Longitude;
+                businessExist.Latitude = requestDto.Latitude;
+                businessExist.ProvinceId = requestDto.ProvinceId;
+                businessExist.BusinessContactProperty.Email = requestDto.BusinessContactProperty.Email;
+                businessExist.BusinessContactProperty.Name = requestDto.BusinessContactProperty.Name;
+                businessExist.BusinessContactProperty.PhoneNumber = requestDto.BusinessContactProperty.PhoneNumber;
+                if (businessExist.BusinessContactProperty.ImageProperty.BlobId != requestDto.BusinessContactProperty.FileId)
                 {
-                    if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo
-                        && imageInfo != null)
+                    var fileResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: requestDto.FileId);
+                    if (fileResponse.StatusCode == StatusCodes.Status200OK
+                        && fileResponse.Result.Data is ImageFileInfo imageInfo)
                     {
-                        imageProperty = (ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: true));
+                        var imageProperty = ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Thumbnail, isDefault: true);
+                        businessExist.BusinessContactProperty.ImageProperty = imageProperty;
                     }
                 }
-                var businessContactPerson = new BusinessContactProperty()
-                {
-                    Name = requestDto.BusinessContactProperty.Name,
-                    Email = requestDto.BusinessContactProperty.Email,
-                    PhoneNumber = requestDto.BusinessContactProperty.PhoneNumber,
-                    ImageProperty = imageProperty,
-                };
-                businessEntity.BusinessContactPerson = businessContactPerson.ToJson();
-                _dbContext.Businesses.Update(businessEntity);
-
-                var adminUsers = await _userManager.GetUsersInRoleAsync(CRoleType.Admin.ToString());
-                if (adminUsers.Any())
-                {
-                    var notifications = new List<NotificationEntity>();
-                    foreach (var user in adminUsers)
-                    {
-                        var notificationEntity = new NotificationEntity()
-                        {
-                            IsRead = false,
-                            Title = "Cập nhật doanh nghiệp.",
-                            Content = $"{requestDto.BusinessName} - {requestDto.Address}",
-                            Type = CNotificationType.Business,
-                            UserId = user.Id
-                        };
-                        await _notificationHubContext.Clients.User(user.Id.ToString())
-                            .SendAsync("ReceiveNotification", $"Doanh nghiệp đã được cập nhật: {requestDto.BusinessName}.");
-                        notifications.Add(notificationEntity);
-                    }
-                    _dbContext.Notifications.AddRange(notifications);
-                }
+                businessExist.BusinessContactPerson = businessExist.BusinessContactProperty.ToJson();
+                businessExist.Service = requestDto.ServiceProperties.ToJson();
+                _dbContext.Businesses.Update(entity: businessExist);
                 await _dbContext.SaveChangesAsync();
                 response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status202Accepted;
                 response.Result.Data = new ResultMessage()
                 {
                     Level = CNotificationLevel.Success,
-                    Message = $"Cập nhật doanh nghiệp thành công.",
+                    Message = $"Cập nhật thông tin thành công.",
                     NotificationType = CNotificationType.Business
                 };
-                response.StatusCode = StatusCodes.Status202Accepted;
                 return response;
             }
             catch (Exception ex)

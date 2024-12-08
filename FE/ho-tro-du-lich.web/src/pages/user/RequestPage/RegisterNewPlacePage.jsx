@@ -44,7 +44,7 @@ const RegisterNewPlacePage = () => {
       return;
     }
     data.latitude = positionMap[0];
-    data.longtitude = positionMap[1];
+    data.longitude = positionMap[1];
     data.fileIds = fileIds;
 
     dispatch(systemAction.enableLoading());

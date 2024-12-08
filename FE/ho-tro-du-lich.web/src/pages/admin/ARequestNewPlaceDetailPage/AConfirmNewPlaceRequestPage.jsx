@@ -67,7 +67,7 @@ const AConfirmNewPlaceRequestPage = () => {
           <br></br>
           <MapCustom
             latitude={dataDetail.latitude}
-            longtitude={dataDetail.longtitude}
+            longitude={dataDetail.longitude}
             pin={true}
             label={"Vị trí"}
           />

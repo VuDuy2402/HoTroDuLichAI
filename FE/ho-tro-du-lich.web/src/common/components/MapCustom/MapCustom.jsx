@@ -1,5 +1,4 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
-import { GrPowerReset } from "react-icons/gr";
+import { useEffect, useRef, useState } from "react";
 import { Card, Form } from "react-bootstrap";
 import {
   MapContainer,
@@ -12,10 +11,8 @@ import {
 import "./MapCustom.scss";
 
 const MapCustom = ({
-  // latitude = 16.047079,
-  // longtitude = 108.20623,
   latitude,
-  longtitude,
+  longitude,
   name,
   styleMap,
   zoom = 13,
@@ -23,15 +20,23 @@ const MapCustom = ({
   onChangePosition,
   label,
 }) => {
-  const [positionState, setPositionState] = useState([latitude, longtitude]);
+  const [positionState, setPositionState] = useState([latitude, longitude]);
 
   const handleChangePosition = (position) => {
-    if (pin) return;
-    setPositionState([position.latitude, position.longtitude]);
+    if (pin) {
+      return;
+    };
+    setPositionState([position.latitude, position.longitude]);
     if (onChangePosition) {
-      onChangePosition([position.latitude, position.longtitude]);
+      onChangePosition([position.latitude, position.longitude]);
     }
   };
+
+  useEffect(() => {   
+    if (latitude && longitude) {
+      setPositionState([latitude, longitude]);
+    }
+  }, [latitude, longitude]);
 
   return (
     <div
@@ -40,8 +45,8 @@ const MapCustom = ({
       {label && <label className="fw-bold">{label}</label>}
       <MapContainer
         center={
-          latitude && longtitude
-            ? [latitude, longtitude]
+          latitude && longitude
+            ? [latitude, longitude]
             : [16.047079, 108.20623]
         }
         zoom={zoom}
@@ -56,8 +61,8 @@ const MapCustom = ({
             <Popup>{name}</Popup>
           </Marker>
         )}
-        {!positionState && pin && latitude && longtitude && (
-          <Marker position={[latitude, longtitude]}>
+        {!positionState && pin && latitude && longitude && (
+          <Marker position={[latitude, longitude]}>
             <Popup>{name}</Popup>
           </Marker>
         )}
@@ -84,13 +89,11 @@ const MapCustom = ({
             <Form.Label style={{ fontSize: "0.7rem" }}>Kinh độ</Form.Label>
             <Form.Control
               type="number"
-              placeholder="Longtitude"
-              // value={coordinates.longitude || ""}
+              placeholder="Longitude"
               value={positionState[1] || ""}
-              // onChange={(e) => handleLatLngChange(e, "longitude")}
               onChange={(e) =>
                 handleChangePosition({
-                  longtitude: Number(e.target.value),
+                  longitude: Number(e.target.value),
                   latitude: positionState[0],
                 })
               }
@@ -103,13 +106,11 @@ const MapCustom = ({
             <Form.Control
               type="number"
               placeholder="Latitude"
-              // value={coordinates.latitude || ""}
               value={positionState[0] || ""}
-              // onChange={(e) => handleLatLngChange(e, "latitude")}
               onChange={(e) =>
                 handleChangePosition({
                   latitude: e.target.value,
-                  longtitude: positionState[1],
+                  longitude: positionState[1],
                 })
               }
               style={{ fontSize: "0.7rem", padding: "3px", width: "100%" }}
@@ -139,13 +140,13 @@ const GeoCoder = ({ position = "topright", onReset, onChangePosition }) => {
 
   useEffect(() => {
     const geocoder = L.Control.geocoder({
-      defaultMarkGeocode: false, // Tự động đánh dấu vị trí sau khi tìm
+      defaultMarkGeocode: false,
       position: position,
     })
       .on("markgeocode", function (e) {
         const { center } = e.geocode;
-        onChangePosition({ latitude: center.lat, longtitude: center.lng });
-        map.setView(center, 13); // Di chuyển bản đồ đến vị trí tìm thấy
+        onChangePosition({ latitude: center.lat, longitude: center.lng });
+        map.setView(center, 13);
       })
       .addTo(map);
     geocoderRef.current = geocoder;
@@ -172,7 +173,7 @@ const MapClickHandler = ({ onChangePosition }) => {
       onChangePosition &&
         onChangePosition({
           latitude: e.latlng.lat,
-          longtitude: e.latlng.lng,
+          longitude: e.latlng.lng,
         });
     },
   });

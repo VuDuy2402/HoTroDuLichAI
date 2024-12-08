@@ -170,7 +170,7 @@ const PlaceDetailPage = () => {
             <h5 className="">Chi tiết địa điểm</h5>
             <div style={{ height: "350px", marginBottom: "20px" }}>
               <MapContainer
-                center={[dataPlace.latitude, dataPlace.longtitude]}
+                center={[dataPlace.latitude, dataPlace.longitude]}
                 zoom={13}
                 style={{ height: "100%", width: "100%" }}
               >
@@ -178,7 +178,7 @@ const PlaceDetailPage = () => {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
-                <Marker position={[dataPlace.latitude, dataPlace.longtitude]}>
+                <Marker position={[dataPlace.latitude, dataPlace.longitude]}>
                   <Popup>{dataPlace.name}</Popup>
                 </Marker>
               </MapContainer>

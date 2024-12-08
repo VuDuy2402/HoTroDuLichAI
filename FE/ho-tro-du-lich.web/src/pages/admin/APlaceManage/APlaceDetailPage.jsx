@@ -148,7 +148,7 @@ const APlaceDetailPage = ({ show, placeId, onClose }) => {
                         {/* Map Section */}
                         <div style={{ height: "300px", marginBottom: "20px" }}>
                             <MapContainer
-                                center={[placeDetails.latitude, placeDetails.longtitude]}
+                                center={[placeDetails.latitude, placeDetails.longitude]}
                                 zoom={13}
                                 style={{ height: "100%", width: "100%" }}
                             >
@@ -157,7 +157,7 @@ const APlaceDetailPage = ({ show, placeId, onClose }) => {
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                 />
                                 <Marker
-                                    position={[placeDetails.latitude, placeDetails.longtitude]}
+                                    position={[placeDetails.latitude, placeDetails.longitude]}
                                 >
                                     <Popup>{placeDetails.name}</Popup>
                                 </Marker>

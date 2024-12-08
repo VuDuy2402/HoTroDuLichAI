@@ -3,7 +3,7 @@ import { Form, Button } from "react-bootstrap";
 import MapCustom from "../../../common/components/MapCustom/MapCustom";
 import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGallery";
 import { itineraryService } from "../../../services/itineraryService";
-import { CBusinessType, PlaceTypeDescriptions } from "../../../enum/businessTypeEnum";
+import { CBusinessServiceType, CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
 import { businessService } from "../../../services/businessService";
 import { toast } from "react-toastify";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
@@ -14,9 +14,9 @@ import { systemAction } from "@/redux/slices/systemSlice";
 import { useNavigate } from "react-router-dom";
 
 // Create options for business types
-const options = Object.keys(CBusinessType).map((key) => ({
-  label: PlaceTypeDescriptions[CBusinessType[key]],
-  value: CBusinessType[key],
+const options = Object.keys(CBusinessServiceType).map((key) => ({
+  label: CBusinessServiceTypeDescriptions[CBusinessServiceType[key]],
+  value: CBusinessServiceType[key],
 }));
 
 const RegisterBusinessPage = () => {

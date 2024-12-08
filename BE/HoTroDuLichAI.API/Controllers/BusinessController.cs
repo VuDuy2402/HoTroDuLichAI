@@ -48,6 +48,13 @@ namespace HoTroDuLichAI.API.Controllers
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
+        [HttpGet("manage/getforupdate/{businessId}")]
+        public async Task<IActionResult> GetBusinessForUpdateById(Guid businessId)
+        {
+            var result = await _businessService.GetBusinessDetailForUpdateByIdAsync(businessId: businessId);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
         [HttpPost("manage")]
         [Authorize(Roles = RoleDescription.Admin)]
         public async Task<IActionResult> CreateBusiness(CreateBusinessRequestDto requestDto)

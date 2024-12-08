@@ -1,23 +1,32 @@
-import { Button, Form, Modal, Row, Col, Table } from "react-bootstrap";
-import { FaTrashAlt } from "react-icons/fa";
+import { Button, Form, Modal, Row, Col, Card } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useForm } from "react-hook-form";
-import { businessService } from "../../../services/businessService";
 import { toast } from "react-toastify";
 import { systemAction } from "../../../redux/slices/systemSlice";
-import { CBusinessServiceType, CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
+import { businessService } from "../../../services/businessService";
+import { CBusinessServiceType, CApprovalType, CBusinessServiceTypeDescriptions, CApprovalTypeDescription } from "../../../enum/businessTypeEnum";
+import MapCustom from "../../../common/components/MapCustom/MapCustom";
+import { itineraryService } from "../../../services/itineraryService";
+import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ErrorField from "@/common/components/ErrorField/ErrorField";
 
 const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) => {
-    const [businessDetail, setBusinesssDetail] = useState(null);
-    const [imageFiles, setImageFiles] = useState([]);
+    const [positionMap, setPositionMap] = useState(null);
+    const [provinceList, setProvinceList] = useState([]);
+    const [businessDetail, setBusinessDetail] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { handleSubmit, setValue, formState: { errors } } = useForm();
-    const [selectedBusinessType, setSelectedBusinessType] = useState(CBusinessServiceType.None);
-    const [errorMessages, setErrorMessages] = useState([]);
-    const [selectedFiles, setSelectedFiles] = useState([]);
-    const [selectAll, setSelectAll] = useState(false);
+    const [selectedServiceType, setSelectedServiceType] = useState(CBusinessServiceType.None);
+    const [selectedApprovalType, setSelectedApprovalType] = useState(CApprovalType.None);
+    const [errors, setErrors] = useState([]);
     const dispatch = useDispatch();
+    const [serviceProperties, setServiceProperties] = useState([]);
+    const [selectedService, setSelectedService] = useState(null);
+    const [businessContact, setBusinessContact] = useState({
+        name: '',
+        email: '',
+        phoneNumber: '',    
+        avatar: '',
+    });
 
     useEffect(() => {
         if (businessId && show) {
@@ -28,19 +37,19 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
     const fetchBusinessDetail = async () => {
         dispatch(systemAction.enableLoading());
         try {
-            const result = await businessService.getBusinessById(businessId);
+            const result = await businessService.getBusinessForUpdateById(businessId);
             if (result && result.success) {
                 setBusinessDetail(result.data);
-                setValue("name", result.data.name);
-                setValue("address", result.data.address);
-                setValue("latitude", result.data.latitude);
-                setValue("longitude", result.data.longtitude);
-                setValue("description", result.data.description);
-                setSelectedBusinessType(result.data.businessType || CBusinessType.None);
-                setValue("isNew", result.data.isNew);
-                setImageFiles(result.data.imageDetailProperties || []);
-            } else {
-                toast.error("Failed to load business details.");
+                setSelectedServiceType(result.data.businessServiceType || CBusinessServiceType.None);
+                setSelectedApprovalType(result.data.appoved || CApprovalType.None);
+                setServiceProperties(result.data.serviceProperties);
+                setBusinessContact(result.data.businessContactProperty);
+                setPositionMap({
+                    latitude: result.data.latitude,
+                    longitude: result.data.longitude
+                });
+            } else if (result && result.errors) {
+                toast.error(result.errors);
             }
         } catch (error) {
             toast.error("Error fetching business details:", error);
@@ -49,124 +58,58 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
         }
     };
 
-    const handleImageUpload = (event) => {
-        const files = Array.from(event.target.files);
-        const updatedImageFiles = [...imageFiles];
-        files.forEach(file => {
-            const fileId = file.name;
-            updatedImageFiles.push({ FileId: fileId, IsDefault: false });
-        });
-        setImageFiles(updatedImageFiles);
-    };
-
-    const handleImageDefault = (fileId) => {
-        setImageFiles(prevImages =>
-            prevImages.map(img =>
-                img.FileId === fileId ? { ...img, IsDefault: true } : { ...img, IsDefault: false }
-            )
-        );
-    };
-
-    useEffect(() => {
-        if (selectedFiles.length === imageFiles.length) {
-            setSelectAll(true);
-        } else {
-            setSelectAll(false);
-        }
-    }, [selectedFiles, imageFiles.length]);
-
-    const handleImageDelete = async (fileId, businessId) => {
-        dispatch(systemAction.enableLoading());
+    const handleGetAllProvince = async () => {
         try {
-            const requestData = {
-                businessId: businessId,
-                fileIds: [fileId]
+            dispatch(systemAction.enableLoading());
+            const result = await itineraryService.getAllProvince();
+            if (result && result.success) {
+                const listConvert = result.data.map((item) => ({
+                    label: item.provinceName,
+                    value: item.provinceId,
+                }));
+                setProvinceList(listConvert);
+            } else if (result && result.errors) {
+                setErrors(result.errors);
             }
-            const response = await businessService.deleteBusinessImagesAdmin(requestData);
-            if (response && response.success) {
-                toast.success(response.data.message);
-                setImageFiles(prevImages => prevImages.filter(img => img.FileId !== fileId));
-            }
-            else if (response && response.errors) {
-                setErrorMessages(response.errors);
-            }
-        }
-        catch {
-            toast.error("Đã có lỗi xảy ra khi thực hiện việc xóa hình ảnh của doanh nghiệp.");
-        }
-        finally {
+        } catch (err) {
+            toast.error(`Error occurred: ${err}`);
+        } finally {
             dispatch(systemAction.disableLoading());
         }
     };
 
-    const handleSelectFile = (fileId) => {
-        setSelectedFiles((prevSelected) => {
-            if (prevSelected.includes(fileId)) {
-                return prevSelected.filter(id => id !== fileId);
-            } else {
-                return [...prevSelected, fileId];
-            }
-        });
-    };
+    useEffect(() => {
+        handleGetAllProvince();
+    }, []);
 
-    const handleSelectAll = () => {
-        if (selectAll) {
-            setSelectedFiles([]);
-        } else {
-            setSelectedFiles(imageFiles.map(img => img.FileId));
-        }
-        setSelectAll(!selectAll);
-    };
+    const handleSubmitUpdate = async (e) => {
+        e.preventDefault();
 
-    const handleDeleteSelected = async () => {
-        if (selectedFiles.length === 0) {
-            toast.warning("Vui lòng chọn ít nhất một hình ảnh để xóa.");
-            return;
-        }
-
-        try {
-            const response = await businessService.deleteBusinessImagesAdmin({
-                businessId,
-                fileIds: selectedFiles
-            });
-
-            if (response && response.success) {
-                toast.success(response.data.message);
-                setSelectedFiles([]);
-            } else {
-                toast.error(response.errors || "Lỗi khi xóa hình ảnh.");
-            }
-        } catch (error) {
-            toast.error("Đã có lỗi xảy ra khi xóa hình ảnh.");
-        }
-    };
-
-    const handleSubmitUpdate = async (data) => {
         if (isSubmitting) return;
-
         setIsSubmitting(true);
         dispatch(systemAction.enableLoading());
 
         const updatedData = {
             BusinessId: businessId,
-            Address: data.address,
-            IsNew: data.isNew,
-            Latitude: data.latitude,
-            Longitude: data.longitude,
-            Description: data.description,
-            Name: data.name,
-            BusinessType: selectedBusinessType,
-            ImageFiles: imageFiles
+            BusinessName: e.target.businessName.value,
+            Address: e.target.address.value,
+            BusinessServiceType: selectedServiceType,
+            Appoved: selectedApprovalType,
+            Longitude: positionMap?.longitude,
+            Latitude: positionMap?.latitude,
+            ProvinceId: e.target.provinceId.value,
+            BusinessContactProperty: businessContact,
+            FileId: e.target.fileId?.value
         };
 
         try {
-            const result = await businessService.updateBusinessAdmin(updatedData);
+            const result = await businessService.updateBusinesseAdmin(updatedData);
             if (result && result.success) {
                 toast.success("Business updated successfully.");
                 onBusinessUpdated();
                 onClose();
-            } else {
-                toast.error("Failed to update business.");
+            } else if (result && result.errors) {
+                setErrors(result.errors);
             }
         } catch (error) {
             toast.error("Error updating business:", error);
@@ -176,196 +119,308 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
         }
     };
 
+    const handleUpdateService = (e, serviceId) => {
+        e.preventDefault();
+        const updatedServiceProperties = serviceProperties.map((service) =>
+            service.ServiceId === serviceId
+                ? { ...service, ...selectedService }
+                : service
+        );
+        setServiceProperties(updatedServiceProperties);
+        setSelectedService(null);
+    };
+
     return (
         <Modal show={show} onHide={onClose} size="lg" centered>
             <Modal.Header closeButton>
-                <Modal.Title>Cập nhật doanh nghiệp</Modal.Title>
+                <Modal.Title>Update Business Information</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {businessDetail ? (
-                    <Form onSubmit={handleSubmit(handleSubmitUpdate)}>
+                    <Form onSubmit={handleSubmitUpdate}>
+                        <FormErrorAlert errors={errors} />
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Tên địa điểm</Form.Label>
+                                    <Form.Label>Business Name</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        defaultValue={businessDetail.name}
-                                        isInvalid={!!errors.name}
+                                        name="businessName"
+                                        defaultValue={businessDetail.businessName}
                                     />
                                 </Form.Group>
+                                <ErrorField errorList={errors} field={"BusinessName_Error"} />
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Địa chỉ</Form.Label>
+                                    <Form.Label>Address</Form.Label>
                                     <Form.Control
                                         type="text"
+                                        name="address"
                                         defaultValue={businessDetail.address}
-                                        isInvalid={!!errors.address}
                                     />
                                 </Form.Group>
+                                <ErrorField errorList={errors} field={"Address_Error"} />
                             </Col>
                         </Row>
+
+                        <Form.Group controlId="provinceId" className="my-2">
+                            <Form.Label>Province</Form.Label>
+                            <Form.Select
+                                name="provinceId"
+                                defaultValue={businessDetail.provinceId}
+                            >
+                                <option value="">Select Province</option>
+                                {provinceList.map((province) => (
+                                    <option key={province.value} value={province.value}>
+                                        {province.label}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                            <ErrorField errorList={errors} field="ProvinceId_Error" />
+                        </Form.Group>
 
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Latitude</Form.Label>
-                                    <Form.Control
-                                        type="number"
-                                        step="0.0001"
-                                        defaultValue={businessDetail.latitude}
-                                        isInvalid={!!errors.latitude}
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Longitude</Form.Label>
-                                    <Form.Control
-                                        type="number"
-                                        step="0.0001"
-                                        defaultValue={businessDetail.longtitude}
-                                        isInvalid={!!errors.longitude}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-
-                        <Row>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Mô tả</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={3}
-                                        defaultValue={businessDetail.description}
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Loại doanh nghiệp</Form.Label>
+                                    <Form.Label>Business Type</Form.Label>
                                     <Form.Select
-                                        value={selectedBusinessType}
-                                        onChange={(e) => {
-                                            const newValue = Number(e.target.value);
-                                            setSelectedBusinessType(newValue);
-                                            setValue("businessType", newValue);
-                                        }}
+                                        value={selectedServiceType}
+                                        onChange={(e) => setSelectedServiceType(Number(e.target.value))}
                                     >
-                                        {Object.keys(CBusinessServiceType).map(key => (
+                                        {Object.keys(CBusinessServiceType).map((key) => (
                                             <option key={key} value={CBusinessServiceType[key]}>
                                                 {CBusinessServiceTypeDescriptions[CBusinessServiceType[key]]}
                                             </option>
                                         ))}
                                     </Form.Select>
+                                    <ErrorField errorList={errors} field={"BusinessServiceType_Error"} />
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Approval Status</Form.Label>
+                                    <Form.Select
+                                        value={selectedApprovalType}
+                                        onChange={(e) => setSelectedApprovalType(Number(e.target.value))}
+                                    >
+                                        {Object.keys(CApprovalType).map((key) => (
+                                            <option key={key} value={CApprovalType[key]}>
+                                                {CApprovalTypeDescription[CApprovalType[key]]}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                    <ErrorField errorList={errors} field={"approved_Error"} />
                                 </Form.Group>
                             </Col>
                         </Row>
 
                         <Row>
+                            <MapCustom
+                                latitude={positionMap?.latitude}
+                                longitude={positionMap?.longitude}
+                                label="Location"
+                                pin={false}
+                                onChangePosition={(data) => setPositionMap(data)}
+                            />
+                            <ErrorField errorList={errors} field={"Longitude_Error"} />
+                            <ErrorField errorList={errors} field={"Latitude_Error"} />
+                        </Row>
+
+
+                        <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Là doanh nghiệp mới</Form.Label>
-                                    <Form.Check
-                                        type="checkbox"
-                                        defaultChecked={businessDetail.isNew}
+                                    <Form.Label>Contact Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={businessContact.name}
+                                        onChange={(e) => setBusinessContact({ ...businessContact, name: e.target.value })}
                                     />
                                 </Form.Group>
+                                <ErrorField errorList={errors} field={"ContactName_Error"} />
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Hình ảnh</Form.Label>
+                                    <Form.Label>Email</Form.Label>
                                     <Form.Control
-                                        type="file"
-                                        multiple
-                                        onChange={handleImageUpload}
+                                        type="email"
+                                        value={businessContact.email}
+                                        onChange={(e) => setBusinessContact({ ...businessContact, email: e.target.value })}
                                     />
                                 </Form.Group>
+                                <ErrorField errorList={errors} field={"Email_Error"} />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Phone Number</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={businessContact.phoneNumber}
+                                        onChange={(e) => setBusinessContact({ ...businessContact, phoneNumber: e.target.value })}
+                                    />
+                                </Form.Group>
+                                <ErrorField errorList={errors} field={"PhoneNumber_Error"} />
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Avatar</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={businessContact.avatar}
+                                        onChange={(e) => setBusinessContact({ ...businessContact, avatar: e.target.value })}
+                                    />
+                                </Form.Group>
+                                <ErrorField errorList={errors} field={"Avatar_Error"} />
                             </Col>
                         </Row>
 
-                        <div className="mt-3">
-                            <h6>Hình ảnh</h6>
-                            <Table striped bordered hover>
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <Form.Check
-                                                type="checkbox"
-                                                label="Chọn tất cả"
-                                                checked={selectAll}
-                                                onChange={handleSelectAll}
-                                            />
-                                        </th>
-                                        <th>Hình ảnh</th>
-                                        <th>Đặt làm mặc định</th>
-                                        <th>
-                                            <Button variant="link" onClick={handleDeleteSelected} disabled={selectedFiles.length === 0}>
-                                                Xóa tất cả
+                        <Row>
+                            {serviceProperties.map((service, index) => (
+                                <Col md={4} key={service.ServiceId}>
+                                    <Card key={index}>
+                                        <Card.Body>
+                                            <Card.Title>{service.Name}</Card.Title>
+                                            <Card.Subtitle className="mb-2 text-muted">{service.Type}</Card.Subtitle>
+                                            <Card.Text>
+                                                <strong>Amount:</strong> {service.Amount} <br />
+                                                <strong>Status:</strong> {service.Status} <br />
+                                                <strong>Quantity:</strong> {service.Quantity}
+                                            </Card.Text>
+                                            <Button
+                                                variant="primary"
+                                                onClick={() => setSelectedService(service)}
+                                            >
+                                                Edit
                                             </Button>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {imageFiles.map((image, idx) => (
-                                        <tr key={image.FileId}>
-                                            <td>
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    checked={selectedFiles.includes(image.FileId)}
-                                                    onChange={() => handleSelectFile(image.FileId)}
-                                                />
-                                            </td>
-                                            <td>
-                                                <img
-                                                    src={image.url}
-                                                    alt={`image-${idx}`}
-                                                    style={{
-                                                        objectFit: "cover",
-                                                        height: "100px",
-                                                        width: "100px",
-                                                        borderRadius: "8px",
-                                                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
-                                                    }}
-                                                />
-                                            </td>
-                                            <td>
-                                                <Form.Check
-                                                    type="radio"
-                                                    name="defaultImage"
-                                                    checked={image.IsDefault}
-                                                    onChange={() => handleImageDefault(image.FileId)}
-                                                    aria-label="Đặt làm mặc định"
-                                                />
-                                            </td>
-                                            <td>
-                                                <Button
-                                                    variant="link"
-                                                    onClick={() => {
-                                                        handleImageDelete(image.fileId, businessDetail.businessId);
-                                                    }}
-                                                    title="Xóa hình ảnh"
-                                                >
-                                                    <FaTrashAlt />
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </div>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            ))}
+                        </Row>
+
+                        {selectedService && (
+                            <Modal show={true} onHide={() => setSelectedService(null)} size="lg" centered>
+                                <Modal.Header closeButton>
+                                    <Modal.Title>Edit Service: {selectedService.Name}</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <Form
+                                        onSubmit={(e) => handleUpdateService(e, selectedService.ServiceId)}
+                                    >
+                                        <Row>
+                                            <Col md={6}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>Service Name</Form.Label>
+                                                    <Form.Control
+                                                        type="text"
+                                                        defaultValue={selectedService.Name}
+                                                        onChange={(e) =>
+                                                            setSelectedService({
+                                                                ...selectedService,
+                                                                Name: e.target.value,
+                                                            })
+                                                        }
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col md={6}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>Status</Form.Label>
+                                                    <Form.Control
+                                                        as="select"
+                                                        value={selectedService.Status}
+                                                        onChange={(e) =>
+                                                            setSelectedService({
+                                                                ...selectedService,
+                                                                Status: e.target.value,
+                                                            })
+                                                        }
+                                                    >
+                                                        <option value="Active">Active</option>
+                                                        <option value="Inactive">Inactive</option>
+                                                    </Form.Control>
+                                                </Form.Group>
+                                            </Col>
+                                        </Row>
+                                        <Row>
+                                            <Col md={6}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>Amount</Form.Label>
+                                                    <Form.Control
+                                                        type="number"
+                                                        value={selectedService.Amount}
+                                                        onChange={(e) =>
+                                                            setSelectedService({
+                                                                ...selectedService,
+                                                                Amount: parseFloat(e.target.value),
+                                                            })
+                                                        }
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col md={6}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>Quantity</Form.Label>
+                                                    <Form.Control
+                                                        type="number"
+                                                        value={selectedService.Quantity}
+                                                        onChange={(e) =>
+                                                            setSelectedService({
+                                                                ...selectedService,
+                                                                Quantity: parseInt(e.target.value),
+                                                            })
+                                                        }
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                        </Row>
+                                        <Row>
+                                            <Col md={12}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>Thumbnail URL</Form.Label>
+                                                    <Form.Control
+                                                        type="text"
+                                                        value={selectedService.Thumbnail}
+                                                        onChange={(e) =>
+                                                            setSelectedService({
+                                                                ...selectedService,
+                                                                Thumbnail: e.target.value,
+                                                            })
+                                                        }
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                        </Row>
+                                        <div className="d-flex justify-content-end">
+                                            <Button
+                                                variant="secondary"
+                                                onClick={() => setSelectedService(null)}
+                                                className="me-2"
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button variant="primary" type="submit">
+                                                Save Changes
+                                            </Button>
+                                        </div>
+                                    </Form>
+                                </Modal.Body>
+                            </Modal>
+                        )}
+
 
                         <div className="d-flex justify-content-end mt-3">
-                            <Button variant="secondary" onClick={onClose} className="me-2">Hủy bỏ</Button>
+                            <Button variant="secondary" onClick={onClose} className="me-2">Cancel</Button>
                             <Button type="submit" variant="primary" disabled={isSubmitting}>
-                                Cập nhật doanh nghiệp
+                                Confirm
                             </Button>
                         </div>
                     </Form>
                 ) : (
-                    <div>Đang tải chi tiết doanh nghiệp ...</div>
+                    <div>Loading business details...</div>
                 )}
             </Modal.Body>
         </Modal>

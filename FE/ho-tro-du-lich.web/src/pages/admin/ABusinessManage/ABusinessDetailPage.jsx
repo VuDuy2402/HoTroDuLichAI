@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Row, Col, Badge, Card, Image, Spinner } from "react-bootstrap";
-import { FaEye, FaStar, FaImage, FaRoute } from "react-icons/fa";
+import { FaEye, FaRoute } from "react-icons/fa";
 import { businessService } from "../../../services/businessService";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import { CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
@@ -65,7 +65,7 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                     <div>
                         {/* Statistical Info Section */}
                         <Row className="mb-4">
-                            <Col md={3}>
+                            <Col md={6}>
                                 <Card className="shadow-sm">
                                     <Card.Body className="text-center">
                                         <FaEye size={30} color="#007bff" />
@@ -74,25 +74,7 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                                     </Card.Body>
                                 </Card>
                             </Col>
-                            <Col md={3}>
-                                <Card className="shadow-sm">
-                                    <Card.Body className="text-center">
-                                        <FaStar size={30} color="#ffc107" />
-                                        <h5 className="mt-2">Đánh giá</h5>
-                                        <h4>Chưa có đánh giá</h4>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                            <Col md={3}>
-                                <Card className="shadow-sm">
-                                    <Card.Body className="text-center">
-                                        <FaImage size={30} color="#28a745" />
-                                        <h5 className="mt-2">Số hình ảnh</h5>
-                                        <h4>Chưa có hình ảnh</h4>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                            <Col md={3}>
+                            <Col md={6}>
                                 <Card className="shadow-sm">
                                     <Card.Body className="text-center">
                                         <FaRoute size={30} color="#17a2b8" />
@@ -138,23 +120,25 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                         </div>
 
                         {/* Map Section */}
-                        <div style={{ height: "300px", marginBottom: "20px" }}>
-                            <MapContainer
-                                center={[businessDetails.latitude, businessDetails.longitude]}
-                                zoom={13}
-                                style={{ height: "100%", width: "100%" }}
-                            >
-                                <TileLayer
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                />
-                                <Marker
-                                    position={[businessDetails.latitude, businessDetails.longitude]}
+                        {businessDetails.latitude !== 0 && businessDetails.longitude !== 0 && (
+                            <div style={{ height: "300px", marginBottom: "20px" }}>
+                                <MapContainer
+                                    center={[businessDetails.latitude, businessDetails.longitude]}
+                                    zoom={13}
+                                    style={{ height: "100%", width: "100%" }}
                                 >
-                                    <Popup>{businessDetails.businessName}</Popup>
-                                </Marker>
-                            </MapContainer>
-                        </div>
+                                    <TileLayer
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    />
+                                    <Marker
+                                        position={[businessDetails.latitude, businessDetails.longitude]}
+                                    >
+                                        <Popup>{businessDetails.businessName}</Popup>
+                                    </Marker>
+                                </MapContainer>
+                            </div>
+                        )}
 
                         {/* Contact Info Section */}
                         <div className="mb-4">
@@ -163,6 +147,29 @@ const ABusinessDetailPage = ({ show, businessId, onClose }) => {
                             <div>Email: {businessDetails.businessContactProperty.email}</div>
                             <div>Số điện thoại: {businessDetails.businessContactProperty.phoneNumber}</div>
                         </div>
+
+                        {/* Business Services Section */}
+                        {businessDetails.businessServiceProperties && businessDetails.businessServiceProperties.length > 0 && (
+                            <div className="mt-4">
+                                <h5>Dịch vụ cung cấp:</h5>
+                                <Row>
+                                    {businessDetails.businessServiceProperties.map(service => (
+                                        <Col key={service.serviceId} md={4}>
+                                            <Card className="mb-3">
+                                                <Card.Img variant="top" src={service.thumbnail} />
+                                                <Card.Body>
+                                                    <Card.Title>{service.name}</Card.Title>
+                                                    <Card.Text>
+                                                        <strong>Số lượng: </strong>{service.quantity} <br />
+                                                        <strong>Giá: </strong>{service.amount} VND
+                                                    </Card.Text>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    ))}
+                                </Row>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="text-center">Không có thông tin chi tiết</div>

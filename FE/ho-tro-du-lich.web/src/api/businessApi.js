@@ -4,6 +4,7 @@ export const businessApi = {
   // admin
   Business_Admin_GetWithPaging: "api/v1/admin/business/manage/paging",
   Business_Admin_GetBusinessById: "api/v1/admin/business/manage",
+  Business_Admin_GetBusinessForUpdateById: "api/v1/admin/business/manage/getforupdate",
 
   Business_Admin_CreateBusiness: "api/v1/admin/business/manage",
   Business_Admin_UpdateBusiness: "api/v1/admin/business/manage",

@@ -7,6 +7,7 @@ namespace HoTroDuLichAI.API
         Task<ApiResponse<BasePagedResult<BusinessMoreInfoResponseDto>>> GetWithPagingAsync(BusinessPagingAndFilterParams param,
             ModelStateDictionary? modelState = null);
         Task<ApiResponse<BusinessMoreInfoResponseDto>> GetBusinessDetailByIdAsync(Guid businessId);
+        Task<ApiResponse<UpdateBusinessRequestDto>> GetBusinessDetailForUpdateByIdAsync(Guid businessId);
         Task<ApiResponse<BusinessDetailResponseDto>> CreateBusinessAsync(CreateBusinessRequestDto requestDto, ModelStateDictionary? modelState = null);
         Task<ApiResponse<ResultMessage>> UpdateBusinessAsync(UpdateBusinessRequestDto requestDto,
             ModelStateDictionary? modelState = null);
