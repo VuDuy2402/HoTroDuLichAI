@@ -9,4 +9,12 @@ export const articleService = {
     }
     return null;
   },
+
+  registerNewArticle: async (data) => {
+    const response = await reqApi.post(articleApi.Article_Admin_SendRequest, data);
+    if (response) {
+      return response;
+    }
+    return null;
+  }
 };

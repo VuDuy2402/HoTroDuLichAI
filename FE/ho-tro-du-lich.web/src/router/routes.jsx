@@ -14,6 +14,7 @@ import { Role } from "../enum/permission";
 import AuthLayout from "../layouts/AuthLayout";
 import RegisterNewPlacePage from "../pages/user/RequestPage/RegisterNewPlacePage";
 import RegisterNewBusinessPage from "../pages/user/RequestPage/RegisterNewBusinessPage";
+import RegisterNewArticlePage from "../pages/user/RequestPage/RegisterNewArticlePage";
 
 export const routes = [
   {
@@ -90,6 +91,14 @@ export const routes = [
     component: <RegisterNewBusinessPage />,
     checkAuth: true,
     roles: [Role.NormalUser],
+    layout: <NavbarLayout />,
+    errorElement: <Navigate to="/error" />,
+  },
+  {
+    path: "/baiviet/dangky",
+    component: <RegisterNewArticlePage />,
+    checkAuth: true,
+    roles: [Role.NormalUser, Role.Business],
     layout: <NavbarLayout />,
     errorElement: <Navigate to="/error" />,
   },

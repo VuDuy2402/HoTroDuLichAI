@@ -9,7 +9,7 @@ import { memo, useEffect, useState } from "react";
 import { userService } from "../../../services/userSerivce";
 import { notificationService } from "../../../services/notificationService";
 import { FiBell } from "react-icons/fi";
-import { MdAddLocation } from "react-icons/md";
+import { MdAddLocation, MdOutlineArticle } from "react-icons/md";
 import UserTag from "../UserTag/UserTag";
 import {
   getAuthSelector,
@@ -160,12 +160,17 @@ const Navbar = ({ className }) => {
       return listBtn;
     }
     if (getUserRoles && getUserRoles.length > 0) {
-      if (
-        getUserRoles.includes(Role.Admin) ||
-        (getUserRoles.includes(Role.NormalUser) &&
-          !getUserRoles.includes(Role.Business))
-      ) {
+      if (getUserRoles.includes(Role.NormalUser
+        && !getUserRoles.includes(Role.Business)
+        && !getUserRoles.includes(Role.Admin))) {
         listBtn.push({ label: "Đăng ký Doanh nghiệp", id: 0 });
+      }
+    }
+    if (getUserRoles && getUserRoles.length > 0) {
+      if ((getUserRoles.includes(Role.NormalUser
+        || getUserRoles.includes(Role.Business))
+        && !getUserRoles.includes(Role.Admin))) {
+        listBtn.push({ label: "Đăng ký Bài viết", id: 0 });
       }
     }
     if (getUserRoles && getUserRoles.length > 0) {
@@ -291,6 +296,13 @@ const Navbar = ({ className }) => {
                 >
                   <MdAddLocation size={24} />
                   {windowSize.width > 1024 ? "Đăng địa điểm mới" : null}
+                </button>
+                <button
+                  className="btn btn-light rounded-0"
+                  onClick={() => navigate("/baiviet/dangky")}
+                >
+                  <MdOutlineArticle size={24} />
+                  {windowSize.width > 1024 ? "Đăng bài viết mới" : null}
                 </button>
                 <ButtonCustom
                   title={<RiMessage2Line size={24} />}

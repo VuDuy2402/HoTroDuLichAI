@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.ML.Data;
 
 namespace HoTroDuLichAI.API
 {
@@ -15,6 +14,9 @@ namespace HoTroDuLichAI.API
         public string Content { get; set; } = string.Empty;
         [Column("AnhBiaBaiViet")]
         public string Thumbnail { get; set; } = string.Empty;
+        [Column("TacGia")]
+        [StringLength(maximumLength: 50)]
+        public string Author { get; set; } = string.Empty;
         [Column("LoaiBaiViet")]
         public CArticleType Type { get; set; }
         [Column("TatCaHinhAnhBaiVietJson")]

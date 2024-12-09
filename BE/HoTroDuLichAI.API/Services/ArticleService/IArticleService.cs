@@ -6,7 +6,7 @@ namespace HoTroDuLichAI.API
     {
         Task<ApiResponse<BasePagedResult<ArticleDetailResponseDto>>> GetWithPagingAsync(ArticlePagingAndFilterParams param,
             ModelStateDictionary? modelState = null);
-        Task<ApiResponse<ArticleDetailResponseDto>> CreateArticleAsync(CreateArticleRequestDto requestDto, ModelStateDictionary? modelState = null);
+        Task<ApiResponse<ResultMessage>> CreateArticleAsync(CreateArticleRequestDto requestDto, ModelStateDictionary? modelState = null);
         Task<ApiResponse<ArticleDetailResponseDto>> GetArticleDetailByIdAsync(Guid articleId);
         Task<ApiResponse<ResultMessage>> UpdateArticleAsync (UpdateArticleRequestDto requestDto, ModelStateDictionary? modelState = null);
         Task<ApiResponse<ResultMessage>> DeleteArticleAsync(Guid articleId);

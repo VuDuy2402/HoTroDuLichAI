@@ -368,7 +368,7 @@ namespace HoTroDuLichAI.API
                         ContactPersonName = businessContactProperty.Name,
                         ContactPersonPhoneNumber = businessContactProperty.PhoneNumber,
                         ProvinceName = (await _dbContext.Provinces.FindAsync(requestDto.ProvinceId))?.Name ?? string.Empty,
-                        RedirectUrl = $"{RuntimeContext.AppSettings.ClientApp.ClientEndpoint}quantri/doanhnghiep/xacnhan/?businessId={businessEntity.Id}"
+                        RedirectUrl = $"{RuntimeContext.AppSettings.ClientApp.ClientEndpoint}/quantri/xacnhan/doanhnghiep/{businessEntity.Id}"
                     },
                     emailProviderType: CEmailProviderType.Gmail);
 

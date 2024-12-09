@@ -30,13 +30,13 @@ namespace HoTroDuLichAI.API
         }
 
         #region Create article
-        public async Task<ApiResponse<ArticleDetailResponseDto>> CreateArticleAsync(CreateArticleRequestDto requestDto, ModelStateDictionary? modelState = null)
+        public async Task<ApiResponse<ResultMessage>> CreateArticleAsync(CreateArticleRequestDto requestDto, ModelStateDictionary? modelState = null)
         {
             if (requestDto == null)
             {
-                return new ApiResponse<ArticleDetailResponseDto>()
+                return new ApiResponse<ResultMessage>()
                 {
-                    Result = new ResponseResult<ArticleDetailResponseDto>()
+                    Result = new ResponseResult<ResultMessage>()
                     {
                         Errors = new List<ErrorDetail>() { new ErrorDetail() { Error = $"Dữ liệu gửi về không hợp lệ. Vui lòng kiểm tra lại.", ErrorScope = CErrorScope.FormSummary } },
                         Success = false
@@ -45,7 +45,7 @@ namespace HoTroDuLichAI.API
                 };
             }
             var errors = ErrorHelper.GetModelStateError(modelState: modelState);
-            var response = new ApiResponse<ArticleDetailResponseDto>();
+            var response = new ApiResponse<ResultMessage>();
             if (!errors.IsNullOrEmpty())
             {
                 return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
@@ -81,30 +81,34 @@ namespace HoTroDuLichAI.API
                 }
                 bool hasAdminRole = (await _userManager.GetRolesAsync(user: currentUser)).Contains(CRoleType.Admin.ToString());
                 var imageProperties = new List<ImageProperty>();
-                int index = 0;
-                foreach (var id in requestDto.FileIds)
+                foreach (var img in requestDto.ImageDtos)
                 {
-                    var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: id);
+                    var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: img.FileId);
                     if (imageResponse.StatusCode == StatusCodes.Status200OK)
                     {
                         if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo
                             && imageInfo != null)
                         {
-                            imageProperties.Add(ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: index++ == 0));
+                            var imageProperty = ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: img.IsDefault);
+                            imageProperty.ImageType = img.ImageType;
+                            imageProperties.Add(imageProperty);
                         }
                     }
                 }
-                ArticleEntity? articleEntity = new ArticleEntity()
+                articleExist = new ArticleEntity()
                 {
                     Approved = hasAdminRole ? CApprovalType.Accepted : CApprovalType.PendingAprroval,
                     Title = requestDto.Title,
                     Content = requestDto.Content,
+                    Author = requestDto.Author,
                     Type = requestDto.Type,
-                    Thumbnail = imageProperties.Where(img => img.IsDefault).Select(img => img.Url).FirstOrDefault() ?? string.Empty,
+                    
+                    Thumbnail = imageProperties.Where(img => img.IsDefault && img.ImageType == CImageType.Thumbnail)
+                        .Select(img => img.Url).FirstOrDefault() ?? string.Empty,
                     ImageProperty = imageProperties.ToJson(),
                     UserId = currentUser.Id,
                 };
-                _dbContext.Articles.Add(articleEntity);
+                _dbContext.Articles.Add(articleExist);
                 var adminUsers = await _userManager.GetUsersInRoleAsync(roleName: CRoleType.Admin.ToString());
                 if (!hasAdminRole)
                 {
@@ -118,7 +122,7 @@ namespace HoTroDuLichAI.API
                             {
                                 IsRead = false,
                                 Title = "Yêu cầu xác nhận bài đăng mới.",
-                                Content = $"{requestDto.Title} - {requestDto.OwnerProperty.FullName}",
+                                Content = $"{requestDto.Title} - {requestDto.Author}",
                                 Type = CNotificationType.Article,
                                 UserId = user.Id
                             };
@@ -145,7 +149,7 @@ namespace HoTroDuLichAI.API
                         {
                             IsRead = false,
                             Title = "Thông báo có bài đăng mới.",
-                            Content = $"{requestDto.Title} - {requestDto.OwnerProperty.FullName}",
+                            Content = $"{requestDto.Title} - {requestDto.Author}",
                             Type = CNotificationType.Article,
                             UserId = user.Id
                         };
@@ -156,17 +160,13 @@ namespace HoTroDuLichAI.API
                     _dbContext.Notifications.AddRange(entities: notifications);
                 }
                 await _dbContext.SaveChangesAsync();
-                var data = articleEntity.Adapt<ArticleDetailResponseDto>();
-                data.ImageDetailProperties = imageProperties.Select(img => new ImageDetailProperty()
-                {
-                    FileId = img.BlobId,
-                    FileName = img.FileName,
-                    IsDefault = img.IsDefault,
-                    Type = img.ImageType,
-                    Url = img.Url
-                }).ToList();
                 response.Result.Success = true;
-                response.Result.Data = data;
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Success,
+                    Message = "Yêu cầu tạo bài viết thành công.",
+                    NotificationType = CNotificationType.Article
+                };
                 response.StatusCode = StatusCodes.Status201Created;
                 return response;
             }

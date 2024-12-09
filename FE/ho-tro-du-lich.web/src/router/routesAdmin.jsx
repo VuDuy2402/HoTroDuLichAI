@@ -7,13 +7,13 @@ import APlaceIndexPlace from "../pages/admin/APlaceManage/APlaceIndexPage";
 import AArticlePage from "../pages/admin/AArticlePage/AArticlePage";
 import ADashboardPage from "../pages/admin/ADashboardPage/ADashboardPage";
 import { IoBusinessOutline, IoLocationOutline, IoNotificationsOffCircleOutline, IoPeopleCircleOutline, IoPieChartOutline, IoTextOutline } from "react-icons/io5";
-import AConfirmRegisterBusinessPage from "../pages/admin/ABusinessManage/AConfirmRegisterBusinessPage";
-import AConfirmNewPlaceRequestPage from "../pages/admin/ARequestNewPlaceDetailPage/AConfirmNewPlaceRequestPage";
-import AConfirmRegisterArticleRequestPage from "../pages/admin/AArticlePage/AConfirmRegisterArticleRequestPage";
+import AConfirmRegisterArticleRequestPage from "../pages/admin/AConfirmPage/AConfirmRegisterArticleRequestPage";
 import ANewPlaceRequestPagingPage from "../pages/admin/ARequestPage/ANewPlaceRequestPagingPage";
 import ANewBusinessRequestPagingPage from "../pages/admin/ARequestPage/ANewBusinessRequestPagingPage";
 import ANewArticleRequestPagingPage from "../pages/admin/ARequestPage/ANewArticleRequestPagingPage";
 import ABusinessIndexPage from "../pages/admin/ABusinessManage/ABusinessIndexPage";
+import AConfirmRegisterPlaceRequestPage from "../pages/admin/AConfirmPage/AConfirmRegisterPlaceRequestPage";
+import AConfirmRegisterBusinessRequestPage from "../pages/admin/AConfirmPage/AConfirmRegisterBusinessRequestPage";
 
 const menuSideItemAdmin = [
   {
@@ -113,22 +113,22 @@ export const routersAdmin = [
   //#region Dia Diem
   {
     path: "/quantri/xacnhan/diadiem/:placeId",
-    component: <AConfirmNewPlaceRequestPage />,
+    component: <AConfirmRegisterPlaceRequestPage />,
     checkAuth: true,
     roles: [Role.Admin],
     errorElement: <Navigate to="/error" />,
     layout: <MenuSideLayout items={menuSideItemAdmin} />,
   },
   {
-    path: "/quantri/xacnhan/doanhnghiep:businessId",
-    component: <AConfirmRegisterBusinessPage />,
+    path: "/quantri/xacnhan/doanhnghiep/:businessId",
+    component: <AConfirmRegisterBusinessRequestPage />,
     checkAuth: true,
     roles: [Role.Admin],
     errorElement: <Navigate to="/error" />,
     layout: <MenuSideLayout items={menuSideItemAdmin} />,
   },
   {
-    path: "/quantri/xacnhan/baiviet:articleId",
+    path: "/quantri/xacnhan/baiviet/:articleId",
     component: <AConfirmRegisterArticleRequestPage />,
     checkAuth: true,
     roles: [Role.Admin],

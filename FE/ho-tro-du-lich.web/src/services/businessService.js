@@ -24,6 +24,14 @@ export const businessService = {
     return null;
   },
 
+  getWithPagingRequestNewBusinessAdmin: async (data) => {
+    const response = await reqApi.post(businessApi.Business_Admin_GetManageRequestWithPaging, data);
+    if (response) {
+      return response;
+    }
+    return null;
+  },
+
   getWithPagingAdmin: async (data) => {
     const token = localStorageService.getToken();
     if (token) {
