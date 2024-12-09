@@ -1,14 +1,16 @@
-import { Button, Form, Modal, Row, Col, Card } from "react-bootstrap";
+import { Button, Form, Modal, Row, Col, Card, Badge, Image } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { businessService } from "../../../services/businessService";
-import { CBusinessServiceType, CApprovalType, CBusinessServiceTypeDescriptions, CApprovalTypeDescription } from "../../../enum/businessTypeEnum";
+import { CBusinessServiceType, CApprovalType, CBusinessServiceTypeDescriptions, CApprovalTypeDescription, CBusinessServiceStatus } from "../../../enum/businessTypeEnum";
 import MapCustom from "../../../common/components/MapCustom/MapCustom";
 import { itineraryService } from "../../../services/itineraryService";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
+import { FaSyncAlt } from "react-icons/fa"
+import { CStatusType, CStatusTypeDescription } from "../../../enum/statusTypeEnum";
 
 const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) => {
     const [positionMap, setPositionMap] = useState(null);
@@ -24,7 +26,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
     const [businessContact, setBusinessContact] = useState({
         name: '',
         email: '',
-        phoneNumber: '',    
+        phoneNumber: '',
         avatar: '',
     });
 
@@ -105,14 +107,14 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
         try {
             const result = await businessService.updateBusinesseAdmin(updatedData);
             if (result && result.success) {
-                toast.success("Business updated successfully.");
+                toast.success(result.data.message);
                 onBusinessUpdated();
                 onClose();
             } else if (result && result.errors) {
                 setErrors(result.errors);
             }
         } catch (error) {
-            toast.error("Error updating business:", error);
+            toast.error("Đã xảy ra lỗi:", error);
         } finally {
             setIsSubmitting(false);
             dispatch(systemAction.disableLoading());
@@ -142,7 +144,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Business Name</Form.Label>
+                                    <Form.Label>Tên doanh nghiệp</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="businessName"
@@ -153,7 +155,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Address</Form.Label>
+                                    <Form.Label>Địa chỉ</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="address"
@@ -165,12 +167,12 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                         </Row>
 
                         <Form.Group controlId="provinceId" className="my-2">
-                            <Form.Label>Province</Form.Label>
+                            <Form.Label>Tỉnh</Form.Label>
                             <Form.Select
                                 name="provinceId"
                                 defaultValue={businessDetail.provinceId}
                             >
-                                <option value="">Select Province</option>
+                                <option value="">Chọn tỉnh</option>
                                 {provinceList.map((province) => (
                                     <option key={province.value} value={province.value}>
                                         {province.label}
@@ -183,7 +185,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Business Type</Form.Label>
+                                    <Form.Label>Loại doanh nghiệp</Form.Label>
                                     <Form.Select
                                         value={selectedServiceType}
                                         onChange={(e) => setSelectedServiceType(Number(e.target.value))}
@@ -199,7 +201,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Approval Status</Form.Label>
+                                    <Form.Label>Tình trạng phê duyệt</Form.Label>
                                     <Form.Select
                                         value={selectedApprovalType}
                                         onChange={(e) => setSelectedApprovalType(Number(e.target.value))}
@@ -228,75 +230,61 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                         </Row>
 
 
-                        <Row>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Contact Name</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={businessContact.name}
-                                        onChange={(e) => setBusinessContact({ ...businessContact, name: e.target.value })}
-                                    />
-                                </Form.Group>
-                                <ErrorField errorList={errors} field={"ContactName_Error"} />
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Email</Form.Label>
-                                    <Form.Control
-                                        type="email"
-                                        value={businessContact.email}
-                                        onChange={(e) => setBusinessContact({ ...businessContact, email: e.target.value })}
-                                    />
-                                </Form.Group>
-                                <ErrorField errorList={errors} field={"Email_Error"} />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Phone Number</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={businessContact.phoneNumber}
-                                        onChange={(e) => setBusinessContact({ ...businessContact, phoneNumber: e.target.value })}
-                                    />
-                                </Form.Group>
-                                <ErrorField errorList={errors} field={"PhoneNumber_Error"} />
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Avatar</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={businessContact.avatar}
-                                        onChange={(e) => setBusinessContact({ ...businessContact, avatar: e.target.value })}
-                                    />
-                                </Form.Group>
-                                <ErrorField errorList={errors} field={"Avatar_Error"} />
-                            </Col>
-                        </Row>
+                        <div className="my-4 p-2 rounded border">
+                            <Row className="">
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Tên người liên hệ</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={businessContact.name}
+                                            onChange={(e) => setBusinessContact({ ...businessContact, name: e.target.value })}
+                                        />
+                                    </Form.Group>
+                                    <ErrorField errorList={errors} field={"ContactName_Error"} />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Email người liên hệ</Form.Label>
+                                        <Form.Control
+                                            type="email"
+                                            value={businessContact.email}
+                                            onChange={(e) => setBusinessContact({ ...businessContact, email: e.target.value })}
+                                        />
+                                    </Form.Group>
+                                    <ErrorField errorList={errors} field={"Email_Error"} />
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Số điện thoại</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={businessContact.phoneNumber}
+                                            onChange={(e) => setBusinessContact({ ...businessContact, phoneNumber: e.target.value })}
+                                        />
+                                    </Form.Group>
+                                    <ErrorField errorList={errors} field={"PhoneNumber_Error"} />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Avatar</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={businessContact.avatar}
+                                            onChange={(e) => setBusinessContact({ ...businessContact, avatar: e.target.value })}
+                                        />
+                                    </Form.Group>
+                                    <ErrorField errorList={errors} field={"Avatar_Error"} />
+                                </Col>
+                            </Row>
+                        </div>
 
                         <Row>
                             {serviceProperties.map((service, index) => (
-                                <Col md={4} key={service.ServiceId}>
-                                    <Card key={index}>
-                                        <Card.Body>
-                                            <Card.Title>{service.Name}</Card.Title>
-                                            <Card.Subtitle className="mb-2 text-muted">{service.Type}</Card.Subtitle>
-                                            <Card.Text>
-                                                <strong>Amount:</strong> {service.Amount} <br />
-                                                <strong>Status:</strong> {service.Status} <br />
-                                                <strong>Quantity:</strong> {service.Quantity}
-                                            </Card.Text>
-                                            <Button
-                                                variant="primary"
-                                                onClick={() => setSelectedService(service)}
-                                            >
-                                                Edit
-                                            </Button>
-                                        </Card.Body>
-                                    </Card>
+                                <Col md={4} key={service.serviceId}>
+                                    <BusinessServiceItem service={service} onClick={() => setSelectedService(service)} />
                                 </Col>
                             ))}
                         </Row>
@@ -304,19 +292,19 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                         {selectedService && (
                             <Modal show={true} onHide={() => setSelectedService(null)} size="lg" centered>
                                 <Modal.Header closeButton>
-                                    <Modal.Title>Edit Service: {selectedService.Name}</Modal.Title>
+                                    <Modal.Title>Cập nhật dịch vụ: {selectedService.name}</Modal.Title>
                                 </Modal.Header>
                                 <Modal.Body>
                                     <Form
-                                        onSubmit={(e) => handleUpdateService(e, selectedService.ServiceId)}
+                                        onSubmit={(e) => handleUpdateService(e, selectedService.serviceId)}
                                     >
                                         <Row>
                                             <Col md={6}>
                                                 <Form.Group className="mb-3">
-                                                    <Form.Label>Service Name</Form.Label>
+                                                    <Form.Label>Tên dịch vụ</Form.Label>
                                                     <Form.Control
                                                         type="text"
-                                                        defaultValue={selectedService.Name}
+                                                        defaultValue={selectedService.name}
                                                         onChange={(e) =>
                                                             setSelectedService({
                                                                 ...selectedService,
@@ -328,10 +316,10 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                             </Col>
                                             <Col md={6}>
                                                 <Form.Group className="mb-3">
-                                                    <Form.Label>Status</Form.Label>
+                                                    <Form.Label>Trạng thái</Form.Label>
                                                     <Form.Control
                                                         as="select"
-                                                        value={selectedService.Status}
+                                                        value={selectedService.status}
                                                         onChange={(e) =>
                                                             setSelectedService({
                                                                 ...selectedService,
@@ -348,10 +336,10 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                         <Row>
                                             <Col md={6}>
                                                 <Form.Group className="mb-3">
-                                                    <Form.Label>Amount</Form.Label>
+                                                    <Form.Label>Giá</Form.Label>
                                                     <Form.Control
                                                         type="number"
-                                                        value={selectedService.Amount}
+                                                        value={selectedService.amount}
                                                         onChange={(e) =>
                                                             setSelectedService({
                                                                 ...selectedService,
@@ -363,10 +351,10 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                             </Col>
                                             <Col md={6}>
                                                 <Form.Group className="mb-3">
-                                                    <Form.Label>Quantity</Form.Label>
+                                                    <Form.Label>Số lượng</Form.Label>
                                                     <Form.Control
                                                         type="number"
-                                                        value={selectedService.Quantity}
+                                                        value={selectedService.quantity}
                                                         onChange={(e) =>
                                                             setSelectedService({
                                                                 ...selectedService,
@@ -380,10 +368,10 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                         <Row>
                                             <Col md={12}>
                                                 <Form.Group className="mb-3">
-                                                    <Form.Label>Thumbnail URL</Form.Label>
+                                                    <Form.Label>Hình ảnh</Form.Label>
                                                     <Form.Control
                                                         type="text"
-                                                        value={selectedService.Thumbnail}
+                                                        value={selectedService.thumbnail}
                                                         onChange={(e) =>
                                                             setSelectedService({
                                                                 ...selectedService,
@@ -400,10 +388,10 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                                 onClick={() => setSelectedService(null)}
                                                 className="me-2"
                                             >
-                                                Cancel
+                                                Hủy
                                             </Button>
                                             <Button variant="primary" type="submit">
-                                                Save Changes
+                                                Lưu
                                             </Button>
                                         </div>
                                     </Form>
@@ -413,9 +401,9 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
 
 
                         <div className="d-flex justify-content-end mt-3">
-                            <Button variant="secondary" onClick={onClose} className="me-2">Cancel</Button>
+                            <Button variant="secondary" onClick={onClose} className="me-2">Hủy</Button>
                             <Button type="submit" variant="primary" disabled={isSubmitting}>
-                                Confirm
+                                Xác nhận
                             </Button>
                         </div>
                     </Form>
@@ -424,6 +412,54 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                 )}
             </Modal.Body>
         </Modal>
+    );
+};
+
+
+
+const BusinessServiceItem = ({ service, onClick }) => {
+    return (
+        <Card className="my-3">
+            <Card.Body>
+                <Row>
+                    <Col>
+                        <Image src={service.thumbnail} alt={service.name} fluid />
+                    </Col>
+                </Row>
+
+                <Row className="mt-3">
+                    <Col>
+                        <Card.Title style={{ fontSize: "12px" }}>{service.name}</Card.Title>
+                        {/* <Card.Subtitle className="text-muted small" style={{ fontSize: "10px" }}>Mã dịch vụ: {service.serviceId}</Card.Subtitle> */}
+                        <Row className="mb-2" style={{ fontSize: "10px" }}>
+                            <Col>
+                                <span>Trạng thái : </span>
+                                <Badge bg={service.status === CBusinessServiceStatus.Available ? 'success' : 'danger'}>
+                                    {CStatusTypeDescription[service.status]}
+                                </Badge>
+                            </Col>
+                            <Col>
+                                <span>Dịch vụ : </span>
+                                <Badge variant="primary">
+                                    {CBusinessServiceTypeDescriptions[service.type]}
+                                </Badge>
+                            </Col>
+                        </Row>
+                        <Row className="mb-2">
+                            <Col>
+                                <Card.Text style={{ fontSize: "10px" }}>Số lượng: {service.quantity}</Card.Text>
+                            </Col>
+                            <Col>
+                                <Card.Text style={{ fontSize: "10px" }}>Số tiền: {service.amount.toLocaleString()} VND</Card.Text>
+                            </Col>
+                        </Row>
+                        <button className="btn btn-sm btn-outline-success text-end" onClick={onClick}>
+                            <FaSyncAlt className="mr-2" /> Cập nhật
+                        </button>
+                    </Col>
+                </Row>
+            </Card.Body>
+        </Card>
     );
 };
 

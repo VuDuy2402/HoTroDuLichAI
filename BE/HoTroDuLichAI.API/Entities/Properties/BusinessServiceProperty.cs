@@ -57,7 +57,9 @@ namespace HoTroDuLichAI.API
     public enum CBusinessServiceStatus
     {
         None = 0,
+        [Description(description: "Sẵn sàng")]
         Available = 1,
+        [Description(description: "Hết")]
         NotAvailable = 2
     }
 

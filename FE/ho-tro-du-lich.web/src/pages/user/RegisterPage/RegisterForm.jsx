@@ -98,6 +98,7 @@ const RegisterForm = () => {
               <Form.Control
                 id="register-pass"
                 name="password"
+                type="password"
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Nhập password"
@@ -115,6 +116,7 @@ const RegisterForm = () => {
               <Form.Control
                 id="register-repass"
                 name="confirmPassword"
+                type="password"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 placeholder="Nhập lại password"
