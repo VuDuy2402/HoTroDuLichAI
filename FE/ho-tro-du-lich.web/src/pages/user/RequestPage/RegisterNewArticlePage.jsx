@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { articleService } from "../../../services/articleService";
-import { CArticleType, CApprovalType, CArticleTypeDescriptions, CApprovalTypeDescriptions } from "../../../enum/articleTypeEnum";
+import { CApprovalType, ApprovalTypeDescriptions } from "../../../enum/approvalTypeEnum";
+import { CArticleType, CArticleTypeDescriptions } from "../../../enum/articleTypeEnum";
 import { toast } from "react-toastify";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
@@ -13,19 +14,22 @@ import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGa
 import { toQueryString } from "../../../utils/queryParams";
 import ReactQuill from 'react-quill';
 import "react-quill/dist/quill.snow.css";
+import { imageKitService } from "../../../services/imageKitService";
 
+// Các tùy chọn cho loại bài viết và trạng thái phê duyệt
 const articleTypeOptions = Object.keys(CArticleType).map((key) => ({
     label: CArticleTypeDescriptions[CArticleType[key]],
     value: CArticleType[key],
 }));
 
 const approvalTypeOptions = Object.keys(CApprovalType).map((key) => ({
-    label: CApprovalTypeDescriptions[CApprovalType[key]],
+    label: ApprovalTypeDescriptions[CApprovalType[key]],
     value: CApprovalType[key],
 }));
 
 const RegisterNewArticlePage = () => {
     const navigate = useNavigate();
+    const quillRef = useRef(null);
     const dispatch = useDispatch();
     const [errors, setErrors] = useState([]);
     const [formData, setFormData] = useState({
@@ -53,10 +57,93 @@ const RegisterNewArticlePage = () => {
     };
 
     const handleEditorChange = (value) => {
-        setFormData((prevData) => ({
-            ...prevData,
-            content: value,
-        }));
+        // setFormData((prevData) => ({
+        //     ...prevData,
+        //     content: value,
+        // }));
+    };
+
+    const handleImageUpload = async (files) => {
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append("Files", files[i]);
+        }
+
+        try {
+            const accessToken = localStorageService.getAccessToken();
+            const response = await axios.post(
+                'https://localhost:7001/api/v1/admin/fileupload/imagekit/bulkupload',
+                formData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                }
+            );
+            if (response && response.data) {
+                if (response.data.success) {
+                    const imageUrls = response.data.data.imageInfos.map(img => img.fileUrl);
+                    return imageUrls;
+                } else if (response.errors) {
+                    setErrors(response.errors);
+                }
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            setErrors(['Error uploading image']);
+        }
+
+        return null;
+    };
+
+    const imageHandler = () => {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.setAttribute('multiple', 'true');
+        input.click();
+
+        input.onchange = async (e) => {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const imageUrls = await handleImageUpload(files);
+
+                if (imageUrls) {
+                    const editor = quillRef.current.getEditor();
+                    const range = editor.getSelection();
+
+                    if (range) {
+                        imageUrls.forEach(imageUrl => {
+                            editor.insertEmbed(range.index, 'image', imageUrl);
+                        });
+
+                        const newRange = range.index + imageUrls.length;
+                        editor.setSelection(newRange);
+                    } else {
+                        const length = editor.getLength();
+                        imageUrls.forEach(imageUrl => {
+                            editor.insertEmbed(length, 'image', imageUrl);
+                        });
+                    }
+                }
+            }
+        };
+    };
+
+    const modules = {
+        toolbar: {
+            container: [
+                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote'],
+                [{ 'align': [] }],
+                ['link', 'image'],
+            ],
+            handlers: {
+                image: imageHandler,
+            },
+        },
     };
 
     const handleSubmitForm = async (e) => {
@@ -64,8 +151,8 @@ const RegisterNewArticlePage = () => {
 
         const data = {
             ...formData,
-            Type: formData.type.value,
-            Approved: formData.approved.value,
+            type: formData.type.value,
+            approved: formData.approved.value,
         };
 
         try {
@@ -112,16 +199,9 @@ const RegisterNewArticlePage = () => {
                     <ReactQuill
                         value={formData.content}
                         onChange={handleEditorChange}
-                        modules={{
-                            toolbar: [
-                                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                                ['bold', 'italic', 'underline'],
-                                ['link'],
-                                [{ 'align': [] }],
-                                ['image'],
-                            ],
-                        }}
+                        ref={quillRef}
+                        theme="snow"
+                        modules={modules}
                     />
                     <ErrorField errorList={errors} field="Content_Error" />
                 </Form.Group>

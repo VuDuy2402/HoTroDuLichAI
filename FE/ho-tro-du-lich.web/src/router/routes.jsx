@@ -15,11 +15,19 @@ import AuthLayout from "../layouts/AuthLayout";
 import RegisterNewPlacePage from "../pages/user/RequestPage/RegisterNewPlacePage";
 import RegisterNewBusinessPage from "../pages/user/RequestPage/RegisterNewBusinessPage";
 import RegisterNewArticlePage from "../pages/user/RequestPage/RegisterNewArticlePage";
+import MyEditor from "../pages/user/RequestPage/MyEditor";
 
 export const routes = [
   {
     path: "/",
     component: <Home />,
+    checkAuth: false,
+    roles: [],
+    layout: <MainLayout />,
+  },
+  {
+    path: "/editor",
+    component: <MyEditor />,
     checkAuth: false,
     roles: [],
     layout: <MainLayout />,
