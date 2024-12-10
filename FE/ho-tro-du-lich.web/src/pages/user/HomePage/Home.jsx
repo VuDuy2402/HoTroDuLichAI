@@ -1,5 +1,5 @@
 import { FaSearch } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import bgKH from "@/assets/img/bgkh.webp";
 import { CiLocationOn } from "react-icons/ci";
 import "./Home.scss";
@@ -257,6 +257,7 @@ const Home = () => {
               {article.map((news) => (
                 <SwiperSlide className="pt-3" key={news.articleId}>
                   <NewsTravel
+                    articleId={news.articleId}
                     img={news.thumbnail}
                     month={new Date(news.createdDate).getMonth() + 1}
                     year={new Date(news.createdDate).getFullYear()}
@@ -362,20 +363,26 @@ const NewHotPlace = ({ place }) => {
   );
 };
 
-const NewsTravel = ({ img, month, year, title, description }) => {
+const NewsTravel = ({ img, month, year, title, description, articleId }) => {
   return (
     <div
       className="news-travel__frame position-relative d-flex flex-column w-100 shadow border"
       style={{ height: "400px" }}
     >
-      <img className="h-50" src={img}></img>
+      <Link to={`/baiviet/chitiet/${articleId}`}>
+        <img className="h-50" src={img} alt={title}></img>
+      </Link>
+      
       <div className="news-travel__content h-50 p-2">
-        <h5
-          className="fw-bold w-100 overflow-hidden"
-          style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}
-        >
-          {title}
-        </h5>
+        <Link to={`/baiviet/chitiet/${articleId}`} className="text-decoration-none">
+          <h5
+            className="fw-bold w-100 overflow-hidden"
+            style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}
+          >
+            {title}
+          </h5>
+        </Link>
+
         <p
           className="w-100 overflow-hidden"
           style={{
@@ -387,6 +394,7 @@ const NewsTravel = ({ img, month, year, title, description }) => {
           {description}
         </p>
       </div>
+      
       <div
         className="news-travel__times position-absolute d-flex flex-column p-2"
         style={{

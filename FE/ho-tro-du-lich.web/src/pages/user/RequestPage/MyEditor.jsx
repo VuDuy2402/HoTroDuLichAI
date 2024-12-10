@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import ReactQuill from 'react-quill';
-import axios from 'axios';
 import 'react-quill/dist/quill.snow.css';
 import { toast } from 'react-toastify';
 import { localStorageService } from '../../../services/localstorageService';

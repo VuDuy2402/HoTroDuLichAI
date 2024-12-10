@@ -22,8 +22,10 @@ namespace HoTroDuLichAI.API
         [Required(ErrorMessage = "Trạng thái phê duyệt là bắt buộc.")]
         public CApprovalType Approved { get; set; }
 
-        [MinLength(1, ErrorMessage = "Ít nhất phải có một hình ảnh cho bài viết.")]
-        public List<ArticleImageDto> ImageDtos { get; set; } = new();
+        // [MinLength(1, ErrorMessage = "Ít nhất phải có một hình ảnh cho bài viết.")]
+        // public List<ArticleImageDto> ImageDtos { get; set; } = new();
+        [Required(ErrorMessage = "Ảnh bìa không được để trống.")]
+        public string ThumbnailFileId { get; set; } = string.Empty;
     }
 
     public class ArticleImageDto

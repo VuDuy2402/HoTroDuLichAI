@@ -81,18 +81,14 @@ namespace HoTroDuLichAI.API
                 }
                 bool hasAdminRole = (await _userManager.GetRolesAsync(user: currentUser)).Contains(CRoleType.Admin.ToString());
                 var imageProperties = new List<ImageProperty>();
-                foreach (var img in requestDto.ImageDtos)
+                var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: requestDto.ThumbnailFileId);
+                if (imageResponse.StatusCode == StatusCodes.Status200OK)
                 {
-                    var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: img.FileId);
-                    if (imageResponse.StatusCode == StatusCodes.Status200OK)
+                    if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo
+                        && imageInfo != null)
                     {
-                        if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo
-                            && imageInfo != null)
-                        {
-                            var imageProperty = ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: img.IsDefault);
-                            imageProperty.ImageType = img.ImageType;
-                            imageProperties.Add(imageProperty);
-                        }
+                        var imageProperty = ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Thumbnail, isDefault: true);
+                        imageProperties.Add(imageProperty);
                     }
                 }
                 articleExist = new ArticleEntity()
@@ -102,7 +98,6 @@ namespace HoTroDuLichAI.API
                     Content = requestDto.Content,
                     Author = requestDto.Author,
                     Type = requestDto.Type,
-                    
                     Thumbnail = imageProperties.Where(img => img.IsDefault && img.ImageType == CImageType.Thumbnail)
                         .Select(img => img.Url).FirstOrDefault() ?? string.Empty,
                     ImageProperty = imageProperties.ToJson(),
@@ -466,7 +461,7 @@ namespace HoTroDuLichAI.API
         }
         #endregion Update Article
 
-          #region Approval new article request
+        #region Approval new article request
         public async Task<ApiResponse<ResultMessage>> ApprovalRequestCreateArticleAsync(
             ApproveCreateArticleRequestDto requestDto)
         {

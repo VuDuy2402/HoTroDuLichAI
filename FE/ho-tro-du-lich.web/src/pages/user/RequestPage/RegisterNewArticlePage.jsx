@@ -14,9 +14,8 @@ import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGa
 import { toQueryString } from "../../../utils/queryParams";
 import ReactQuill from 'react-quill';
 import "react-quill/dist/quill.snow.css";
-import { imageKitService } from "../../../services/imageKitService";
+import axios from "axios";
 
-// Các tùy chọn cho loại bài viết và trạng thái phê duyệt
 const articleTypeOptions = Object.keys(CArticleType).map((key) => ({
     label: CArticleTypeDescriptions[CArticleType[key]],
     value: CArticleType[key],
@@ -29,38 +28,23 @@ const approvalTypeOptions = Object.keys(CApprovalType).map((key) => ({
 
 const RegisterNewArticlePage = () => {
     const navigate = useNavigate();
-    const quillRef = useRef(null);
+    const quillRef = useRef();
+    const [imageFileIds, setImageFileIds] = useState([]);
     const dispatch = useDispatch();
     const [errors, setErrors] = useState([]);
-    const [formData, setFormData] = useState({
+    const initialFormData = {
         title: "",
         content: "",
         author: "",
         type: { value: 0, label: "Không xác định" },
         approved: { value: 0, label: "Không xác định" },
-        images: [],
-    });
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
+        thumbnailFileId: "",
     };
 
-    const handleSelectChange = (selectedOption, field) => {
-        setFormData((prevData) => ({
-            ...prevData,
-            [field]: selectedOption,
-        }));
-    };
+    const [formData, setFormData] = useState(initialFormData);
 
-    const handleEditorChange = (value) => {
-        // setFormData((prevData) => ({
-        //     ...prevData,
-        //     content: value,
-        // }));
+    const handleUploadThumbnail = (fileId) => {
+        setImageFileIds(prevFileIds => [...prevFileIds, fileId]);
     };
 
     const handleImageUpload = async (files) => {
@@ -70,62 +54,49 @@ const RegisterNewArticlePage = () => {
         }
 
         try {
-            const accessToken = localStorageService.getAccessToken();
+            const accessToken = localStorage.getItem("accessToken");
+            // const imageUrls = ["https://th.bing.com/th/id/OIP.qUBh6RMHZSV2nMYwcPfaVAHaEi?rs=1&pid=ImgDetMain"];
             const response = await axios.post(
-                'https://localhost:7001/api/v1/admin/fileupload/imagekit/bulkupload',
+                "https://localhost:7001/api/v1/admin/fileupload/imagekit/bulkupload",
                 formData,
                 {
                     headers: {
-                        'Authorization': `Bearer ${accessToken}`,
+                        Authorization: `Bearer ${accessToken}`,
                     },
                 }
             );
             if (response && response.data) {
                 if (response.data.success) {
                     const imageUrls = response.data.data.imageInfos.map(img => img.fileUrl);
-                    return imageUrls;
-                } else if (response.errors) {
-                    setErrors(response.errors);
+                    const editor = quillRef.current.getEditor();
+                    imageUrls.forEach((url) => {
+                        const range = editor.getSelection();                        
+                        editor.insertEmbed(range.index, "image", url);
+                    });
+                } else if (response.data.errors) {
+                    setErrors(response.data.errors);
                 }
             }
         } catch (error) {
-            console.error('Error uploading image:', error);
-            setErrors(['Error uploading image']);
+            if (error.response) {
+                setErrors(error.response.data.errors);
+            }
+            else {
+                toast.error(`Error uploading image:  ${error}`);
+            }
         }
-
-        return null;
     };
 
     const imageHandler = () => {
-        const input = document.createElement('input');
-        input.setAttribute('type', 'file');
-        input.setAttribute('accept', 'image/*');
-        input.setAttribute('multiple', 'true');
+        const input = document.createElement("input");
+        input.setAttribute("type", "file");
+        input.setAttribute("accept", "image/*");
         input.click();
 
-        input.onchange = async (e) => {
-            const files = e.target.files;
-            if (files && files.length > 0) {
-                const imageUrls = await handleImageUpload(files);
-
-                if (imageUrls) {
-                    const editor = quillRef.current.getEditor();
-                    const range = editor.getSelection();
-
-                    if (range) {
-                        imageUrls.forEach(imageUrl => {
-                            editor.insertEmbed(range.index, 'image', imageUrl);
-                        });
-
-                        const newRange = range.index + imageUrls.length;
-                        editor.setSelection(newRange);
-                    } else {
-                        const length = editor.getLength();
-                        imageUrls.forEach(imageUrl => {
-                            editor.insertEmbed(length, 'image', imageUrl);
-                        });
-                    }
-                }
+        input.onchange = async () => {
+            const files = input.files;
+            if (files) {
+                await handleImageUpload(files);
             }
         };
     };
@@ -133,31 +104,37 @@ const RegisterNewArticlePage = () => {
     const modules = {
         toolbar: {
             container: [
-                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote'],
-                [{ 'align': [] }],
-                ['link', 'image'],
+                [{ header: "1" }, { header: "2" }, { font: [] }],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["bold", "italic", "underline"],
+                ["link", "image"],
+                [{ align: [] }],
+                [{ color: [] }, { background: [] }],
+                ["blockquote", "code-block"],
             ],
             handlers: {
-                image: imageHandler,
+                image: () => imageHandler(),
             },
         },
     };
 
     const handleSubmitForm = async (e) => {
         e.preventDefault();
+        const editor = quillRef.current.getEditor();
+        const content = editor.root.innerHTML;
 
-        const data = {
-            ...formData,
+        const requestData = {
+            title: formData.title,
+            content: content,
+            author: formData.author,
             type: formData.type.value,
             approved: formData.approved.value,
+            thumbnailFileId: imageFileIds[0],
         };
 
         try {
             dispatch(systemAction.enableLoading());
-            const result = await articleService.registerNewArticle(data);
+            const result = await articleService.registerNewArticle(requestData);
             if (result) {
                 if (result.success) {
                     const queryString = toQueryString(result.data || {});
@@ -188,8 +165,7 @@ const RegisterNewArticlePage = () => {
                     <Form.Control
                         type="text"
                         name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
+                        defaultValue={formData.title}
                     />
                     <ErrorField errorList={errors} field="Title_Error" />
                 </Form.Group>
@@ -197,22 +173,21 @@ const RegisterNewArticlePage = () => {
                 <Form.Group controlId="content">
                     <Form.Label>Nội dung</Form.Label>
                     <ReactQuill
-                        value={formData.content}
-                        onChange={handleEditorChange}
                         ref={quillRef}
-                        theme="snow"
                         modules={modules}
+                        defaultValue={formData.content}
+                        placeholder="Nhập nội dung cho bài viết của bạn..."
+                        theme="snow"
                     />
                     <ErrorField errorList={errors} field="Content_Error" />
                 </Form.Group>
 
                 <Form.Group controlId="author">
-                    <Form.Label>Tác giả</Form.Label>
+                    <Form.Label>Bí danh</Form.Label>
                     <Form.Control
                         type="text"
                         name="author"
-                        value={formData.author}
-                        onChange={handleInputChange}
+                        defaultValue={formData.author}
                     />
                     <ErrorField errorList={errors} field="Author_Error" />
                 </Form.Group>
@@ -223,7 +198,7 @@ const RegisterNewArticlePage = () => {
                         name="type"
                         value={formData.type}
                         options={articleTypeOptions}
-                        onChange={(selectedOption) => handleSelectChange(selectedOption, "type")}
+                        onChange={(selectedOption) => setFormData(prevData => ({ ...prevData, type: selectedOption }))}
                     />
                     <ErrorField errorList={errors} field="Type_Error" />
                 </Form.Group>
@@ -234,21 +209,19 @@ const RegisterNewArticlePage = () => {
                         name="approved"
                         value={formData.approved}
                         options={approvalTypeOptions}
-                        onChange={(selectedOption) => handleSelectChange(selectedOption, "approved")}
+                        onChange={(selectedOption) => setFormData(prevData => ({ ...prevData, approved: selectedOption }))}
                     />
                     <ErrorField errorList={errors} field="Approved_Error" />
                 </Form.Group>
 
-                <ImageUploadGallery
-                    label="Hình ảnh bài viết"
-                    onImagesUploaded={(data) => setFormData((prevData) => ({ ...prevData, images: data }))}
-                    onImagesRemove={() => setFormData((prevData) => ({ ...prevData, images: [] }))}
-                    multiple={true}
-                />
-                <ErrorField errorList={errors} field="Images_Error" />
+                <Form.Group className="mb-3">
+                    <Form.Label>Hình ảnh</Form.Label>
+                    <ImageUploadGallery onImagesUploaded={handleUploadThumbnail} />
+                    <ErrorField errorList={errors} field="Thumbnail_Error" />
+                </Form.Group>
 
                 <div className="d-flex justify-content-end gap-2 mt-3">
-                    <Button variant="light" type="button" onClick={() => navigate("/articles")}>
+                    <Button variant="light" type="button" onClick={() => navigate("/")}>
                         Hủy
                     </Button>
                     <Button variant="success" type="submit">
