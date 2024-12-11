@@ -9,5 +9,7 @@ namespace HoTroDuLichAI.API
         public bool IsAdmin { get; set; }
         [JsonIgnore]
         public bool IsMy { get; set; }
+        public ArticleFilterProperty FilterProperty { get; set; } = null!;
+        public ArticleSorterProperty SorterProperty { get; set; } = null!;
     }
 }

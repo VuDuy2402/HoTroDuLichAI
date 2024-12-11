@@ -4,7 +4,6 @@ import MenuSideLayout from "../layouts/MenuSideLayout";
 import AHomePage from "../pages/admin/AHomePage/AHomePage";
 import AUserIndex from "../pages/admin/AUserManagePage/AUserIndex";
 import APlaceIndexPlace from "../pages/admin/APlaceManage/APlaceIndexPage";
-import AArticlePage from "../pages/admin/AArticlePage/AArticlePage";
 import ADashboardPage from "../pages/admin/ADashboardPage/ADashboardPage";
 import { IoBusinessOutline, IoLocationOutline, IoNotificationsOffCircleOutline, IoPeopleCircleOutline, IoPieChartOutline, IoTextOutline } from "react-icons/io5";
 import AConfirmRegisterArticleRequestPage from "../pages/admin/AConfirmPage/AConfirmRegisterArticleRequestPage";
@@ -14,6 +13,7 @@ import ANewArticleRequestPagingPage from "../pages/admin/ARequestPage/ANewArticl
 import ABusinessIndexPage from "../pages/admin/ABusinessManage/ABusinessIndexPage";
 import AConfirmRegisterPlaceRequestPage from "../pages/admin/AConfirmPage/AConfirmRegisterPlaceRequestPage";
 import AConfirmRegisterBusinessRequestPage from "../pages/admin/AConfirmPage/AConfirmRegisterBusinessRequestPage";
+import AArticleIndexPage from "../pages/admin/AArticlePage/AArticleIndexPage";
 
 const menuSideItemAdmin = [
   {
@@ -67,7 +67,7 @@ export const routersAdmin = [
   },
   {
     path: "/quantri/baiviet",
-    component: <AArticlePage />,
+    component: <AArticleIndexPage />,
     checkAuth: true,
     roles: [Role.Admin],
     errorElement: <Navigate to="/error" />,

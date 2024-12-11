@@ -252,15 +252,15 @@ namespace HoTroDuLichAI.API
                     return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
                 }
                 var data = articleEntity.Adapt<ArticleDetailResponseDto>();
-                data.ImageDetailProperties = articleEntity.ImageProperty.FromJson<List<ImageProperty>>()
-                    .Select(img => new ImageDetailProperty()
-                    {
-                        FileId = img.BlobId,
-                        FileName = img.FileName,
-                        IsDefault = img.IsDefault,
-                        Type = img.ImageType,
-                        Url = img.Url
-                    }).ToList();
+                // data.ImageDetailProperties = articleEntity.ImageProperty.FromJson<List<ImageProperty>>()
+                //     .Select(img => new ImageDetailProperty()
+                //     {
+                //         FileId = img.BlobId,
+                //         FileName = img.FileName,
+                //         IsDefault = img.IsDefault,
+                //         Type = img.ImageType,
+                //         Url = img.Url
+                //     }).ToList();
                 response.Result.Success = true;
                 response.Result.Data = data;
                 response.StatusCode = StatusCodes.Status200OK;
@@ -273,6 +273,8 @@ namespace HoTroDuLichAI.API
             }
         }
         #endregion Get Article By Id
+
+        #region get article with paging
         public async Task<ApiResponse<BasePagedResult<ArticleDetailResponseDto>>> GetWithPagingAsync(ArticlePagingAndFilterParams param,
             ModelStateDictionary? modelState = null)
         {
@@ -289,15 +291,59 @@ namespace HoTroDuLichAI.API
                 {
                     collection = collection.Where(c => c.Title.ToLower().Contains(param.SearchQuery.ToLower()));
                 }
+                if (param.FilterProperty != null)
+                {
+                    var filter = param.FilterProperty;
+                    if (filter.ApprovalType.HasValue)
+                    {
+                        collection = collection.Where(c => c.Approved == filter.ApprovalType.Value);
+                    }
+                    if (filter.ArticleType.HasValue)
+                    {
+                        collection = collection.Where(c => c.Type == filter.ArticleType.Value);
+                    }
+                    if (filter.FromDate.HasValue)
+                    {
+                        collection = collection.Where(c => c.CreatedDate >= filter.FromDate.Value);
+                    }
+                    if (filter.ToDate.HasValue)
+                    {
+                        collection = collection.Where(c => c.CreatedDate <= filter.ToDate.Value);
+                    }
+                }
+                if (param.SorterProperty != null && !string.IsNullOrEmpty(param.SorterProperty.KeyName))
+                {
+                    var sorter = param.SorterProperty;
+                    if (sorter.KeyName.Equals(nameof(ArticleEntity.Author), StringComparison.OrdinalIgnoreCase))
+                    {
+                        collection = sorter.IsASC ? collection.OrderBy(pl => pl.Author) : collection.OrderByDescending(pl => pl.Author);
+                    }
+                    if (sorter.KeyName.Equals(nameof(ArticleEntity.Title), StringComparison.OrdinalIgnoreCase))
+                    {
+                        collection = sorter.IsASC ? collection.OrderBy(pl => pl.Title) : collection.OrderByDescending(pl => pl.Title);
+                    }
+                    if (sorter.KeyName.Equals(nameof(ArticleEntity.Approved), StringComparison.OrdinalIgnoreCase))
+                    {
+                        collection = sorter.IsASC ? collection.OrderBy(pl => pl.Approved) : collection.OrderByDescending(pl => pl.Approved);
+                    }
+                    if (sorter.KeyName.Equals(nameof(ArticleEntity.Type), StringComparison.OrdinalIgnoreCase))
+                    {
+                        collection = sorter.IsASC ? collection.OrderBy(pl => pl.Type) : collection.OrderByDescending(pl => pl.Type);
+                    }
+                    if (sorter.KeyName.Equals(nameof(ArticleEntity.CreatedDate), StringComparison.OrdinalIgnoreCase))
+                    {
+                        collection = sorter.IsASC ? collection.OrderBy(pl => pl.CreatedDate) : collection.OrderByDescending(pl => pl.CreatedDate);
+                    }
+                }
                 var pagedList = await PagedList<ArticleEntity>.ToPagedListAsync(
                     source: collection, pageNumber: param.PageNumber, pageSize: param.PageSize);
                 var selected = pagedList.Select(pl => new ArticleDetailResponseDto
                 {
                     ArticleId = pl.Id,
                     Title = pl.Title,
-                    Content = pl.Content,
-                    Type = pl.Type,
-                    Approved = pl.Approved,
+                    Author = pl.Author,
+                    ArticleType = pl.Type,
+                    ApprovalType = pl.Approved,
                     CreatedDate = pl.CreatedDate,
                     Thumbnail = pl.Thumbnail,
                     OwnerProperty = new OwnerProperty()
@@ -315,7 +361,7 @@ namespace HoTroDuLichAI.API
                     PageSize = pagedList.PageSize,
                     TotalItems = pagedList.TotalCount,
                     TotalPages = pagedList.TotalPages,
-                    // ObjFilterProperties = param.FilterProperty,
+                    ObjFilterProperties = param.FilterProperty,
                 };
                 response.Result.Success = true;
                 response.Result.Data = data;
@@ -329,6 +375,7 @@ namespace HoTroDuLichAI.API
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
         }
+        #endregion get article with paging
 
         #region Update Article
         public async Task<ApiResponse<ResultMessage>> UpdateArticleAsync(UpdateArticleRequestDto requestDto, ModelStateDictionary? modelState = null)
