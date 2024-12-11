@@ -29,6 +29,8 @@ const approvalTypeOptions = Object.keys(CApprovalType).map((key) => ({
 const RegisterNewArticlePage = () => {
     const navigate = useNavigate();
     const quillRef = useRef();
+    const titleRef = useRef();
+    const authorRef = useRef();
     const [imageFileIds, setImageFileIds] = useState([]);
     const dispatch = useDispatch();
     const [errors, setErrors] = useState([]);
@@ -44,7 +46,7 @@ const RegisterNewArticlePage = () => {
     const [formData, setFormData] = useState(initialFormData);
 
     const handleUploadThumbnail = (fileId) => {
-        setImageFileIds(prevFileIds => [...prevFileIds, fileId]);
+        setImageFileIds((prevFileIds) => [...prevFileIds, fileId]);
     };
 
     const handleImageUpload = async (files) => {
@@ -55,7 +57,6 @@ const RegisterNewArticlePage = () => {
 
         try {
             const accessToken = localStorage.getItem("accessToken");
-            // const imageUrls = ["https://th.bing.com/th/id/OIP.qUBh6RMHZSV2nMYwcPfaVAHaEi?rs=1&pid=ImgDetMain"];
             const response = await axios.post(
                 "https://localhost:7001/api/v1/admin/fileupload/imagekit/bulkupload",
                 formData,
@@ -67,10 +68,10 @@ const RegisterNewArticlePage = () => {
             );
             if (response && response.data) {
                 if (response.data.success) {
-                    const imageUrls = response.data.data.imageInfos.map(img => img.fileUrl);
+                    const imageUrls = response.data.data.imageInfos.map((img) => img.url);
                     const editor = quillRef.current.getEditor();
                     imageUrls.forEach((url) => {
-                        const range = editor.getSelection();                        
+                        const range = editor.getSelection();
                         editor.insertEmbed(range.index, "image", url);
                     });
                 } else if (response.data.errors) {
@@ -80,8 +81,7 @@ const RegisterNewArticlePage = () => {
         } catch (error) {
             if (error.response) {
                 setErrors(error.response.data.errors);
-            }
-            else {
+            } else {
                 toast.error(`Error uploading image:  ${error}`);
             }
         }
@@ -123,10 +123,18 @@ const RegisterNewArticlePage = () => {
         const editor = quillRef.current.getEditor();
         const content = editor.root.innerHTML;
 
+        const title = titleRef.current.value; 
+        const author = authorRef.current.value;
+
+        if (!title || !author) {
+            toast.error("Title and Author are required.");
+            return;
+        }
+
         const requestData = {
-            title: formData.title,
+            title: title,
             content: content,
-            author: formData.author,
+            author: author,
             type: formData.type.value,
             approved: formData.approved.value,
             thumbnailFileId: imageFileIds[0],
@@ -165,6 +173,7 @@ const RegisterNewArticlePage = () => {
                     <Form.Control
                         type="text"
                         name="title"
+                        ref={titleRef}  // Assign ref to title input
                         defaultValue={formData.title}
                     />
                     <ErrorField errorList={errors} field="Title_Error" />
@@ -187,6 +196,7 @@ const RegisterNewArticlePage = () => {
                     <Form.Control
                         type="text"
                         name="author"
+                        ref={authorRef}
                         defaultValue={formData.author}
                     />
                     <ErrorField errorList={errors} field="Author_Error" />
@@ -198,7 +208,7 @@ const RegisterNewArticlePage = () => {
                         name="type"
                         value={formData.type}
                         options={articleTypeOptions}
-                        onChange={(selectedOption) => setFormData(prevData => ({ ...prevData, type: selectedOption }))}
+                        onChange={(selectedOption) => setFormData((prevData) => ({ ...prevData, type: selectedOption }))}
                     />
                     <ErrorField errorList={errors} field="Type_Error" />
                 </Form.Group>
@@ -209,7 +219,7 @@ const RegisterNewArticlePage = () => {
                         name="approved"
                         value={formData.approved}
                         options={approvalTypeOptions}
-                        onChange={(selectedOption) => setFormData(prevData => ({ ...prevData, approved: selectedOption }))}
+                        onChange={(selectedOption) => setFormData((prevData) => ({ ...prevData, approved: selectedOption }))}
                     />
                     <ErrorField errorList={errors} field="Approved_Error" />
                 </Form.Group>

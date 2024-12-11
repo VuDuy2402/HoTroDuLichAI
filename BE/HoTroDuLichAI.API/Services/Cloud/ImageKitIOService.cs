@@ -1,6 +1,6 @@
+using System.Net.Http.Headers;
 using Imagekit.Models;
 using Imagekit.Sdk;
-using Mapster;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace HoTroDuLichAI.API
@@ -151,26 +151,7 @@ namespace HoTroDuLichAI.API
 
             try
             {
-                foreach (var file in requestDto.Files)
-                {
-                    using (var stream = file.OpenReadStream())
-                    {
-                        var uploadRequest = new FileCreateRequest
-                        {
-                            file = stream,
-                            fileName = file.FileName
-                        };
-
-                        var result = await _imageKitClient.UploadAsync(uploadRequest);
-                        infos.Add(new ImageUploadInfo()
-                        {
-                            FileId = result.fileId,
-                            FileUrl = result.url,
-                            ThumbnailUrl = result.thumbnailUrl,
-                            FileSize = FormatFileSize(result.size)
-                        });
-                    }
-                }
+                infos = await UploadFilesAsync(files: requestDto.Files);
                 response.Result.Data = new ImageKitUploadResponseDto() { ImageInfos = infos };
                 response.Result.Success = true;
                 response.StatusCode = StatusCodes.Status202Accepted;
@@ -269,5 +250,74 @@ namespace HoTroDuLichAI.API
             }
         }
 
+
+        private async Task<List<ImageUploadInfo>> UploadFilesAsync(List<IFormFile> files)
+        {
+            var client = new HttpClient();
+            List<ImageUploadInfo> imageFiles = new List<ImageUploadInfo>();
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri("https://upload.imagekit.io/api/v2/files/upload"),
+                Headers =
+                {
+                    { "Accept", "application/json" },
+                    { "Authorization", "Basic cHJpdmF0ZV9oVXhmcUR6YnliRitnUXRsSXZraWtYdUNIVUk9Og==" },
+                },
+                Content = new MultipartFormDataContent()
+            };
+
+            foreach (var file in files)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    var fileContent = new ByteArrayContent(memoryStream.ToArray());
+
+                    fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+
+                    fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                    {
+                        Name = "file",
+                        FileName = file.FileName
+                    };
+
+                    ((MultipartFormDataContent)request.Content).Add(fileContent, "file");
+                }
+
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(file.FileName), "fileName");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent("true"), "useUniqueFileName");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent("true"), "isPublished");
+
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "tags");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "folder");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "isPrivateFile");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "customCoordinates");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "responseFields");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "extensions");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "webhookUrl");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "overwriteFile");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "overwriteAITags");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "overwriteTags");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "overwriteCustomMetadata");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "transformation");
+                ((MultipartFormDataContent)request.Content).Add(new StringContent(""), "checks");
+            }
+
+            using (var response = await client.SendAsync(request))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    imageFiles.Add(body.FromJson<ImageUploadInfo>());
+                }
+                else
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    throw new Exception(errorBody);
+                }
+            }
+            return imageFiles;
+        }
     }
 }

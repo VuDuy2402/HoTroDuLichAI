@@ -24,7 +24,7 @@ namespace HoTroDuLichAI.API
     public class ImageUploadInfo
     {
         public string FileId { get; set; } = string.Empty;
-        public string FileUrl { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
         public string ThumbnailUrl { get; set; } = string.Empty;
         public string FileSize { get; set; } = string.Empty;
     }
