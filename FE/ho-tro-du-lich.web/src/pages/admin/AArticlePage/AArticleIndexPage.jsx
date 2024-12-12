@@ -24,6 +24,7 @@ const AArticleIndexPage = () => {
     { label: "Ngày tạo", row: "createdDate", sortable: true },
     { label: "Trạng thái duyệt", row: "approved", sortable: true },
     { label: "Tác giả", row: "author", sortable: true },
+    { label: "Chủ bài viết", row: "ownerProperty", sortable: false },
     { label: "Hành động", row: "actions", sortable: false },
   ];
 
@@ -56,7 +57,7 @@ const AArticleIndexPage = () => {
         pageSize: 10,
         searchQuery: query,
         filterProperty: filter,
-        sortProperty: sort,
+        sorterProperty: sort,
       });
 
       if (result && result.success) {
@@ -111,16 +112,11 @@ const AArticleIndexPage = () => {
   };
 
   const handleSubmitSearch = (data) => {
-    fetchData(1, data.searchQuery);
+    fetchData(1, data.searchQuery, filter);
   };
 
   const handleSort = (key, direction) => {
-    fetchData(1, "", { key, direction });
-  };
-
-  const handleClearFilter = () => {
-    setFilter({});
-    setShowFilterSidebar(false);
+    fetchData(1, "", filter, { key, direction });
   };
 
   const handleApplyFilter = (filter) => {
@@ -128,11 +124,20 @@ const AArticleIndexPage = () => {
     fetchData(1, "", filter);
   };
 
+  const handleClearFilter = () => {
+    setFilter({});
+    setShowFilterSidebar(false);
+  };
+
   return (
     <div className="frame-place-detail p-2 w-100 h-100 overflow-auto">
       <FormErrorAlert errors={errorList} />
       <div className="d-flex justify-content-between">
-        <Button variant="warning" className="text-white" onClick={() => setShowCreateModal(true)}>
+        <Button 
+          variant="warning" 
+          className="text-white" 
+          onClick={() => setShowCreateModal(true)}
+        >
           Tạo Bài Viết
         </Button>
         <Form className="d-flex gap-1" onSubmit={handleSubmit(handleSubmitSearch)}>
@@ -151,13 +156,6 @@ const AArticleIndexPage = () => {
           >
             <FaFilter />
           </Button>
-
-          <FilterSidebar
-            show={showFilterSidebar}
-            onClose={() => setShowFilterSidebar(false)}
-            onApplyFilters={handleApplyFilter}
-            onClearFilters={handleClearFilter}
-          />
         </Form>
       </div>
 
@@ -168,7 +166,10 @@ const AArticleIndexPage = () => {
         onSort={handleSort}
       />
 
-      <Paging data={pagingData} onChange={(page) => fetchData(page)} />
+      <Paging
+        data={pagingData}
+        classActive={"bg-success text-white"}
+        onChange={(page) => fetchData(page)} />
 
       <AUpdateArticlePage
         show={showUpdateModal}
@@ -216,7 +217,8 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
   };
 
   const renderApprovalStatus = (approvalType) => {
-    let statusLabel = ApprovalTypeDescriptions[approvalType] || "Không xác định";
+    let statusLabel =
+      ApprovalTypeDescriptions[approvalType] || "Không xác định";
     let statusColor = "gray";
 
     switch (approvalType) {
@@ -229,11 +231,63 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
       case CApprovalType.PendingAprroval:
         statusColor = "warning";
         break;
+      case CApprovalType.None:
+        statusColor = "secondary";
+        break;
       default:
         statusColor = "gray";
     }
 
-    return <span className={`badge bg-${statusColor}`}>{statusLabel}</span>;
+    return (
+      <div className="d-flex align-items-center">
+        <div
+          className={`rounded-circle bg-${statusColor}`}
+          style={{ width: "10px", height: "10px" }}
+        ></div>
+        <span className="ms-2">{statusLabel}</span>
+      </div>
+    );
+  };
+
+  const renderOwner = (owner) => {
+    if (owner?.avatar) {
+      return (
+        <OverlayTrigger
+          placement="top"
+          overlay={<Tooltip id="tooltip-owner">{`${owner.fullName} (${owner.email})`}</Tooltip>}
+        >
+          <img
+            src={owner.avatar}
+            alt={owner.fullName}
+            style={{ width: "30px", height: "30px", borderRadius: "50%" }}
+          />
+        </OverlayTrigger>
+      );
+    } else {
+      return (
+        <OverlayTrigger
+          placement="top"
+          overlay={<Tooltip id="tooltip-owner">{`${owner.fullName} (${owner.email})`}</Tooltip>}
+        >
+          <div
+            style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "50%",
+              backgroundColor: "#007bff",
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            {owner.fullName.charAt(0).toUpperCase()}
+          </div>
+        </OverlayTrigger>
+      );
+    }
   };
 
   return (
@@ -267,8 +321,9 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
         <td>{data.title}</td>
         <td>{CArticleTypeDescriptions[data.articleType]}</td>
         <td>{new Date(data.createdDate).toLocaleDateString("vi-VN")}</td>
-        <td>{renderApprovalStatus(data.approved)}</td>
+        <td>{renderApprovalStatus(data.approvalType)}</td>
         <td>{data.author}</td>
+        <td>{renderOwner(data.ownerProperty)}</td>
         <td>
           <Button
             variant="outline-info"

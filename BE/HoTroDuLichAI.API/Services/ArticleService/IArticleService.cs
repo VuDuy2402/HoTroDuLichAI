@@ -4,7 +4,7 @@ namespace HoTroDuLichAI.API
 {
     public interface IArticleService
     {
-        Task<ApiResponse<BasePagedResult<ArticleDetailResponseDto>>> GetWithPagingAsync(ArticlePagingAndFilterParams param,
+        Task<ApiResponse<BasePagedResult<ArticleInfoResponseDto>>> GetWithPagingAsync(ArticlePagingAndFilterParams param,
             ModelStateDictionary? modelState = null);
         Task<ApiResponse<ResultMessage>> CreateArticleAsync(CreateArticleRequestDto requestDto, ModelStateDictionary? modelState = null);
         Task<ApiResponse<ArticleDetailResponseDto>> GetArticleDetailByIdAsync(Guid articleId);

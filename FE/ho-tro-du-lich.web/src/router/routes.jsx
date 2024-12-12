@@ -16,6 +16,7 @@ import RegisterNewPlacePage from "../pages/user/RequestPage/RegisterNewPlacePage
 import RegisterNewBusinessPage from "../pages/user/RequestPage/RegisterNewBusinessPage";
 import RegisterNewArticlePage from "../pages/user/RequestPage/RegisterNewArticlePage";
 import MyEditor from "../pages/user/RequestPage/MyEditor";
+import ArticleDetailPage from "../pages/user/ArticleDetailPage/ArticleDetailPage";
 
 export const routes = [
   {
@@ -99,6 +100,14 @@ export const routes = [
     component: <RegisterNewBusinessPage />,
     checkAuth: true,
     roles: [Role.NormalUser],
+    layout: <NavbarLayout />,
+    errorElement: <Navigate to="/error" />,
+  },
+  {
+    path: "/baiviet/chitiet/:articleId",
+    component: <ArticleDetailPage />,
+    checkAuth: true,
+    roles: [],
     layout: <NavbarLayout />,
     errorElement: <Navigate to="/error" />,
   },

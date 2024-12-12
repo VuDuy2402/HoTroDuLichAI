@@ -231,36 +231,27 @@ namespace HoTroDuLichAI.API
             {
                 var articleEntity = await _dbContext.Articles
                     .Where(at => at.Id == articleId)
-                    .Select(at => new
+                    .Select(at => new ArticleDetailResponseDto
                     {
-                        articleId = at.Id,
+                        ArticleId = at.Id,
                         Title = at.Title,
+                        Author = at.Author,
                         Content = at.Content,
                         Thumbnail = at.Thumbnail,
-                        Approved = at.Approved,
+                        ApprovalType = at.Approved,
                         OwnerProperty = new OwnerProperty()
                         {
                             Avatar = at.User.Avatar,
                             Email = at.User.Email ?? string.Empty,
                             FullName = at.User.FullName,
                             UserId = at.UserId
-                        },
-                        ImageProperty = at.ImageProperty,
+                        }
                     }).FirstOrDefaultAsync();
                 if (articleEntity == null)
                 {
                     return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
                 }
                 var data = articleEntity.Adapt<ArticleDetailResponseDto>();
-                // data.ImageDetailProperties = articleEntity.ImageProperty.FromJson<List<ImageProperty>>()
-                //     .Select(img => new ImageDetailProperty()
-                //     {
-                //         FileId = img.BlobId,
-                //         FileName = img.FileName,
-                //         IsDefault = img.IsDefault,
-                //         Type = img.ImageType,
-                //         Url = img.Url
-                //     }).ToList();
                 response.Result.Success = true;
                 response.Result.Data = data;
                 response.StatusCode = StatusCodes.Status200OK;
@@ -275,10 +266,10 @@ namespace HoTroDuLichAI.API
         #endregion Get Article By Id
 
         #region get article with paging
-        public async Task<ApiResponse<BasePagedResult<ArticleDetailResponseDto>>> GetWithPagingAsync(ArticlePagingAndFilterParams param,
+        public async Task<ApiResponse<BasePagedResult<ArticleInfoResponseDto>>> GetWithPagingAsync(ArticlePagingAndFilterParams param,
             ModelStateDictionary? modelState = null)
         {
-            var response = new ApiResponse<BasePagedResult<ArticleDetailResponseDto>>();
+            var response = new ApiResponse<BasePagedResult<ArticleInfoResponseDto>>();
             var errors = ErrorHelper.GetModelStateError(modelState: modelState);
             if (!errors.IsNullOrEmpty())
             {
@@ -337,7 +328,7 @@ namespace HoTroDuLichAI.API
                 }
                 var pagedList = await PagedList<ArticleEntity>.ToPagedListAsync(
                     source: collection, pageNumber: param.PageNumber, pageSize: param.PageSize);
-                var selected = pagedList.Select(pl => new ArticleDetailResponseDto
+                var selected = pagedList.Select(pl => new ArticleInfoResponseDto
                 {
                     ArticleId = pl.Id,
                     Title = pl.Title,
@@ -354,7 +345,7 @@ namespace HoTroDuLichAI.API
                         UserId = pl.UserId
                     }
                 }).ToList();
-                var data = new BasePagedResult<ArticleDetailResponseDto>()
+                var data = new BasePagedResult<ArticleInfoResponseDto>()
                 {
                     CurrentPage = pagedList.CurrentPage,
                     Items = selected,

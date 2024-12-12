@@ -1,6 +1,6 @@
 namespace HoTroDuLichAI.API
 {
-    public class ArticleDetailResponseDto
+    public class ArticleInfoResponseDto
     {
         public Guid ArticleId { get; set; }
         public string Title { get; set; } = string.Empty;
@@ -10,5 +10,10 @@ namespace HoTroDuLichAI.API
         public DateTimeOffset CreatedDate { get; set; }
         public CApprovalType ApprovalType { get; set; }
         public OwnerProperty OwnerProperty { get; set; } = null!;
+    }
+
+    public class ArticleDetailResponseDto : ArticleInfoResponseDto
+    {
+        public string Content { get; set; } = string.Empty;
     }
 }
