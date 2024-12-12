@@ -12,13 +12,14 @@ import { useDispatch } from "react-redux";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import defaultImg from "@/assets/img/PhuQuoc.jpg";
 import { IoIosArrowDroprightCircle } from "react-icons/io";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 const Home = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [famousPlace, setFamousPlace] = useState([]);
   const [newPlace, setNewPlace] = useState([]);
   const [article, setArticle] = useState([]);
-
+  useDocumentTitle('Trang chủ');
   const handlePlaceFamous = async () => {
     const dataSend = {
       pageNumber: 1,

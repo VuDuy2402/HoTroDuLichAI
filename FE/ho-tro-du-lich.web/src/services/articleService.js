@@ -18,6 +18,14 @@ export const articleService = {
     return null;
   },
 
+  deleteArticleById: async (data) => {
+    const response = await reqApi.delete(`${articleApi.Article_DeleteById}/${data}`);
+    if (response) {
+      return response;
+    }
+    return null;
+  },
+
   getArticleDetailById: async (data) => {
     const response = await reqApi.get(`${articleApi.Article_GetById}/${data}`);
     if (response) {

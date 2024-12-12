@@ -17,6 +17,7 @@ import RegisterNewBusinessPage from "../pages/user/RequestPage/RegisterNewBusine
 import RegisterNewArticlePage from "../pages/user/RequestPage/RegisterNewArticlePage";
 import MyEditor from "../pages/user/RequestPage/MyEditor";
 import ArticleDetailPage from "../pages/user/ArticleDetailPage/ArticleDetailPage";
+import AUpdateArticlePage from "../pages/admin/AArticlePage/AUpdateArticlePage";
 
 export const routes = [
   {
@@ -108,6 +109,14 @@ export const routes = [
     component: <ArticleDetailPage />,
     checkAuth: true,
     roles: [],
+    layout: <NavbarLayout />,
+    errorElement: <Navigate to="/error" />,
+  },
+  {
+    path: "/baiviet/capnhat/:articleId",
+    component: <AUpdateArticlePage />,
+    checkAuth: true,
+    roles: [Role.NormalUser, Role.Business, Role.Admin],
     layout: <NavbarLayout />,
     errorElement: <Navigate to="/error" />,
   },

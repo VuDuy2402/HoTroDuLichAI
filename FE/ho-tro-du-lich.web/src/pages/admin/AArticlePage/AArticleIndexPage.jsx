@@ -15,6 +15,7 @@ import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
 import { CApprovalType, ApprovalTypeDescriptions } from "../../../enum/approvalTypeEnum";
 import { CArticleType, CArticleTypeDescriptions } from "../../../enum/articleTypeEnum";
+import PropTypes from "prop-types";
 
 const AArticleIndexPage = () => {
   const initColumn = [
@@ -206,7 +207,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
   const [showModal, setShowConfirmDeleteModal] = useState(false);
 
   const handleDelete = async (articleId) => {
-    const result = await articleService.deleteArticle(articleId);
+    const result = await articleService.deleteArticleById(articleId);
     if (result && result.success) {
       toast.success(result.data.message);
       onDelete(articleId);
@@ -476,6 +477,13 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
       </Offcanvas.Body>
     </Offcanvas>
   );
+};
+
+FilterSidebar.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onApplyFilters: PropTypes.func.isRequired,
+  onClearFilters: PropTypes.func.isRequired,
 };
 
 export default AArticleIndexPage;

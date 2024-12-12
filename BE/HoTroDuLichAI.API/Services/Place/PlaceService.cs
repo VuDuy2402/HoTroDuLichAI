@@ -250,6 +250,14 @@ namespace HoTroDuLichAI.API
             var response = new ApiResponse<PlaceMoreInfoResponseDto>();
             try
             {
+                var placeExist = await _dbContext.Places.FindAsync(placeId);
+                if (placeExist == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                placeExist.TotalView += 1;
+                _dbContext.Places.Update(placeExist);
+                await _dbContext.SaveChangesAsync();
                 var placeEntity = await _dbContext.Places
                     .Include(pl => pl.User)
                     .Include(pl => pl.ReviewPlaces)

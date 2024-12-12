@@ -282,6 +282,25 @@ namespace HoTroDuLichAI.API
                 {
                     collection = collection.Where(c => c.Title.ToLower().Contains(param.SearchQuery.ToLower()));
                 }
+                if (param.IsMy)
+                {
+                    var currentUser = RuntimeContext.CurrentUser;
+                    if (currentUser == null)
+                    {
+                        return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                    }
+                    collection = collection.Where(c => c.UserId == currentUser.Id);
+                }
+                if (param.IsPublic)
+                {
+                    var currentUser = RuntimeContext.CurrentUser;
+                    if (currentUser == null)
+                    {
+                        return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                    }
+                    collection = collection.Where(c => c.Approved == CApprovalType.Accepted)
+                        .OrderByDescending(c => c.CreatedDate);
+                }
                 if (param.FilterProperty != null)
                 {
                     var filter = param.FilterProperty;

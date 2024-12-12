@@ -19,6 +19,7 @@ namespace HoTroDuLichAI.API
         [HttpPost("paging")]
         public async Task<IActionResult> GetWithPaging(ArticlePagingAndFilterParams param)
         {
+            param.IsPublic = true;
             var result = await _articleService.GetWithPagingAsync(param: param);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
@@ -64,7 +65,7 @@ namespace HoTroDuLichAI.API
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
-        [HttpDelete("{articleId}")]
+        [HttpDelete("manage/{articleId}")]
         public async Task<IActionResult> DeleteArticle(Guid articleId)
         {
             var result = await _articleService.DeleteArticleAsync(articleId: articleId);
