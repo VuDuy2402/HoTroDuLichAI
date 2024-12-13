@@ -14,6 +14,7 @@ import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGa
 import { toQueryString } from "../../../utils/queryParams";
 import ReactQuill from 'react-quill';
 import "react-quill/dist/quill.snow.css";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 import axios from "axios";
 
 const articleTypeOptions = Object.keys(CArticleType).map((key) => ({
@@ -34,6 +35,8 @@ const RegisterNewArticlePage = () => {
     const [imageFileIds, setImageFileIds] = useState([]);
     const dispatch = useDispatch();
     const [errors, setErrors] = useState([]);
+    useDocumentTitle('Đăng bài viết')
+    
     const initialFormData = {
         title: "",
         content: "",

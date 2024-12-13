@@ -7,11 +7,13 @@ import { CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum
 import { ApprovalTypeDescriptions } from "../../../enum/approvalTypeEnum";
 import { toast } from "react-toastify";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 
 const ABusinessDetailPage = ({ show, businessId, onClose }) => {
     const [businessDetails, setBusinessDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [errorList, setErrors] = useState([]);
+    useDocumentTitle('Chi tiết doanh nghiệp');
 
     useEffect(() => {
         if (businessId) {

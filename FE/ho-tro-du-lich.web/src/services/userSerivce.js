@@ -34,6 +34,16 @@ export const userService = {
       return null;
     }
   },
+  updateMyProfile: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.put(userApi.User_UpdateMyProfile, data);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
   getAdminUser: async () => {
     const token = localStorageService.getToken();
     if (token) {

@@ -5,6 +5,7 @@ import RowInfo from "../../../common/components/RowInfo/RowInfo";
 import Textarea from "../../../common/components/Textarea/Textarea";
 import MapCustom from "../../../common/components/MapCustom/MapCustom";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { toast } from "react-toastify";
 import {
@@ -17,6 +18,7 @@ const AConfirmRegisterPlaceRequestPage = () => {
   const { placeId } = useParams();
   const [dataDetail, setDataDetail] = useState();
   const [errors, setErrors] = useState([]);
+  useDocumentTitle('Xác nhận yêu cầu địa điểm');
   const handleGetInitData = async () => {
     const result = await placeService.getPlaceById(placeId);
     if (result) {

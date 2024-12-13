@@ -1,4 +1,7 @@
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
+
 const AHomePage = () => {
+  useDocumentTitle('Quản trị');
   return (
     <div className="d-flex flex-column justify-content-center align-items-center w-100 h-100">
       <div className="d-flex flex-column justify-content-center align-items-center">

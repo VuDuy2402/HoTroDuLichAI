@@ -84,7 +84,7 @@ const APlaceIndexPlace = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleDeletePlace = (placeId) => {
+  const handleDeletePlaceById = (placeId) => {    
     setDataPlaces((prevPlaces) => prevPlaces.filter((place) => place.placeId !== placeId));
   };
 
@@ -165,7 +165,7 @@ const APlaceIndexPlace = () => {
         items={dataPlaces}
         template={
           <TableRowTemplate
-            onDelete={handleDeletePlace}
+            onDelete={handleDeletePlaceById}
             onEdit={handleOpenUpdateModal}
             onOpenDetail={handleOpenDetailModal}
           />
@@ -214,7 +214,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
   const [showModal, setShowConfirmDeleteModal] = useState(false);
 
   const handleDelete = async (placeId) => {
-    const result = await placeService.deletePlace(placeId);
+    const result = await placeService.deletePlaceById(placeId);
     if (result && result.success) {
       toast.success(result.data.message);
       onDelete(placeId);

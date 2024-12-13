@@ -88,7 +88,7 @@ const Navbar = ({ className }) => {
   };
 
   const handleClickUserTag = () => {
-    navigate("/thongtincanhan");
+    navigate("/canhan/thongtin");
   };
 
   useEffect(() => {

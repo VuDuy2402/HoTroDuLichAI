@@ -46,6 +46,7 @@ import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import UserInfo from "../../../common/components/UserTag/UserInfo";
 import { reportService } from "../../../services/reportService";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 
 ChartJS.register(
     CategoryScale,
@@ -74,6 +75,7 @@ const ADashboardPage = () => {
     const [dataTotalUseChart, setDataTotalUseChart] = useState({});
     // #endregion : chart
     const dispatch = useDispatch();
+    useDocumentTitle('Thống kê');
 
     const randomColor = () => {
         const letters = "0123456789ABCDEF";

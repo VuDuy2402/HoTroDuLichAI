@@ -43,6 +43,7 @@ import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 import UserInfo from "../../../common/components/UserTag/UserInfo";
 
 ChartJS.register(
@@ -72,7 +73,7 @@ const BDashboardPage = () => {
   const [dataTotalUseChart, setDataTotalUseChart] = useState({});
   // #endregion : chart
   const dispatch = useDispatch();
-
+  useDocumentTitle('Thống kê');
   const randomColor = () => {
     const letters = "0123456789ABCDEF";
     let color = "#";

@@ -130,16 +130,16 @@ namespace HoTroDuLichAI.API
                         Field = $"{nameof(requestDto.Email)}_Error"
                     });
                 }
-                if (await _dbContext.Users.FirstOrDefaultAsync(us => us.Id != currentUser.Id
-                    && us.PIN == requestDto.PIN) != null)
-                {
-                    errors.Add(new ErrorDetail()
-                    {
-                        Error = $"PIN đã được sử dụng.",
-                        ErrorScope = CErrorScope.Field,
-                        Field = $"{nameof(requestDto.PIN)}_Error"
-                    });
-                }
+                // if (await _dbContext.Users.FirstOrDefaultAsync(us => us.Id != currentUser.Id
+                //     && us.PIN == requestDto.PIN) != null)
+                // {
+                //     errors.Add(new ErrorDetail()
+                //     {
+                //         Error = $"PIN đã được sử dụng.",
+                //         ErrorScope = CErrorScope.Field,
+                //         Field = $"{nameof(requestDto.PIN)}_Error"
+                //     });
+                // }
                 if (!errors.IsNullOrEmpty())
                 {
                     response.Result.Errors.AddRange(errors);
@@ -163,7 +163,7 @@ namespace HoTroDuLichAI.API
                 }
                 userUpdated.FullName = requestDto.FullName;
                 userUpdated.PhoneNumber = requestDto.PhoneNumber;
-                userUpdated.PIN = requestDto.PIN;
+                // userUpdated.PIN = requestDto.PIN;
                 userUpdated.DateOfBirth = requestDto.DateOfBirth;
                 userUpdated.ModifiedBy = currentUser.Id.ToString();
                 userUpdated.ModifiedDate = DateTimeOffset.UtcNow;
@@ -308,7 +308,7 @@ namespace HoTroDuLichAI.API
                 UserId = currentUser.Id,
                 FullName = currentUser.FullName,
                 Email = currentUser.Email ?? string.Empty,
-                PIN = currentUser.PIN,
+                // PIN = currentUser.PIN,
                 // AddressProperties = currentUser.AddressProperties,
                 Address = currentUser.Address,
                 PhoneNumber = currentUser.PhoneNumber ?? string.Empty,

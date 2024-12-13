@@ -1,37 +1,43 @@
-import { useState, useCallback, useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { Button, Form, Offcanvas, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { FaFilter, FaInfoCircle, FaSearch } from "react-icons/fa";
+import { systemAction } from "../../../redux/slices/systemSlice";
+import { placeService } from "../../../services/placeService";
+import { FaInfoCircle, FaSearch, FaFilter } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { systemAction } from "../../../redux/slices/systemSlice";
-import { articleService } from "../../../services/articleService";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
-import { CApprovalType, ApprovalTypeDescriptions } from "../../../enum/approvalTypeEnum";
-import { CArticleType, CArticleTypeDescriptions } from "../../../enum/articleTypeEnum";
-import PropTypes from "prop-types";
-import AArticleDetailPage from "../AArticlePage/AArticleDetailPage";
+import { CPlaceType, PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";
+import { ApprovalTypeDescriptions, CApprovalType } from "../../../enum/approvalTypeEnum";
+import AUpdatePlacePage from "../../admin/APlaceManage/AUpdatePlacePage";
+import APlaceDetailPage from "../../admin/APlaceManage/APlaceDetailPage";
+import ACreatePlacePage from "../../admin/APlaceManage/ACreatePlacePage";
+import ConfirmModalPage from "../../commonpage/ModalPage/ConfirmModalPage";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 
-const ANewArticleRequestPagingPage = () => {
+const BPlaceIndexPlace = () => {
   const initColumn = [
     { label: "Ảnh", row: "thumbnail", sortable: false },
-    { label: "Tiêu đề", row: "title", sortable: true },
-    { label: "Loại bài viết", row: "type", sortable: true },
+    { label: "Tên địa điểm", row: "name", sortable: true },
+    { label: "Loại địa điểm", row: "placeType", sortable: true },
     { label: "Ngày tạo", row: "createdDate", sortable: true },
-    { label: "Trạng thái duyệt", row: "approved", sortable: true },
-    { label: "Tác giả", row: "author", sortable: true },
-    { label: "Chủ bài viết", row: "ownerProperty", sortable: false },
+    { label: "Trạng thái duyệt", row: "approvalType", sortable: true },
+    { label: "Số lượt xem", row: "totalView", sortable: true },
+    { label: "Chủ sở hữu", row: "ownerProperty.fullName", sortable: true },
     { label: "Hành động", row: "actions", sortable: false },
   ];
 
   const dispatch = useDispatch();
   const { register, handleSubmit } = useForm();
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedArticleId, setSelectedArticleId] = useState(null);
+  const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [errorList, setErrorList] = useState([]);
-  const [dataArticles, setDataArticles] = useState([]);
+  const [dataPlaces, setDataPlaces] = useState([]);
+  useDocumentTitle('Địa điểm');
   const [pagingData, setPagingData] = useState({
     currentPage: 1,
     total: 1,
@@ -39,25 +45,27 @@ const ANewArticleRequestPagingPage = () => {
   });
   const [showFilterSidebar, setShowFilterSidebar] = useState(false);
   const [filter, setFilter] = useState({
-    articleType: null,
     approvalType: null,
+    placeType: null,
     fromDate: null,
     toDate: null,
   });
 
+  // Fetch data
   const fetchData = useCallback(async (paging = 1, query = "", filter = {}, sort = {}) => {
     dispatch(systemAction.enableLoading());
     try {
-      const result = await articleService.getWithPagingRequestNewArticleAdmin({
+      const result = await placeService.getMyPlacePaging({
         pageNumber: paging,
         pageSize: 10,
+        isBusiness: false,
         searchQuery: query,
         filterProperty: filter,
-        sorterProperty: sort,
+        sortProperty: sort,
       });
 
       if (result && result.success) {
-        setDataArticles(result.data.items);
+        setDataPlaces(result.data.items);
         setPagingData({
           currentPage: result.data.currentPage,
           total: result.data.totalPages,
@@ -79,14 +87,33 @@ const ANewArticleRequestPagingPage = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleOpenDetailModal = (articleId) => {
-    setSelectedArticleId(articleId);
+  const handleDeletePlace = (placeId) => {
+    toast.info(placeId);
+    setDataPlaces((prevPlaces) => prevPlaces.filter((place) => place.placeId !== placeId));
+  };
+
+  const handleOpenUpdateModal = (placeId) => {
+    setSelectedPlaceId(placeId);
+    setShowUpdateModal(true);
+  };
+
+  const handlePlaceUpdated = () => {
+    fetchData();
+  };
+
+  const handlePlaceCreated = () => {
+    fetchData();
+    setShowCreateModal(false);
+  };
+
+  const handleOpenDetailModal = (placeId) => {
+    setSelectedPlaceId(placeId);
     setShowDetailModal(true);
   };
 
   const handleCloseDetailModal = () => {
     setShowDetailModal(false);
-    setSelectedArticleId(null);
+    setSelectedPlaceId(null);
   };
 
   const handleSubmitSearch = (data) => {
@@ -114,10 +141,10 @@ const ANewArticleRequestPagingPage = () => {
         <Form className="d-flex gap-1" onSubmit={handleSubmit(handleSubmitSearch)}>
           <Form.Control
             type="text"
-            placeholder="Tìm kiếm bài viết"
+            placeholder="Tìm kiếm địa điểm"
             {...register("searchQuery")}
           />
-          <Button type="submit" variant="warning">
+          <Button type="submit" variant="success">
             <FaSearch />
           </Button>
           <Button
@@ -132,20 +159,40 @@ const ANewArticleRequestPagingPage = () => {
 
       <Table
         columns={initColumn}
-        items={dataArticles}
-        template={<TableRowTemplate onOpenDetail={handleOpenDetailModal} />}
+        items={dataPlaces}
+        template={
+          <TableRowTemplate
+            onDelete={handleDeletePlace}
+            onEdit={handleOpenUpdateModal}
+            onOpenDetail={handleOpenDetailModal}
+          />
+        }
         onSort={handleSort}
       />
 
       <Paging
         data={pagingData}
         classActive={"bg-success text-white"}
-        onChange={(page) => fetchData(page)} />
+        onChange={(page) => fetchData(page)}
+      />
 
-      {selectedArticleId && (
-        <AArticleDetailPage
+      <AUpdatePlacePage
+        show={showUpdateModal}
+        onClose={() => setShowUpdateModal(false)}
+        placeId={selectedPlaceId}
+        onPlaceUpdated={handlePlaceUpdated}
+      />
+
+      <ACreatePlacePage
+        show={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onPlaceCreated={handlePlaceCreated}
+      />
+
+      {selectedPlaceId && (
+        <APlaceDetailPage
           show={showDetailModal}
-          articleId={selectedArticleId}
+          placeId={selectedPlaceId}
           onClose={handleCloseDetailModal}
         />
       )}
@@ -162,14 +209,15 @@ const ANewArticleRequestPagingPage = () => {
 
 const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
   const [showModal, setShowConfirmDeleteModal] = useState(false);
+  const [errors, setErrors] = useState([]);
 
-  const handleDelete = async (articleId) => {
-    const result = await articleService.deleteArticleById(articleId);
+  const handleDelete = async (placeId) => {
+    const result = await placeService.deletePlaceById(placeId);
     if (result && result.success) {
       toast.success(result.data.message);
-      onDelete(articleId);
-    } else if (result.errors) {
-      toast.error(result.errors.join(", "));
+      onDelete(placeId);
+    } else if (result && result.errors) {
+      setErrors(result.errors);
     }
     setShowConfirmDeleteModal(false);
   };
@@ -250,12 +298,13 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
 
   return (
     <>
+      <FormErrorAlert errors={errors} />
       <tr>
         <td>
           {data.thumbnail ? (
             <img
               src={data.thumbnail}
-              alt={data.title}
+              alt={data.name}
               style={{ width: "50px", height: "50px", borderRadius: "50%" }}
             />
           ) : (
@@ -272,36 +321,56 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
                 fontWeight: "bold",
               }}
             >
-              {data.title.charAt(0)}
+              {data.name.charAt(0).toUpperCase()}
             </div>
           )}
         </td>
-        <td>{data.title}</td>
-        <td>{CArticleTypeDescriptions[data.articleType]}</td>
+        <td className="fw-bold">{data.name}</td>
+        <td>{PlaceTypeDescriptions[data.placeType] || "Không xác định"}</td>
         <td>{new Date(data.createdDate).toLocaleDateString("vi-VN")}</td>
         <td>{renderApprovalStatus(data.approvalType)}</td>
-        <td>{data.author}</td>
+        <td>{data.totalView}</td>
         <td>{renderOwner(data.ownerProperty)}</td>
         <td>
           <Button
             variant="outline-info"
             size="sm"
-            className="ms"
-            onClick={() => onOpenDetail(data.articleId)}
+            onClick={() => onOpenDetail(data.placeId)}
             title="Xem chi tiết"
           >
             <FaInfoCircle />
           </Button>
+          <Button
+            variant="outline-warning"
+            size="sm"
+            onClick={() => onEdit(data.placeId)}
+            title="Cập nhật"
+          >
+            <i className="bi bi-pencil-fill"></i>
+          </Button>
+          <Button
+            variant="outline-danger"
+            size="sm"
+            onClick={() => setShowConfirmDeleteModal(true)}
+            title="Xóa"
+          >
+            <i className="bi bi-trash-fill"></i>
+          </Button>
         </td>
       </tr>
+      <ConfirmModalPage
+        show={showModal}
+        onConfirm={() => handleDelete(data.placeId)}
+        onCancel={() => setShowConfirmDeleteModal(false)}
+      />
     </>
   );
 };
 
 const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
   const [filters, setFilters] = useState({
-    articleType: null,
     approvalType: null,
+    placeType: null,
     fromDate: null,
     toDate: null,
   });
@@ -310,7 +379,7 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
     const { name, value } = e.target;
     setFilters((prevFilters) => ({
       ...prevFilters,
-      [name]: ['articleType', 'approvalType'].includes(name)
+      [name]: ['placeType', 'approvalType'].includes(name)
         ? Number(value) || null
         : value || null,
     }));
@@ -323,8 +392,8 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
 
   const handleClearFilters = () => {
     setFilters({
-      articleType: null,
       approvalType: null,
+      placeType: null,
       fromDate: null,
       toDate: null,
     });
@@ -339,32 +408,11 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
       </Offcanvas.Header>
       <Offcanvas.Body>
         <Form>
-          <Form.Group className="mb-3" controlId="articleType">
-            <Form.Label>Loại bài viết</Form.Label>
+          <Form.Group className="mb-3" controlId="approvalType">
             <Form.Control
               as="select"
-              name="articleType"
-              value={filters.articleType || ""}
-              onChange={handleChange}
-            >
-              <option value="">Chọn loại bài viết</option>
-              {Object.keys(CArticleType).map((key) => {
-                const value = CArticleType[key];
-                return (
-                  <option key={value} value={value}>
-                    {CArticleTypeDescriptions[value]}
-                  </option>
-                );
-              })}
-            </Form.Control>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="approved">
-            <Form.Label>Trạng thái duyệt</Form.Label>
-            <Form.Control
-              as="select"
-              name="approved"
-              value={filters.approvalType || ""}
+              name="approvalType"
+              value={filters.approvalType || null}
               onChange={handleChange}
             >
               <option value="">Chọn trạng thái duyệt</option>
@@ -373,6 +421,26 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
                 return (
                   <option key={value} value={value}>
                     {ApprovalTypeDescriptions[value]}
+                  </option>
+                );
+              })}
+            </Form.Control>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="placeType">
+            <Form.Label>Loại địa điểm</Form.Label>
+            <Form.Control
+              as="select"
+              name="placeType"
+              value={filters.placeType || ""}
+              onChange={handleChange}
+            >
+              <option value="">Chọn loại địa điểm</option>
+              {Object.keys(CPlaceType).map((key) => {
+                const value = CPlaceType[key];
+                return (
+                  <option key={value} value={value}>
+                    {PlaceTypeDescriptions[value]}
                   </option>
                 );
               })}
@@ -413,11 +481,4 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
   );
 };
 
-FilterSidebar.propTypes = {
-  show: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onApplyFilters: PropTypes.func.isRequired,
-  onClearFilters: PropTypes.func.isRequired,
-};
-
-export default ANewArticleRequestPagingPage;
+export default BPlaceIndexPlace;

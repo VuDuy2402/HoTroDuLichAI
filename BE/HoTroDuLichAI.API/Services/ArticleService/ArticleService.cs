@@ -239,6 +239,7 @@ namespace HoTroDuLichAI.API
                         Content = at.Content,
                         Thumbnail = at.Thumbnail,
                         ApprovalType = at.Approved,
+                        ArticleType = at.Type,
                         OwnerProperty = new OwnerProperty()
                         {
                             Avatar = at.User.Avatar,
@@ -289,7 +290,9 @@ namespace HoTroDuLichAI.API
                     {
                         return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
                     }
-                    collection = collection.Where(c => c.UserId == currentUser.Id);
+                    collection = collection.Where(c => c.UserId == currentUser.Id
+                        && c.Type == (param.IsBusiness ? CArticleType.Business : CArticleType.Individual))
+                        .OrderByDescending(c => c.CreatedDate).ThenByDescending(c => c.Title);
                 }
                 if (param.IsPublic)
                 {
@@ -300,6 +303,11 @@ namespace HoTroDuLichAI.API
                     }
                     collection = collection.Where(c => c.Approved == CApprovalType.Accepted)
                         .OrderByDescending(c => c.CreatedDate);
+                }
+                if (param.IsRequestNewArticle)
+                {
+                    collection = collection.Where(c => c.Approved != CApprovalType.Accepted)
+                        .OrderByDescending(c => c.Approved).ThenByDescending(c => c.CreatedDate);
                 }
                 if (param.FilterProperty != null)
                 {
@@ -388,7 +396,8 @@ namespace HoTroDuLichAI.API
         #endregion get article with paging
 
         #region Update Article
-        public async Task<ApiResponse<ResultMessage>> UpdateArticleAsync(UpdateArticleRequestDto requestDto, ModelStateDictionary? modelState = null)
+        public async Task<ApiResponse<ResultMessage>> UpdateArticleAsync(UpdateArticleRequestDto requestDto,
+            ModelStateDictionary? modelState = null)
         {
             if (requestDto == null)
             {
@@ -458,47 +467,25 @@ namespace HoTroDuLichAI.API
                 }
                 articleEntity.Title = requestDto.Title;
                 articleEntity.Content = requestDto.Content;
-                articleEntity.Type = requestDto.Type;
-                var imageProperties = new List<ImageProperty>();
-                foreach (var imgFile in requestDto.ImageFiles)
+                articleEntity.Author = requestDto.Author;
+                if (!requestDto.IsAdmin)
                 {
-                    var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: imgFile.FileId);
-                    if (imageResponse.StatusCode == StatusCodes.Status200OK)
+                    articleEntity.Approved = requestDto.ApprovalType;
+                    articleEntity.Type = requestDto.ArticleType;
+                }
+                var imageProperties = new List<ImageProperty>();
+                var imageResponse = await _imagekitIOService.GetFileDetailsAsync(fileId: requestDto.ThumbnailFileId);
+                if (imageResponse.StatusCode == StatusCodes.Status200OK)
+                {
+                    if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo && imageInfo != null)
                     {
-                        if (imageResponse.Result.Data != null && imageResponse.Result.Data is ImageFileInfo imageInfo && imageInfo != null)
-                        {
-                            var property = ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: imgFile.IsDefault);
-                            if (imgFile.IsDefault)
-                            {
-                                articleEntity.Thumbnail = property.Url;
-                            }
-                            imageProperties.Add(property);
-                        }
+                        var property = ConvertToImageProperty(imageFileInfo: imageInfo, imageType: CImageType.Gallery, isDefault: true);
+                        articleEntity.Thumbnail = property.Url;
+                        imageProperties.Add(property);
                     }
                 }
                 articleEntity.ImageProperty = imageProperties.IsNullOrEmpty() ? articleEntity.ImageProperty : imageProperties.ToJson();
                 _dbContext.Articles.Update(articleEntity);
-
-                var adminUsers = await _userManager.GetUsersInRoleAsync(CRoleType.Admin.ToString());
-                if (adminUsers.Any())
-                {
-                    var notifications = new List<NotificationEntity>();
-                    foreach (var user in adminUsers)
-                    {
-                        var notificationEntity = new NotificationEntity()
-                        {
-                            IsRead = false,
-                            Title = "Cập nhật bài đăng.",
-                            Content = $"{requestDto.Title} - {requestDto.OwnerProperty.FullName}",
-                            Type = CNotificationType.Article,
-                            UserId = user.Id
-                        };
-                        await _notificationHubContext.Clients.User(user.Id.ToString())
-                            .SendAsync("ReceiveNotification", $"Bài đăng đã được cập nhật: {requestDto.Title}.");
-                        notifications.Add(notificationEntity);
-                    }
-                    _dbContext.Notifications.AddRange(notifications);
-                }
                 await _dbContext.SaveChangesAsync();
                 response.Result.Success = true;
                 response.Result.Data = new ResultMessage()

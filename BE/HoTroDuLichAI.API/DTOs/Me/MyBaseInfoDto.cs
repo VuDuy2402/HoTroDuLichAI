@@ -15,7 +15,7 @@ namespace HoTroDuLichAI.API
         public Guid UserId { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string PIN { get; set; } = string.Empty;
+        // public string PIN { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         [PhoneNumber(CPINType.Vietnam_CCCD)]
         public string PhoneNumber { get; set; } = string.Empty;
@@ -37,9 +37,9 @@ namespace HoTroDuLichAI.API
         [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "PIN không được để trống")]
-        [RegularExpression(@"^\d{9}$|^\d{12}$", ErrorMessage = "PIN phải là số căn cước công dân hoặc chứng minh nhân dân của Việt Nam")]
-        public string PIN { get; set; } = string.Empty;
+        // [Required(ErrorMessage = "PIN không được để trống")]
+        // [RegularExpression(@"^\d{9}$|^\d{12}$", ErrorMessage = "PIN phải là số căn cước công dân hoặc chứng minh nhân dân của Việt Nam")]
+        // public string PIN { get; set; } = string.Empty;
 
         public string Address { get; set; } = string.Empty;
         // public List<AddressProperty> AddressProperties { get; set; } = new();

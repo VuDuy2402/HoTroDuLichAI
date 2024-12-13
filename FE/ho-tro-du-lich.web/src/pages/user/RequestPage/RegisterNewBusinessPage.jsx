@@ -12,6 +12,8 @@ import { toQueryString } from "@/utils/queryParams";
 import { useDispatch } from "react-redux";
 import { systemAction } from "@/redux/slices/systemSlice";
 import { useNavigate } from "react-router-dom";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
+
 
 // Create options for business types
 const options = Object.keys(CBusinessServiceType).map((key) => ({
@@ -26,6 +28,7 @@ const RegisterNewBusinessPage = () => {
   const [avtFilId, setAvtFileId] = useState();
   const [provinceList, setProvinceList] = useState([]);
   const [errors, setErrors] = useState([]);
+  useDocumentTitle("Đăng ký doanh nghiệp")
 
   const [formData, setFormData] = useState({
     businessName: '',

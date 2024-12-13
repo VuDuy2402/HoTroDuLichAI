@@ -7,14 +7,17 @@ import { toast } from "react-toastify";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { articleService } from "../../../services/articleService";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ConfirmModalPage from "../../commonpage/ModalPage/ConfirmModalPage";
 import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
 import { CApprovalType, ApprovalTypeDescriptions } from "../../../enum/approvalTypeEnum";
 import { CArticleType, CArticleTypeDescriptions } from "../../../enum/articleTypeEnum";
 import PropTypes from "prop-types";
-import AArticleDetailPage from "../AArticlePage/AArticleDetailPage";
+import AArticleDetailPage from "../../admin/AArticlePage/AArticleDetailPage";
+import AUpdateArticlePage from "../../admin/AArticlePage/AUpdateArticlePage";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 
-const ANewArticleRequestPagingPage = () => {
+const BArticleIndexPage = () => {
   const initColumn = [
     { label: "Ảnh", row: "thumbnail", sortable: false },
     { label: "Tiêu đề", row: "title", sortable: true },
@@ -28,10 +31,12 @@ const ANewArticleRequestPagingPage = () => {
 
   const dispatch = useDispatch();
   const { register, handleSubmit } = useForm();
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState(null);
   const [errorList, setErrorList] = useState([]);
   const [dataArticles, setDataArticles] = useState([]);
+  useDocumentTitle('Bài viết');
   const [pagingData, setPagingData] = useState({
     currentPage: 1,
     total: 1,
@@ -48,9 +53,10 @@ const ANewArticleRequestPagingPage = () => {
   const fetchData = useCallback(async (paging = 1, query = "", filter = {}, sort = {}) => {
     dispatch(systemAction.enableLoading());
     try {
-      const result = await articleService.getWithPagingRequestNewArticleAdmin({
+      const result = await articleService.getWithPagingMy({
         pageNumber: paging,
         pageSize: 10,
+        isBusiness: true,
         searchQuery: query,
         filterProperty: filter,
         sorterProperty: sort,
@@ -78,6 +84,19 @@ const ANewArticleRequestPagingPage = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleDeleteArticle = (articleId) => {
+    setDataArticles(prevArticles => prevArticles.filter(article => article.articleId !== articleId));
+  };
+
+  const handleOpenUpdateModal = (articleId) => {
+    setSelectedArticleId(articleId);
+    setShowUpdateModal(true);
+  };
+
+  const handleArticleUpdated = () => {
+    fetchData();
+  };
 
   const handleOpenDetailModal = (articleId) => {
     setSelectedArticleId(articleId);
@@ -133,7 +152,7 @@ const ANewArticleRequestPagingPage = () => {
       <Table
         columns={initColumn}
         items={dataArticles}
-        template={<TableRowTemplate onOpenDetail={handleOpenDetailModal} />}
+        template={<TableRowTemplate onDelete={handleDeleteArticle} onEdit={handleOpenUpdateModal} onOpenDetail={handleOpenDetailModal} />}
         onSort={handleSort}
       />
 
@@ -141,6 +160,13 @@ const ANewArticleRequestPagingPage = () => {
         data={pagingData}
         classActive={"bg-success text-white"}
         onChange={(page) => fetchData(page)} />
+
+      <AUpdateArticlePage
+        show={showUpdateModal}
+        onClose={() => setShowUpdateModal(false)}
+        articleId={selectedArticleId}
+        onArticleUpdated={handleArticleUpdated}
+      />
 
       {selectedArticleId && (
         <AArticleDetailPage
@@ -292,8 +318,31 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
           >
             <FaInfoCircle />
           </Button>
+          <Button
+            variant="outline-warning"
+            size="sm"
+            className="ms-2"
+            title="Cập nhật"
+            onClick={() => onEdit(data.articleId)}
+          >
+            <i className="bi bi-pencil-fill"></i>
+          </Button>
+          <Button
+            variant="outline-danger"
+            size="sm"
+            title="Xóa"
+            onClick={() => setShowConfirmDeleteModal(true)}
+            className="ms-2"
+          >
+            <i className="bi bi-trash-fill"></i>
+          </Button>
         </td>
       </tr>
+      <ConfirmModalPage
+        show={showModal}
+        onConfirm={() => handleDelete(data.articleId)}
+        onCancel={() => setShowConfirmDeleteModal(false)}
+      />
     </>
   );
 };
@@ -420,4 +469,4 @@ FilterSidebar.propTypes = {
   onClearFilters: PropTypes.func.isRequired,
 };
 
-export default ANewArticleRequestPagingPage;
+export default BArticleIndexPage;

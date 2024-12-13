@@ -18,6 +18,11 @@ import RegisterNewArticlePage from "../pages/user/RequestPage/RegisterNewArticle
 import MyEditor from "../pages/user/RequestPage/MyEditor";
 import ArticleDetailPage from "../pages/user/ArticleDetailPage/ArticleDetailPage";
 import AUpdateArticlePage from "../pages/admin/AArticlePage/AUpdateArticlePage";
+import ProfilePage from "../pages/user/ProfilePage/ProfilePage";
+import MenuSideLayout from "../layouts/MenuSideLayout";
+import { IoInformationCircleOutline, IoLocateOutline, IoNotificationsOffCircleOutline } from "react-icons/io5";
+import UArticleIndexPage from "../pages/user/ArticleDetailPage/UArticleIndexPage";
+import UPlaceIndexPlace from "../pages/user/PlaceDetailPage/UPlaceIndexPage";
 
 export const routes = [
   {
@@ -127,6 +132,89 @@ export const routes = [
     roles: [Role.NormalUser, Role.Business],
     layout: <NavbarLayout />,
     errorElement: <Navigate to="/error" />,
+  },
+
+  {
+    path: "/canhan/thongtin",
+    component: <ProfilePage />,
+    checkAuth: true,
+    roles: [Role.NormalUser],
+    errorElement: <Navigate to="/error" />,
+    layout: (
+      <MenuSideLayout
+        items={[
+          { 
+            label: "Thông tin cá nhân",
+            icon: <IoInformationCircleOutline />,
+            url: "/canhan/thongtin" },
+          {
+            label: "Bài viết của tôi",
+            icon: <IoNotificationsOffCircleOutline />,
+            url: "/canhan/baiviet",
+          },
+          {
+            label: "Địa điểm đã đăng",
+            icon: <IoLocateOutline />,
+            url: "/canhan/diadiem",
+          },
+        ]}
+      />
+    ),
+  },
+
+  {
+    path: "/canhan/diadiem",
+    component: <UPlaceIndexPlace />,
+    checkAuth: true,
+    roles: [Role.NormalUser],
+    errorElement: <Navigate to="/error" />,
+    layout: (
+      <MenuSideLayout
+        items={[
+          { 
+            label: "Thông tin cá nhân",
+            icon: <IoInformationCircleOutline />,
+            url: "/canhan/thongtin" },
+          {
+            label: "Bài viết của tôi",
+            icon: <IoNotificationsOffCircleOutline />,
+            url: "/canhan/baiviet",
+          },
+          {
+            label: "Địa điểm đã đăng",
+            icon: <IoLocateOutline />,
+            url: "/canhan/diadiem",
+          },
+        ]}
+      />
+    ),
+  },
+  {
+    path: "/canhan/baiviet",
+    component: <UArticleIndexPage />,
+    checkAuth: true,
+    roles: [Role.NormalUser],
+    errorElement: <Navigate to="/error" />,
+    layout: (
+      <MenuSideLayout
+        items={[
+          { 
+            label: "Thông tin cá nhân",
+            icon: <IoInformationCircleOutline />,
+            url: "/canhan/thongtin" },
+          {
+            label: "Bài viết của tôi",
+            icon: <IoNotificationsOffCircleOutline />,
+            url: "/canhan/baiviet",
+          },
+          {
+            label: "Địa điểm đã đăng",
+            icon: <IoLocateOutline />,
+            url: "/canhan/diadiem",
+          },
+        ]}
+      />
+    ),
   },
   {
     path: "/error",

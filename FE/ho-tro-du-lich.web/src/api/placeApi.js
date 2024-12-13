@@ -1,6 +1,7 @@
 export const placeApi = {
   Place_GetWithPaging: "api/v1/admin/place/paging",
   Place_GetNewPlace: "api/v1/admin/place/newplace/paging",
+  Place_GetMyPlace: "api/v1/admin/place/my/paging",
   // admin
   Place_Admin_GetWithPaging: "api/v1/admin/place/manage/paging",
   Place_Admin_GetRequestNewPlaceWithPaging: "api/v1/admin/place/manage/requestnewplace/paging",
@@ -8,6 +9,7 @@ export const placeApi = {
 
   Place_Admin_CreatePlace: "api/v1/admin/place/manage",
   Place_Admin_UpdatePlace: "api/v1/admin/place/manage",
+  Place_Admin_DeletePlace: "api/v1/admin/place/manage",
   Place_Admin_DeletePlaceImages: "api/v1/admin/place/manage/images/delete",
   Place_Admin_ApproveNewPlace_Page:
     "/api/v1/admin/place/manage/approverequestcreateplace",

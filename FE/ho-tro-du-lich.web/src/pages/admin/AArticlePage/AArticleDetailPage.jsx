@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import FormErrorAlert from "../../../common/components/FormErrorAlert/FormErrorAlert";
 import { Modal, Button, Row, Col, Image, Alert, Spinner } from 'react-bootstrap';
 
-const AArticleDetailModal = ({ show, onClose, articleId }) => {
+const AArticleDetailPage = ({ show, onClose, articleId }) => {
   const [errors, setErrors] = useState([]);
   const [article, setArticle] = useState(null);
   const dispatch = useDispatch();
@@ -110,10 +110,10 @@ const AArticleDetailModal = ({ show, onClose, articleId }) => {
   );
 };
 
-AArticleDetailModal.propTypes = {
+AArticleDetailPage.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   articleId: PropTypes.string.isRequired,
 };
 
-export default AArticleDetailModal;
+export default AArticleDetailPage;

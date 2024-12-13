@@ -48,6 +48,15 @@ namespace HoTroDuLichAI.API
             var result = await _placeService.GetWithPagingAsync(param: param, modelState: ModelState);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
+
+        [HttpPost("my/paging")]
+        [Authorize(Roles = $"{RoleDescription.Business}, {RoleDescription.NormalUser}")]
+        public async Task<IActionResult> GetMyPlaceWithPagingManage(PlacePagingAndFilterParams param)
+        {
+            param.IsMy = true;
+            var result = await _placeService.GetWithPagingAsync(param: param, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
         
         [HttpGet("manage/{placeId}")]
         public async Task<IActionResult> GetPlaceById(Guid placeId)
@@ -89,7 +98,7 @@ namespace HoTroDuLichAI.API
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
-        [HttpDelete("{placeId}")]
+        [HttpDelete("manage/{placeId}")]
         [Authorize(Roles = RoleDescription.Admin)]
         public async Task<IActionResult> DeletePlace(Guid placeId)
         {

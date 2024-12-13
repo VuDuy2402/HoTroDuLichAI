@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { systemAction } from "@/redux/slices/systemSlice";
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 import { Container, Row, Col, Image, Alert, Spinner } from 'react-bootstrap';
 
 const ArticleDetailPage = () => {
@@ -13,6 +14,7 @@ const ArticleDetailPage = () => {
   const [errors, setErrors] = useState([]);
   const [article, setArticle] = useState(null);
   const dispatch = useDispatch();
+  useDocumentTitle('Chi tiết bài viết');
 
   useEffect(() => {
     const fetchArticleDetail = async () => {

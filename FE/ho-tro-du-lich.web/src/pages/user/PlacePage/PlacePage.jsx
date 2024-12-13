@@ -13,9 +13,12 @@ import { useForm, Controller } from "react-hook-form";
 import Paging from "../../../common/components/Paging/Paging";
 import { useDispatch } from "react-redux";
 import { systemAction } from "../../../redux/slices/systemSlice";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
+
 const PlacePage = () => {
   const [listPlaces, setListPlaces] = useState([]);
   const dispatch = useDispatch();
+  useDocumentTitle('Địa điểm');
   const [pagingData, setPagingData] = useState({
     currentPage: 1,
     total: 1,

@@ -15,6 +15,8 @@ import Paging from "../../../common/components/Paging/Paging";
 import Table from "../../../common/components/Table/Table";
 import { CBusinessServiceType, CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
 import { ApprovalTypeDescriptions, CApprovalType } from "../../../enum/approvalTypeEnum";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
+
 
 const ABusinessIndexPage = () => {
     const initColumn = [
@@ -36,6 +38,7 @@ const ABusinessIndexPage = () => {
     const [selectedBusinessId, setSelectedBusinessId] = useState(null);
     const [errorList, setErrorList] = useState([]);
     const [dataBusinesses, setDataBusinesses] = useState([]);
+    useDocumentTitle('Quản lý doanh nghiệp');
     const [pagingData, setPagingData] = useState({
         currentPage: 1,
         total: 1,

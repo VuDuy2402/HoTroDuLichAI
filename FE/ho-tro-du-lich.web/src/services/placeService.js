@@ -10,6 +10,15 @@ export const placeService = {
     }
     return null;
   },
+
+  getMyPlacePaging: async (data) => {
+    const response = await reqApi.post(placeApi.Place_GetMyPlace, data);
+    if (response) {
+      return response;
+    }
+    return null;
+  },
+
   getNewPlacePaging: async (data) => {
     const response = await reqApi.post(placeApi.Place_GetNewPlace, data);
     if (response) {
@@ -88,6 +97,17 @@ export const placeService = {
     const token = localStorageService.getToken();
     if (token) {
       const response = await reqApi.put(placeApi.Place_Admin_UpdatePlace, data);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  deletePlaceById: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.delete(`${placeApi.Place_Admin_DeletePlace}/${data}`);
       if (response) {
         return response;
       }

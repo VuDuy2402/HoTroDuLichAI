@@ -1,8 +1,10 @@
 import RegisterForm from "./RegisterForm";
 import { Row, Col, Container } from "react-bootstrap";
 import cauRongDN from "@/assets/img/CauRong.jpg";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 
 const RegisterPage = () => {
+  useDocumentTitle('Đăng ký');
   return (
     <Container fluid className="p-0 m-0 position-relative">
       <Row style={{ height: "100vh", width: "100%", margin: 0, padding: 0 }}>

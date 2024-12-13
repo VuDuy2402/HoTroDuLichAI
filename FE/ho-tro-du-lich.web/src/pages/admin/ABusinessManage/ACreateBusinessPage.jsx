@@ -14,6 +14,7 @@ import {
 import { CBusinessServiceType, CBusinessServiceTypeDescriptions } from "../../../enum/businessTypeEnum";
 import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGallery";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 
 // LocationPicker Component
 const LocationPicker = ({ setCoordinates, position }) => {
@@ -38,6 +39,7 @@ const ABusinessCreatePage = ({ show, onClose, onBusinessCreated }) => {
     const [selectedBusinessType, setSelectedBusinessType] = useState(CBusinessServiceType.None);
     const [imageFileIds, setImageFileIds] = useState([]);
     const [isNew, setIsNew] = useState(false);
+    useDocumentTitle('Tạo mới doanh nghiệp');
 
     // Sync coordinates with form fields when they change
     useEffect(() => {

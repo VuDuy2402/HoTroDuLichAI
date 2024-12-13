@@ -31,7 +31,7 @@ const LocationPicker = ({ setCoordinates, position }) => {
 };
 
 // APlaceCreatePage Component
-const APlaceCreatePage = ({ show, onClose, onPlaceCreated }) => {
+const ACreatePlacePage = ({ show, onClose, onPlaceCreated }) => {
     const dispatch = useDispatch();
     const { register, handleSubmit, formState: { errors }, setValue } = useForm();
     const [coordinates, setCoordinates] = useState({ latitude: 14.0583, longitude: 108.2772 });
@@ -265,4 +265,4 @@ const ButtonGroup = ({ onClose }) => (
     </div>
 );
 
-export default APlaceCreatePage;
+export default ACreatePlacePage;

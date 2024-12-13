@@ -2,11 +2,11 @@ import { Navigate } from "react-router-dom";
 import { Role } from "../enum/permission";
 import BHomePage from "../pages/business/BHomePage/BHomePage";
 import MenuSideLayout from "../layouts/MenuSideLayout";
-import BPlacePage from "../pages/business/BPlacePage/BPlacePage";
 import BDashboardPage from "../pages/business/BDashboardPage/BDashboardPage";
 import { IoLocationOutline, IoStatsChartOutline } from "react-icons/io5";
 import { LuNewspaper } from "react-icons/lu";
-import BArticlePage from "../pages/business/BArticlePage/BArticlePage";
+import BPlaceIndexPlace from "../pages/business/BPlacePage/BPlaceIndexPlace";
+import BArticleIndexPage from "../pages/business/BArticlePage/BArticleIndexPage";
 const menusideItemBusiness = [
   {
     label: "Dashboard",
@@ -44,7 +44,7 @@ export const routesBusiness = [
   },
   {
     path: "/doanhnghiep/diadiem",
-    component: <BPlacePage />,
+    component: <BPlaceIndexPlace />,
     checkAuth: true,
     roles: [Role.Business, Role.Admin],
     errorElement: <Navigate to="/error" />,
@@ -52,7 +52,7 @@ export const routesBusiness = [
   },
   {
     path: "/doanhnghiep/tintuc",
-    component: <BArticlePage />,
+    component: <BArticleIndexPage />,
     checkAuth: true,
     roles: [Role.Business, Role.Admin],
     errorElement: <Navigate to="/error" />,

@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { systemAction } from "../../../redux/slices/systemSlice";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 const options = Object.keys(CPlaceType).map((key) => ({
   label: PlaceTypeDescriptions[CPlaceType[key]],
   value: CPlaceType[key],
@@ -33,6 +34,7 @@ const RegisterNewPlacePage = () => {
   const [positionMap, setPositionMap] = useState(null);
   const [fileIds, setFileIds] = useState([]);
   const [errorList, setErrorList] = useState([]);
+  useDocumentTitle('Đăng địa điểm mới');
 
   const handleSubmitRequestNewPlace = async (data) => {
     data.isNew = true;

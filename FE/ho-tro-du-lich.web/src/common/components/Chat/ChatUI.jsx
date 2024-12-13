@@ -6,6 +6,7 @@ import { chatService } from "../../../services/chatService";
 import { userService } from "../../../services/userSerivce";
 import { toast } from "react-toastify";
 import { localStorageService } from "../../../services/localstorageService";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
 import "./ChatUI.scss";
 // Contact List Component
 const ContactList = ({
@@ -17,6 +18,7 @@ const ContactList = ({
   const filteredContacts = contacts.filter((contact) =>
     contact.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  useDocumentTitle('Nhắn tin');
 
   return (
     <ListGroup
