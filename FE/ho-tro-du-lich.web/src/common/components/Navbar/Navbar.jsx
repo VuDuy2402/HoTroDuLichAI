@@ -9,7 +9,7 @@ import { memo, useEffect, useState } from "react";
 import { userService } from "../../../services/userSerivce";
 import { notificationService } from "../../../services/notificationService";
 import { FiBell } from "react-icons/fi";
-import { MdAddLocation, MdOutlineArticle } from "react-icons/md";
+import { MdAddBusiness, MdBusiness, MdOutlineAddLocation, MdOutlineBookmarkAdd, MdOutlineManageAccounts } from "react-icons/md";
 import UserTag from "../UserTag/UserTag";
 import {
   getAuthSelector,
@@ -18,9 +18,8 @@ import {
 } from "../../../redux/selectors/authSelector";
 import LinkCustom from "../LinkCustom/LinkCustom";
 import { Role } from "../../../enum/permission";
-import { Modal} from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
-import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { TbLogin } from "react-icons/tb";
 import { FaUserPlus } from "react-icons/fa";
 import { MdOutlineApps } from "react-icons/md";
@@ -159,36 +158,55 @@ const Navbar = ({ className }) => {
     if (!userProfile) {
       return listBtn;
     }
-    if (getUserRoles && getUserRoles.length > 0) {
-      if (getUserRoles.includes(Role.NormalUser
-        && !getUserRoles.includes(Role.Business)
-        && !getUserRoles.includes(Role.Admin))) {
-        listBtn.push({ label: "Đăng ký Doanh nghiệp", id: 0 });
-      }
+
+    const isNormalUser = getUserRoles.includes(Role.NormalUser);
+    const isBusiness = getUserRoles.includes(Role.Business);
+    const isAdmin = getUserRoles.includes(Role.Admin);  
+
+    if (isBusiness) {
+      listBtn.push({
+        label: "Doanh nghiệp",
+        id: 1,
+        icon: <MdBusiness size={24} className="text-primary"/>
+      });
     }
-    if (getUserRoles && getUserRoles.length > 0) {
-      if ((getUserRoles.includes(Role.NormalUser
-        || getUserRoles.includes(Role.Business))
-        && !getUserRoles.includes(Role.Admin))) {
-        listBtn.push({ label: "Đăng ký Bài viết", id: 0 });
-      }
-    }
-    if (getUserRoles && getUserRoles.length > 0) {
-      if (getUserRoles.includes(Role.Business)) {
-        listBtn.push({ label: "Doanh nghiệp", id: 1 });
-      }
-    }
-    if (getUserRoles.includes(Role.Admin)) {
+  
+    if (isAdmin) {
       listBtn.push({
         label: "Quản trị",
         id: 2,
+        icon: <MdOutlineApps size={24} className="text-success" />
+      });
+    }
+  
+    if (isNormalUser && !isBusiness && !isAdmin) {
+      listBtn.push({
+        label: "Đăng ký Doanh nghiệp",
+        id: 3,
+        icon: <MdAddBusiness size={24} className="text-info"/>
+      });
+    }
+  
+    if ((isNormalUser || isBusiness) && !isAdmin) {
+      listBtn.push({
+        label: "Đăng Bài viết",
+        id: 4,
+        icon: <MdOutlineBookmarkAdd size={24} className="text-warning"/>
+      });
+    }
+
+    if ((isNormalUser || isBusiness) && !isAdmin) {
+      listBtn.push({
+        label: "Đăng Địa điểm mới",
+        id: 5,
+        icon: <MdOutlineAddLocation size={24} className="text-secondary"/>
       });
     }
 
     if (windowSize.width <= 767) {
       listBtn.push({
         label: <UserTag size={1} profile={userProfile} className={"w-100"} />,
-        id: 4,
+        id: 6,
       });
       listBtn.push({
         label: (
@@ -199,9 +217,9 @@ const Navbar = ({ className }) => {
             <IoLogOutSharp /> Đăng xuất
           </button>
         ),
-        id: 5,
+        id: 7,
       });
-    }
+    }    
     return listBtn;
   };
 
@@ -217,19 +235,25 @@ const Navbar = ({ className }) => {
     navigate(data.url);
   };
   const handleClickDropdownRole = (data) => {
-    if (data.id === 0) {
-      navigate("/doanhnghiep/dangky");
-    }
     if (data.id === 1) {
       navigate("/doanhnghiep");
     }
     if (data.id === 2) {
       navigate("/quantri");
     }
+    if (data.id === 3) {
+      navigate("/doanhnghiep/dangky");
+    }
     if (data.id === 4) {
-      handleClickUserTag();
+      navigate("/baiviet/dangky");
     }
     if (data.id === 5) {
+      navigate("/diadiem/dangky");
+    }
+    if (data.id === 6) {
+      handleClickUserTag();
+    }
+    if (data.id === 7) {
       setShowConfirmLogout(true);
     }
   };
@@ -281,39 +305,25 @@ const Navbar = ({ className }) => {
             {userProfile ? (
               <>
                 <DropdownCustom
-                  title={<MdOutlineApps />}
-                  classBtn={"btn btn-light rounded-0"}
+                  title={<MdOutlineManageAccounts size={24} className="text-danger"/>}
+                  classBtn={"btn btn-light rounded"}
                   classDropdown={"bg-white p-2 shadow"}
-                  classItem="p-1 d-flex justify-content-center"
+                  classItem="p-1 d-flex justify-content-start"
                   items={generateBtnRole()}
                   styleDropdown={{ right: 0, width: "200px" }}
                   autoClose
                   onClick={handleClickDropdownRole}
                 />
-                <button
-                  className="btn btn-light rounded-0"
-                  onClick={() => navigate("/diadiem/dangky")}
-                >
-                  <MdAddLocation size={24} />
-                  {windowSize.width > 1024 ? "Đăng địa điểm mới" : null}
-                </button>
-                <button
-                  className="btn btn-light rounded-0"
-                  onClick={() => navigate("/baiviet/dangky")}
-                >
-                  <MdOutlineArticle size={24} />
-                  {windowSize.width > 1024 ? "Đăng bài viết mới" : null}
-                </button>
                 <ButtonCustom
-                  title={<RiMessage2Line size={24} />}
+                  title={<RiMessage2Line size={24} className="text-success" />}
                   noticeIcon
                   amountNotice={2}
-                  className="btn btn-light rounded-0"
+                  className="btn btn-light rounded"
                   onClick={() => navigate("/chat")}
                 />
                 <DropdownCustom
-                  title={<FiBell size={24} />}
-                  classBtn={"btn btn-light rounded-0"}
+                  title={<FiBell size={24} className="text-warning"/>}
+                  classBtn={"btn btn-light rounded"}
                   classDropdown={"bg-white p-2 shadow"}
                   classItem="p-1 d-flex justify-content-center"
                   autoClose
@@ -350,10 +360,10 @@ const Navbar = ({ className }) => {
                       onClick={handleClickUserTag}
                     />
                     <button
-                      className={`btn btn-light fw-bold rounded-0 navbar__btn__dangxuat text-success`}
+                      className={`btn btn-light fw-bold rounded navbar__btn__dangxuat text-success`}
                       onClick={() => setShowConfirmLogout(true)}
                     >
-                      <IoLogOutSharp />
+                      <IoLogOutSharp className="rounded" />
                     </button>
                   </>
                 )}
@@ -371,9 +381,7 @@ const Navbar = ({ className }) => {
                   )}
                 </button>
                 <button
-                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${
-                    windowSize.width > 767 ? "" : ""
-                  }`}
+                  className={`btn btn-success border-1 rounded-0  navbar__btn__dangxuat ${windowSize.width > 767 ? "" : "" }`}
                   onClick={handleRegister}
                 >
                   {windowSize.width <= 767 ? <FaUserPlus /> : "Đăng ký"}

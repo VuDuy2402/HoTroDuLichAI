@@ -1,9 +1,8 @@
-/* eslint-disable react/prop-types */
 import { useState } from "react";
 import styles from "./Dropdown.module.scss";
 /**
  *
- * @param {*} items : [{label:string}]
+ * @param {*} items : [{label:string, icon?: ReactNode}]
  * @param onClick: return object item
  * @returns
  */
@@ -64,23 +63,29 @@ const DropdownCustom = ({
       </button>
       {isOpen && (
         <div
-          className={`position-absolute d-flex flex-column gap-2 ${classDropdown}`}
-          style={{ ...styleDropdown, top: "100%", minWidth: "130px" }}
+          className={`position-absolute d-flex flex-column gap-2 rounded ${classDropdown}`}
+          style={{
+            ...styleDropdown,
+            top: "100%",
+            minWidth: "130px",
+            textAlign: "left",
+          }}
         >
-          {items &&
-            items.length > 0 &&
-            items.map((item, idx) => (
-              <div
-                key={idx}
-                className={`${classItem} ${styles.item}`}
-                onClick={() => onClick(item)}
-                style={{ ...styleItem, cursor: "pointer" }}
-              >
-                <div className="m-0" style={{ maxWidth: "100%" }}>
-                  {item.label}
-                </div>
+          {items && items.length > 0 && items.map((item, idx) => (
+            <div
+              key={idx}
+              className={`${classItem} ${styles.item}`}
+              onClick={() => onClick(item)}
+              style={{ ...styleItem, cursor: "pointer", display: "flex", alignItems: "center" }}
+            >
+              {item.icon && (
+                <span className="me-2">{item.icon}</span>
+              )}
+              <div className="m-0" style={{ maxWidth: "100%" }}>
+                {item.label}
               </div>
-            ))}
+            </div>
+          ))}
           {((items && items.length === 0) || !items) && (
             <div
               className={`${classItem} ${styles.item}`}

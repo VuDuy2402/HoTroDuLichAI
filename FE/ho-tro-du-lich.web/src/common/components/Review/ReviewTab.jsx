@@ -125,9 +125,23 @@ const ReviewTab = ({ placeId, rating }) => {
 
     const handleSaveEdit = async () => {
         if (selectedReview) {
-            await handleUpdateReview(selectedReview.reviewPlaceId, editingContent);
-            setIsEditing(false);
-            setEditingContent("");
+            const data = {
+                placeId: selectedReview.placeId,
+                comment: editingContent,
+                rating: selectedReview.rating,
+                reviewPlaceId: selectedReview.reviewPlaceId
+            };
+    
+            const result = await reviewPlaceService.updateReviewOfPlace(data);
+    
+            if (result && result.success) {
+                toast.success(result.data.message);
+                setIsEditing(false);
+                setEditingContent("");
+                handleFetchReviews();
+            } else if (result && result.errors) {
+                setErrors(result.errors);
+            }
         }
     };
 

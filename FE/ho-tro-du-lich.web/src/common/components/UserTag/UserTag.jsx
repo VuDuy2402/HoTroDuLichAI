@@ -6,7 +6,7 @@ const UserTag = ({ profile, onClick, size, className }) => {
       className={`d-flex justify-content-center align-items-center h-100 p-1 ${className}`}
     >
       <button
-        className="btn btn-light h-100 d-flex align-items-center gap-1 rounded-0"
+        className="btn btn-light h-100 d-flex align-items-center gap-1 rounded"
         onClick={onClick}
       >
         <img
