@@ -36,6 +36,7 @@ namespace HoTroDuLichAI.API.Controllers
         public async Task<IActionResult> GetWithPaging(Guid placeId, ReviewPlacePagingAndFilterParam param)
         {
             param.IsPlace = true;
+            var token = Request.Headers["Authorization"].ToString();
             var result = await _reviewPlaceService.GetWithPagingAsync(param: param, placeId: placeId, modelState: ModelState);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }

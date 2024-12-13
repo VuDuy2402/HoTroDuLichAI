@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.ML.Data;
 
 namespace HoTroDuLichAI.API
 {
@@ -10,7 +9,7 @@ namespace HoTroDuLichAI.API
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
         [Column("DiemDanhGia")]
-        public long Rating { get; set; }
+        public float Rating { get; set; }
         [Column("BinhLuan")]
         public string Comment { get; set; } = string.Empty;
         private DateTimeOffset _createdDate { get; set; } = DateTimeOffset.UtcNow;

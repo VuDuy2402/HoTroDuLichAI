@@ -52,7 +52,7 @@ namespace HoTroDuLichAI.API
             try
             {
                 var currentUser = RuntimeContext.CurrentUser;
-                IQueryable<ReviewPlaceEntity> collection = _dbContext.ReviewPlaces.Include(rp => rp.User);
+                IQueryable<ReviewPlaceEntity> collection = _dbContext.ReviewPlaces.Include(rp => rp.User).OrderByDescending(c => c.CreatedDate);
                 if (param.IsMy)
                 {
                     if (currentUser == null)
@@ -112,6 +112,7 @@ namespace HoTroDuLichAI.API
                         Comment = item.Comment,
                         CreatedDate = item.CreatedDate,
                         Rating = item.Rating,
+                        IsOwner = currentUser != null && currentUser.Id == item.UserId,
                         OwnerProperty = new OwnerProperty()
                         {
                             Avatar = item.User.Avatar,
@@ -209,6 +210,11 @@ namespace HoTroDuLichAI.API
             {
                 return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
             }
+            var placeEntity = await _dbContext.Places.FindAsync(requestDto.PlaceId);
+            if (placeEntity == null)
+            {
+                return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+            }
             var currentUser = RuntimeContext.CurrentUser;
             if (currentUser == null)
             {
@@ -219,6 +225,11 @@ namespace HoTroDuLichAI.API
                 var reviewPlaceEntity = requestDto.Adapt<ReviewPlaceEntity>();
                 reviewPlaceEntity.UserId = currentUser.Id;
                 _dbContext.ReviewPlaces.Add(entity: reviewPlaceEntity);
+                await _dbContext.SaveChangesAsync();
+                var placeRating = await _dbContext.ReviewPlaces.Where(c => c.PlaceId == requestDto.PlaceId)
+                    .AverageAsync(c => c.Rating);
+                placeEntity.Rating = placeRating;
+                _dbContext.Places.Update(entity: placeEntity);
                 await _dbContext.SaveChangesAsync();
                 response.Result.Data = new ResultMessage()
                 {

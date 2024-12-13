@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { articleService } from "../../../services/articleService";
 import { CApprovalType, ApprovalTypeDescriptions } from "../../../enum/approvalTypeEnum";
@@ -52,7 +52,7 @@ const RegisterNewArticlePage = () => {
         setImageFileIds((prevFileIds) => [...prevFileIds, fileId]);
     };
 
-    const handleImageUpload = async (files) => {
+    const handleImageUpload = useCallback(async (files) => {
         const formData = new FormData();
         for (let i = 0; i < files.length; i++) {
             formData.append("Files", files[i]);
@@ -88,9 +88,9 @@ const RegisterNewArticlePage = () => {
                 toast.error(`Error uploading image:  ${error}`);
             }
         }
-    };
+    }, []);
 
-    const imageHandler = () => {
+    const imageHandler = useCallback(() => {
         const input = document.createElement("input");
         input.setAttribute("type", "file");
         input.setAttribute("accept", "image/*");
@@ -102,7 +102,7 @@ const RegisterNewArticlePage = () => {
                 await handleImageUpload(files);
             }
         };
-    };
+    }, [handleImageUpload]);
 
     const modules = {
         toolbar: {
@@ -116,7 +116,7 @@ const RegisterNewArticlePage = () => {
                 ["blockquote", "code-block"],
             ],
             handlers: {
-                image: () => imageHandler(),
+                imageHandler,
             },
         },
     };

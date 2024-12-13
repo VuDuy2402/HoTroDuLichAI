@@ -11,7 +11,7 @@ namespace HoTroDuLichAI.API
         public float Latitude { get; set; }
         public float Longitude { get; set; }
         public int TotalView { get; set; }
-        public int Rating { get; set; }
+        public float Rating { get; set; }
         public CPlaceType PlaceType { get; set; }
         public string Thumbnail { get; set; } = string.Empty;
         public CApprovalType ApprovalType { get; set; }

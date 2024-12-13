@@ -11,7 +11,7 @@ namespace HoTroDuLichAI.API
         public bool IsAdmin { get; set; }
         [JsonIgnore]
         public bool IsPlace { get; set; }
-        public ReviewPlaceFilterProperty Filter { get; set; } = null!;
-        public SortProperty SortProperty { get; set; } = null!;
+        public ReviewPlaceFilterProperty? Filter { get; set; }
+        public SortProperty? SortProperty { get; set; }
     }
 }

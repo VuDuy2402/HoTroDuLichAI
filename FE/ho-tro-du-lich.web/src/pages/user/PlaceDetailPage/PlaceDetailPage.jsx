@@ -13,10 +13,12 @@ import TabCustom from "../../../common/components/TabCustom/TabCustom";
 import { itineraryService } from "../../../services/itineraryService";
 import { toast } from "react-toastify";
 import Paging from "../../../common/components/Paging/Paging";
+import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ReviewTab from "../../../common/components/Review/ReviewTab";
 const PlaceDetailPage = () => {
-  const navigate = useNavigate();
   const { placeId } = useParams();
   const [dataPlace, setDataPlace] = useState(null);
+  const [errors, setErrors] = useState([]);
   const [pagingData, setPagingData] = useState({
     currentPage: 1,
     total: 1,
@@ -35,11 +37,13 @@ const PlaceDetailPage = () => {
     const result = await placeService.getPlaceById(placeId);
     if (result) {
       if (result.success) {
-        console.log(result);
         setDataPlace(result.data);
       }
+      else if (result.errors) {
+        setErrors(result.errors);
+      }
     } else {
-      navigate("/error");
+      toast.error("Không thể kết nối đến server.");
     }
   };
   const handleIteraryPage = async () => {
@@ -55,11 +59,11 @@ const PlaceDetailPage = () => {
           total: result.data.totalPages,
           pageSize: result.data.pageSize,
         });
-      } else {
-        toast.error("Xay ra loi");
+      } else if (result.errors) {
+        setErrors(result.errors);
       }
     } else {
-      navigate("/error");
+      toast.error("Không thể kết nối đến server.");
     }
   };
   useEffect(() => {
@@ -75,6 +79,7 @@ const PlaceDetailPage = () => {
   return (
     <div className="container-fluid p-0 pb-2">
       <div className="frame-img bg-black">
+        <FormErrorAlert errors={errors} />
         {dataPlace && (
           <Swiper
             className="new-place-frame-swiper"
@@ -129,7 +134,7 @@ const PlaceDetailPage = () => {
             </div>
             <div className="d-flex align-items-center gap-1">
               <RateStar rate={dataPlace.rating} maxRate={5} color={"F1B600"} />
-              <p className="m-0">{dataPlace.rating}</p>
+              {/* <p className="m-0">{dataPlace.rating}</p> */}
             </div>
 
             <div className="frame-analys d-flex flex-wrap justify-content-center align-items-center gap-2">
@@ -204,6 +209,10 @@ const PlaceDetailPage = () => {
                       }))
                     }
                   />
+                )}
+
+                {tab === 2 && (
+                  <ReviewTab placeId={placeId} rating={dataPlace.rating} />
                 )}
               </div>
             </div>

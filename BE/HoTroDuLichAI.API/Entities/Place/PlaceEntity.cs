@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.ML.Data;
 
 namespace HoTroDuLichAI.API
 {
@@ -10,7 +9,7 @@ namespace HoTroDuLichAI.API
         [Column("TenDiaDiem")]
         public string Name { get; set; } = string.Empty;
         [Column("DiemDanhGia")]
-        public int Rating { get; set; }
+        public float Rating { get; set; }
         [Column("TongSoLuotXem")]
         public int TotalView { get; set; }
         [Column("MoTaDiaDiem")]
