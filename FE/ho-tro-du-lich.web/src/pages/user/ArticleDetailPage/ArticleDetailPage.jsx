@@ -7,8 +7,9 @@ import { systemAction } from "@/redux/slices/systemSlice";
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import useDocumentTitle from "../../../common/js/useDocumentTitle";
-import { Container, Row, Col, Image, Alert, Spinner } from 'react-bootstrap';
-
+import { Container, Row, Col, Spinner, Badge } from 'react-bootstrap';
+import { ApprovalTypeDescriptions } from '../../../enum/approvalTypeEnum';
+import { CArticleTypeDescriptions } from '../../../enum/articleTypeEnum';
 const ArticleDetailPage = () => {
   const { articleId } = useParams();
   const [errors, setErrors] = useState([]);
@@ -29,14 +30,20 @@ const ArticleDetailPage = () => {
           }
         }
       } catch (error) {
-        toast.error('Failed to fetch article details:', error);
+        toast.error(`Failed to fetch article details: ${error}`);
       } finally {
         dispatch(systemAction.disableLoading());
       }
     };
 
     fetchArticleDetail();
-  }, [articleId]);
+  }, [articleId, dispatch]);
+
+  useEffect(() => {
+    if (article) {
+      useDocumentTitle(article.title);
+    }
+  }, [article]);
 
   if (!article) {
     return (
@@ -48,40 +55,81 @@ const ArticleDetailPage = () => {
     );
   }
 
+  const processContentWithImages = (content) => {
+    const imgRegex = /<img([^>]+)>/g;
+    return content.replace(imgRegex, (match, p1) => {
+      const src = p1.match(/src="([^"]+)"/);
+      const alt = p1.match(/alt="([^"]+)"/);
+      if (src) {
+        return `<img src="${src[1]}" alt="${alt ? alt[1] : ''}" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />`;
+      }
+      return match;
+    });
+  };
+
+  const processedContent = processContentWithImages(article.content);
+
   return (
     <Container className="article-detail-page">
       {errors.length > 0 && <FormErrorAlert errors={errors} />}
       <Row className="article-header">
         <Col>
-          <h1 className="article-title">{article.title}</h1>
-          <div className="article-meta">
-            <span className="article-author">{article.author}</span>
-            <span className="article-date">
-              {new Date(article.createdDate).toLocaleDateString()}
-            </span>
+          <h1 className="article-title my-5 text-center">{article.title}</h1>
+          <hr />
+          <div className="article-meta d-flex justify-content-between">
+            <div>
+              <span className='me-1'>Trạng thái: </span>
+                <Badge
+                  className={
+                    article.approvalType === 'approved' ? 'badge-success' :
+                      article.approvalType === 'pending' ? 'badge-warning' :
+                        article.approvalType === 'rejected' ? 'badge-danger' :
+                          'badge-secondary'
+                  }
+                  style={{ fontWeight: 500, borderRadius: '12px', padding: '0.3em 0.6em', transition: 'all 0.3s ease' }}
+                  onMouseEnter={(e) => e.target.style.opacity = 0.8}
+                  onMouseLeave={(e) => e.target.style.opacity = 1}
+                >
+                  {ApprovalTypeDescriptions[article.approvalType]}
+                </Badge>
+              <br />
+              <span className='me-1'>Thể loại: </span>
+                <Badge
+                  className={
+                    article.articleType === 'news' ? 'badge-info' :
+                      article.articleType === 'tutorial' ? 'badge-primary' :
+                        article.articleType === 'opinion' ? 'badge-light' :
+                          'badge-secondary'
+                  }
+                  style={{ fontWeight: 500, borderRadius: '12px', padding: '0.3em 0.6em', transition: 'all 0.3s ease' }}
+                  onMouseEnter={(e) => e.target.style.opacity = 0.8}
+                  onMouseLeave={(e) => e.target.style.opacity = 1}
+                >
+                  {CArticleTypeDescriptions[article.articleType]}
+                </Badge>
+            </div>
+
+            <div>
+              <span className="article-author">Tác giả: {article.author}</span><br />
+              <span className="article-date">
+                Ngày viết: {new Date(article.createdDate).toLocaleString('vi-VN', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true,
+                })}
+              </span><br />
+              <span>Số lượt xem : {article.viewCount}</span>
+            </div>
           </div>
         </Col>
       </Row>
-
-      <Row className="article-thumbnail">
+      <hr />
+      <Row className="article-content my-3">
         <Col>
-          {article.thumbnail && <Image src={article.thumbnail} alt={article.title} fluid />}
-        </Col>
-      </Row>
-
-      <Row className="article-content">
-        <Col>
-          <div dangerouslySetInnerHTML={{ __html: article.content }}></div>
-        </Col>
-      </Row>
-
-      <Row className="approval-status">
-        <Col>
-          {article.approvalType === 'Approved' ? (
-            <Alert variant="success">Được phê duyệt</Alert>
-          ) : (
-            <Alert variant="warning">Chờ phê duyệt</Alert>
-          )}
+          <div dangerouslySetInnerHTML={{ __html: processedContent }}></div>
         </Col>
       </Row>
 

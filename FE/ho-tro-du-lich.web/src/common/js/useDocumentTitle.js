@@ -1,10 +1,10 @@
 // useDocumentTitle.js
-import { useEffect } from 'react';
+// import { useEffect } from 'react';
 
 function useDocumentTitle(title) {
-    useEffect(() => {
+    // useEffect(() => {
         document.title = title;
-    }, [title]);
+    // }, [title]);
 }
 
 export default useDocumentTitle;

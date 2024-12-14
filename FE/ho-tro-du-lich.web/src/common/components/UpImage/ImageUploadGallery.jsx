@@ -7,11 +7,13 @@ import { FaFileUpload, FaTimes } from "react-icons/fa";
 import styles from "./ImageUploadGallery.module.scss";
 import { Button } from "react-bootstrap";
 import { MdOutlineUploadFile } from "react-icons/md";
+
 const ImageUploadGallery = ({
   onImagesUploaded,
   onImagesRemove,
   label,
   multiple = true,
+  returnUrl = false,
 }) => {
   const ikUploadRef = useRef(null);
   const dispatch = useDispatch();
@@ -32,7 +34,13 @@ const ImageUploadGallery = ({
     };
 
     setUploadedImages((prevImages) => [...prevImages, newImage]);
-    onImagesUploaded && onImagesUploaded(newImage.fileId);
+
+    // Pass fileId and optionally url based on returnUrl
+    if (returnUrl) {
+      onImagesUploaded && onImagesUploaded(newImage); // Sends both fileId and url
+    } else {
+      onImagesUploaded && onImagesUploaded(newImage.fileId); // Sends only fileId
+    }
   };
 
   const onUploadProgress = (progress) => {
@@ -47,7 +55,7 @@ const ImageUploadGallery = ({
   };
 
   return (
-    <div className={"w-100" + styles.imageUploadContainer}>
+    <div className={"w-100 " + styles.imageUploadContainer}>
       <div className={styles.uploadButtonContainer}>
         {label && <label className="fw-bold w-100 my-1">{label}</label>}
         <div className="d-flex gap-2">
@@ -57,7 +65,7 @@ const ImageUploadGallery = ({
             onError={onError}
             onSuccess={onSuccess}
             onUploadProgress={onUploadProgress}
-            multiple
+            multiple={multiple}
           />
           {((!multiple && uploadedImages.length === 0) || multiple) && (
             <Button

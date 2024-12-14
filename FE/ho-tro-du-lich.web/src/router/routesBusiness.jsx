@@ -4,9 +4,10 @@ import BHomePage from "../pages/business/BHomePage/BHomePage";
 import MenuSideLayout from "../layouts/MenuSideLayout";
 import BDashboardPage from "../pages/business/BDashboardPage/BDashboardPage";
 import { IoLocationOutline, IoStatsChartOutline } from "react-icons/io5";
-import { LuNewspaper } from "react-icons/lu";
+import { LuNewspaper, LuPartyPopper } from "react-icons/lu";
 import BPlaceIndexPlace from "../pages/business/BPlacePage/BPlaceIndexPlace";
 import BArticleIndexPage from "../pages/business/BArticlePage/BArticleIndexPage";
+import BBusinessServiceIndexPage from "../pages/business/BServicePage/BBusinessServiceIndexPage";
 const menusideItemBusiness = [
   {
     label: "Dashboard",
@@ -22,6 +23,11 @@ const menusideItemBusiness = [
     label: "Tin tức",
     url: "/doanhnghiep/tintuc",
     icon: <LuNewspaper color="" />,
+  },
+  {
+    label: "Dịch vụ",
+    url: "/doanhnghiep/dichvu",
+    icon: <LuPartyPopper color="" />,
   },
 ];
 
@@ -53,6 +59,14 @@ export const routesBusiness = [
   {
     path: "/doanhnghiep/tintuc",
     component: <BArticleIndexPage />,
+    checkAuth: true,
+    roles: [Role.Business, Role.Admin],
+    errorElement: <Navigate to="/error" />,
+    layout: <MenuSideLayout items={menusideItemBusiness} />,
+  },
+  {
+    path: "/doanhnghiep/dichvu",
+    component: <BBusinessServiceIndexPage />,
     checkAuth: true,
     roles: [Role.Business, Role.Admin],
     errorElement: <Navigate to="/error" />,

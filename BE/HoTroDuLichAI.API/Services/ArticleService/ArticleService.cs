@@ -172,7 +172,7 @@ namespace HoTroDuLichAI.API
             }
         }
         private ImageProperty ConvertToImageProperty(ImageFileInfo imageFileInfo,
-                   CImageType imageType, bool isDefault = false)
+            CImageType imageType, bool isDefault = false)
         {
             return new ImageProperty
             {
@@ -230,29 +230,41 @@ namespace HoTroDuLichAI.API
             try
             {
                 var articleEntity = await _dbContext.Articles
+                    .Include(at => at.User)
                     .Where(at => at.Id == articleId)
-                    .Select(at => new ArticleDetailResponseDto
-                    {
-                        ArticleId = at.Id,
-                        Title = at.Title,
-                        Author = at.Author,
-                        Content = at.Content,
-                        Thumbnail = at.Thumbnail,
-                        ApprovalType = at.Approved,
-                        ArticleType = at.Type,
-                        OwnerProperty = new OwnerProperty()
-                        {
-                            Avatar = at.User.Avatar,
-                            Email = at.User.Email ?? string.Empty,
-                            FullName = at.User.FullName,
-                            UserId = at.UserId
-                        }
-                    }).FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync();
+
                 if (articleEntity == null)
                 {
                     return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
                 }
-                var data = articleEntity.Adapt<ArticleDetailResponseDto>();
+
+                articleEntity.ViewCount += 1;
+
+                _dbContext.Articles.Attach(articleEntity);
+                _dbContext.Entry(articleEntity).Property(x => x.ViewCount).IsModified = true;
+                await _dbContext.SaveChangesAsync();
+
+                var data = new ArticleDetailResponseDto
+                {
+                    ArticleId = articleEntity.Id,
+                    Title = articleEntity.Title,
+                    Author = articleEntity.Author,
+                    Content = articleEntity.Content,
+                    Thumbnail = articleEntity.Thumbnail,
+                    ApprovalType = articleEntity.Approved,
+                    ArticleType = articleEntity.Type,
+                    ViewCount = articleEntity.ViewCount,
+                    CreatedDate = articleEntity.CreatedDate,
+                    OwnerProperty = new OwnerProperty()
+                    {
+                        Avatar = articleEntity.User.Avatar,
+                        Email = articleEntity.User.Email ?? string.Empty,
+                        FullName = articleEntity.User.FullName,
+                        UserId = articleEntity.UserId
+                    }
+                };
+
                 response.Result.Success = true;
                 response.Result.Data = data;
                 response.StatusCode = StatusCodes.Status200OK;
@@ -260,7 +272,7 @@ namespace HoTroDuLichAI.API
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Error while retrieving article details.");
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
         }

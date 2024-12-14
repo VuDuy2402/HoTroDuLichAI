@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace HoTroDuLichAI.API
 {
     public class BaseReportResponseDto

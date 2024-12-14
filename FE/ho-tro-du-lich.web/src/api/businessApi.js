@@ -13,6 +13,15 @@ export const businessApi = {
     "api/v1/admin/business/manage/images/delete",
   // admin
 
+
+  // business services
+  Business_Services_GetBusinessService: "api/v1/admin/business/services/getall",
+  Business_Services_GetBusinessServiceById: "api/v1/admin/business/services/getbyid",
+  Business_Services_DeleteBusinessServiceById: "api/v1/admin/business/services/deletebyid",
+  Business_Services_UpdateBusinessServiceById: "api/v1/admin/business/services/updatebyid",
+  Business_Services_CreateBusinessService: "api/v1/admin/business/services/create",
+  // business services
+
   // my
   Business_My_GetWithPaging: "api/v1/admin/business/my/paging",
   // my

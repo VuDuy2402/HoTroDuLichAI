@@ -106,6 +106,248 @@ namespace HoTroDuLichAI.API
         }
 
 
+        #region  business services
+        public async Task<ApiResponse<List<BusinessServiceProperty>>> GetAllBusinessServicesAsync(Guid businessId)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<List<BusinessServiceProperty>>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var businessEntity = await _dbContext.Businesses.Where(b => b.Id == businessId && b.UserId == currentUser.Id).FirstOrDefaultAsync();
+                if (businessEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                response.Result.Data = businessEntity.ServiceProperties;
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<ApiResponse<BusinessServiceProperty>> GetBusinessServiceByBusinessIdAndServiceIdAsync(GetOrDeleteBusinessServiceRequestDto requestDto)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<BusinessServiceProperty>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var businessEntity = await _dbContext.Businesses.Where(b => b.Id == requestDto.BusinessId
+                    // && b.UserId == currentUser.Id
+                    ).FirstOrDefaultAsync();
+                if (businessEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var data = businessEntity.ServiceProperties.Where(s => s.ServiceId == requestDto.ServiceId).FirstOrDefault();
+                if (data == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                response.Result.Data = data;
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<ApiResponse<ResultMessage>> CreateBusinessServiceAsync(CreateBusinessServiceRequestDto requestDto,
+            ModelStateDictionary? modelState = null)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            if (requestDto == null)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Dữ liệu gửi về không đúng định dạng. Vui lòng kiểm tra lại.",
+                    ErrorScope = CErrorScope.FormSummary
+                });
+                response.Result.Errors.AddRange(errors);
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                response.Result.Success = false;
+                return response;
+            }
+            errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var businessEntity = await _dbContext.Businesses.Where(b => b.Id == requestDto.BusinessId && b.UserId == currentUser.Id).FirstOrDefaultAsync();
+                if (businessEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var services = businessEntity.ServiceProperties;
+                services.Add( new BusinessServiceProperty()
+                {
+                    Amount = requestDto.Amount,
+                    Name = requestDto.Name,
+                    Quantity = requestDto.Quantity,
+                    Status = requestDto.Status,
+                    Thumbnail = requestDto.Thumbnail,
+                    Type = requestDto.Type
+                });
+                businessEntity.Service = services.ToJson();
+                _dbContext.Businesses.Update(entity: businessEntity);
+                await _dbContext.SaveChangesAsync();
+                response.StatusCode = StatusCodes.Status201Created;
+                response.Result.Success = true;
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Success,
+                    Message = $"Thêm dịch vụ cho doanh nghiệp thành công",
+                    NotificationType = CNotificationType.Business
+                };
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<ApiResponse<ResultMessage>> UpdateBusinessServiceByIdAsync(UpdateBusinessServiceRequestDto serviceProperty,
+            ModelStateDictionary? modelState = null)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            if (serviceProperty == null)
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Dữ liệu gửi về không đúng định dạng. Vui lòng kiểm tra lại.",
+                    ErrorScope = CErrorScope.FormSummary
+                });
+                response.Result.Errors.AddRange(errors);
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                response.Result.Success = false;
+                return response;
+            }
+            errors = ErrorHelper.GetModelStateError(modelState: modelState);
+            if (!errors.IsNullOrEmpty())
+            {
+                return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var businessEntity = await _dbContext.Businesses.Where(b => b.Id == serviceProperty.BusinessId && b.UserId == currentUser.Id).FirstOrDefaultAsync();
+                if (businessEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                if (!businessEntity.ServiceProperties.Where(s => s.ServiceId == serviceProperty.ServiceProperty.ServiceId).Any())
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var services = businessEntity.ServiceProperties;
+                foreach (var service in services)
+                {
+                    if (service.ServiceId == serviceProperty.ServiceProperty.ServiceId)
+                    {
+                        service.Amount = serviceProperty.ServiceProperty.Amount;
+                        service.Name = serviceProperty.ServiceProperty.Name;
+                        service.Quantity = serviceProperty.ServiceProperty.Quantity;
+                        service.Status = serviceProperty.ServiceProperty.Status;
+                        service.Thumbnail = serviceProperty.ServiceProperty.Thumbnail;
+                        service.Type = serviceProperty.ServiceProperty.Type;
+                        break;
+                    }
+                }
+                businessEntity.Service = services.ToJson();
+                _dbContext.Businesses.Update(entity: businessEntity);
+                await _dbContext.SaveChangesAsync();
+                response.StatusCode = StatusCodes.Status202Accepted;
+                response.Result.Success = true;
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Success,
+                    Message = $"Cập nhật dịch vụ cho doanh nghiệp thành công",
+                    NotificationType = CNotificationType.Business
+                };
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+
+        public async Task<ApiResponse<ResultMessage>> DeleteBusinessServiceByIdAsync(GetOrDeleteBusinessServiceRequestDto requestDto)
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<ResultMessage>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var businessEntity = await _dbContext.Businesses.Where(b => b.Id == requestDto.BusinessId
+                    && b.UserId == currentUser.Id
+                    ).FirstOrDefaultAsync();
+                if (businessEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var data = businessEntity.ServiceProperties.Where(s => s.ServiceId == requestDto.ServiceId).FirstOrDefault();
+                if (data == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var services = businessEntity.ServiceProperties;
+                services.Remove(data);
+                businessEntity.Service = services.ToJson();
+                response.Result.Data = new ResultMessage()
+                {
+                    Level = CNotificationLevel.Success,
+                    Message = $"Xóa dịch vụ doanh nghiệp thành công",
+                    NotificationType = CNotificationType.Business
+                };
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status202Accepted;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+        #endregion  business services
+
+
         public async Task<ApiResponse<List<BusinessServiceUsedReportResponseDto>>> GetMyServiceUsedReportAsync(ReportRequestDto requestDto)
         {
             var requestError = ErrorHelper.GetReportError<List<BusinessServiceUsedReportResponseDto>>(requestDto: requestDto);
@@ -490,7 +732,7 @@ namespace HoTroDuLichAI.API
                         {
                             await _userManager.AddToRoleAsync(user: userEntity, role: CRoleType.Business.ToString());
                             var userRefreshTokens = await _dbContext.UserRefreshTokens.Where(ur => ur.UserId == userEntity.Id).ToListAsync();
-                            userRefreshTokens.ForEach(ur => 
+                            userRefreshTokens.ForEach(ur =>
                             {
                                 ur.ExpireTime = DateTimeOffset.UtcNow.AddHours(-1);
                                 ur.IsRevoked = true;
@@ -734,7 +976,7 @@ namespace HoTroDuLichAI.API
                     .Where(b => b.Id == businessId).FirstOrDefaultAsync();
                 if (businessEntity == null)
                 {
-                    return await ResponseHelper.NotFoundErrorAsync(errors :errors, response: response);
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
                 }
                 var data = new BusinessMoreInfoResponseDto()
                 {
@@ -951,30 +1193,30 @@ namespace HoTroDuLichAI.API
             try
             {
                 var businessEntity = await _dbContext.Businesses.FindAsync(businessId);
-            if (businessEntity == null)
-            {
-                return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                if (businessEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                response.Result.Data = businessEntity.Adapt<UpdateBusinessRequestDto>();
+                response.Result.Data.BusinessContactProperty = new BusinessContact()
+                {
+                    Avatar = businessEntity.BusinessContactProperty.ImageProperty.Url,
+                    Email = businessEntity.BusinessContactProperty.Email,
+                    Name = businessEntity.BusinessContactProperty.Name,
+                    PhoneNumber = businessEntity.BusinessContactProperty.PhoneNumber,
+                    Id = businessEntity.BusinessContactProperty.Id,
+                    FileId = businessEntity.BusinessContactProperty.ImageProperty.BlobId
+                };
+                response.Result.Success = true;
+                response.StatusCode = StatusCodes.Status200OK;
+                return response;
             }
-            response.Result.Data = businessEntity.Adapt<UpdateBusinessRequestDto>();
-            response.Result.Data.BusinessContactProperty = new BusinessContact()
-            {
-                Avatar = businessEntity.BusinessContactProperty.ImageProperty.Url,
-                Email = businessEntity.BusinessContactProperty.Email,
-                Name = businessEntity.BusinessContactProperty.Name,
-                PhoneNumber = businessEntity.BusinessContactProperty.PhoneNumber,
-                Id = businessEntity.BusinessContactProperty.Id,
-                FileId = businessEntity.BusinessContactProperty.ImageProperty.BlobId
-            };
-            response.Result.Success = true;
-            response.StatusCode = StatusCodes.Status200OK;
-            return response;
-            }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
             }
-            
+
         }
         #endregion Get Business for Update
 

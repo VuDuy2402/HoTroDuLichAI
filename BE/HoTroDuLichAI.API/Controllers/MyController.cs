@@ -44,5 +44,13 @@ namespace HoTroDuLichAI.API.Controllers
             var result = await _myService.UpdateMyProfileAsync(requestDto: requestDto, modelState: ModelState);
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
+
+        [HttpGet("mybusiness")]
+        [Authorize(Roles = RoleDescription.Business)]
+        public async Task<IActionResult> GetMyBusiness()
+        {
+            var result = await _myService.GetMyBusinessAsync();
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
     }
 }

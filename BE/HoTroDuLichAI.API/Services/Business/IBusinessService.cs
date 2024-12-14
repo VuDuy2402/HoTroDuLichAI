@@ -13,6 +13,16 @@ namespace HoTroDuLichAI.API
             ModelStateDictionary? modelState = null);
         Task<ApiResponse<ResultMessage>> DeleteBusinessAsync(Guid businessId);
 
+        #region business services
+        Task<ApiResponse<List<BusinessServiceProperty>>> GetAllBusinessServicesAsync(Guid businessId);
+        Task<ApiResponse<BusinessServiceProperty>> GetBusinessServiceByBusinessIdAndServiceIdAsync(GetOrDeleteBusinessServiceRequestDto requestDto);
+        Task<ApiResponse<ResultMessage>> CreateBusinessServiceAsync(CreateBusinessServiceRequestDto requestDto,
+            ModelStateDictionary? modelState = null);
+        Task<ApiResponse<ResultMessage>> UpdateBusinessServiceByIdAsync(UpdateBusinessServiceRequestDto serviceProperty,
+            ModelStateDictionary? modelState = null);
+        Task<ApiResponse<ResultMessage>> DeleteBusinessServiceByIdAsync(GetOrDeleteBusinessServiceRequestDto requestDto);
+        #endregion business services
+
 
         #region report
         Task<ApiResponse<BusinessViewContactReportResponseDto>> GetMyViewContactReportAsync(ReportRequestDto requestDto);

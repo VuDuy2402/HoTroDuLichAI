@@ -19,6 +19,8 @@ namespace HoTroDuLichAI.API
         public string Author { get; set; } = string.Empty;
         [Column("LoaiBaiViet")]
         public CArticleType Type { get; set; }
+        [Column("SoLuotXem")]
+        public int ViewCount { get; set; }
         [Column("TatCaHinhAnhBaiVietJson")]
         public string ImageProperty { get; set; } = string.Empty;
         [NotMapped]

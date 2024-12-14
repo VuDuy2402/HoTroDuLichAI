@@ -24,6 +24,16 @@ export const userService = {
       return null;
     }
   },
+  getMyBusiness: async () => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.get(userApi.User_MyBusiness);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
   getMyProfile: async () => {
     const token = localStorageService.getToken();
     if (token) {

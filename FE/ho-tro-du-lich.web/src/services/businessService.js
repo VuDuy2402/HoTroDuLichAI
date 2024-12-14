@@ -128,6 +128,53 @@ export const businessService = {
     }
   },
 
+
+  // business services
+  getBusinessServices: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        businessApi.Business_Services_GetBusinessService,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  updateBusinessServiceById: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        businessApi.Business_Services_UpdateBusinessServiceById,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
+  createBusinessService: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.post(
+        businessApi.Business_Services_CreateBusinessService,
+        data
+      );
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+  // business services
+
+
+
   // become to a business
   sendRequestBecomeBusiness: async (data) => {
     const token = localStorageService.getToken();
@@ -199,6 +246,5 @@ export const businessService = {
       return null;
     }
   },
-
   //report
 };

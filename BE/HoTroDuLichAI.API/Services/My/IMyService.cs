@@ -10,5 +10,6 @@ namespace HoTroDuLichAI.API
             ModelStateDictionary? modelState = null);
         Task<ApiResponse<MyProfileDetailResponseDto>> UpdateMyProfileAsync(UpdateMyProfileRequestDto requestDto,
             ModelStateDictionary? modelState = null);
+        Task<ApiResponse<BusinessMoreInfoResponseDto>> GetMyBusinessAsync();
     }
 }

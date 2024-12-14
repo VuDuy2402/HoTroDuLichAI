@@ -174,7 +174,7 @@ const Home = () => {
         <div className="row">
           {famousPlace.map((place) => (
             <div key={place.placeId} className="col-6 col-md-4 p-1">
-              <FamousLocation img={place.thumbnail} title={place.name} />
+              <FamousLocation img={place.thumbnail} title={place.name} placeId={place.placeId} />
             </div>
           ))}
         </div>
@@ -321,46 +321,53 @@ const StepIntroduce = ({ number, title, description }) => {
   );
 };
 
-const FamousLocation = ({ img, title }) => {
+const FamousLocation = ({ img, title, placeId }) => {
   return (
     <div className="famous-location__item position-relative overflow-hidden h-100 w-100">
-      <img
-        className="w-100 h-100"
-        src={img}
-        onError={(e) => (e.target.src = defaultImg)}
-      ></img>
-      <div
+      <Link style={{textDecoration: "none"}} to={`/diadiem/${placeId}`} className="d-block w-100 h-100">
+        <img
+          className="w-100 h-100"
+          src={img}
+          onError={(e) => (e.target.src = defaultImg)}
+          alt={title}
+        />
+      </Link>
+
+      <Link
+        to={`/diadiem/${placeId}`}
         className="famous-location__item__location bg-white d-flex align-items-center position-absolute px-2 py-1"
-        style={{ bottom: 0, right: 0 }}
+        style={{ bottom: 0, right: 0, textDecoration: "none" }}
       >
         <CiLocationOn />
         <p className="m-0">{title}</p>
-      </div>
+      </Link>
     </div>
   );
 };
 
 const NewHotPlace = ({ place }) => {
   return (
-    <div
-      className="new-place-frame d-flex flex-column p-2"
-      style={{
-        height: "400px",
-        backgroundImage: `url(${place.thumbnail})`,
-        background: "#80808080",
-        backgroundPosition: "center",
-        backgroundSize: "cover",
-        cursor: "pointer",
-      }}
-    >
-      <div className="new-place-frame__content w-100 h-100 d-flex justify-content-center align-items-end">
-        <div className="content-place w-100 p-2 d-flex align-items-center justify-content-center">
-          <p className="text-center text-white fw-bold fs-4 m-0">
-            {place.name}
-          </p>
+    <Link style={{textDecoration: "none"}} to={`/diadiem/${place.placeId}`} className="d-block w-100 h-100">
+      <div
+        className="new-place-frame d-flex flex-column p-2"
+        style={{
+          height: "400px",
+          backgroundImage: `url(${place.thumbnail})`,
+          background: "#80808080",
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+          cursor: "pointer",
+        }}
+      >
+        <div className="new-place-frame__content w-100 h-100 d-flex justify-content-center align-items-end">
+          <div className="content-place w-100 p-2 d-flex align-items-center justify-content-center">
+            <p className="text-center text-white fw-bold fs-4 m-0">
+              {place.name}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -373,7 +380,7 @@ const NewsTravel = ({ img, month, year, title, description, articleId }) => {
       <Link to={`/baiviet/chitiet/${articleId}`}>
         <img className="h-50" src={img} alt={title}></img>
       </Link>
-      
+
       <div className="news-travel__content h-50 p-2">
         <Link to={`/baiviet/chitiet/${articleId}`} className="text-decoration-none">
           <h5
@@ -395,7 +402,7 @@ const NewsTravel = ({ img, month, year, title, description, articleId }) => {
           {description}
         </p>
       </div>
-      
+
       <div
         className="news-travel__times position-absolute d-flex flex-column p-2"
         style={{

@@ -81,35 +81,36 @@ const AConfirmRegisterBusinessRequestPage = () => {
                 <>
                     <h5 className="mb-3">Thông tin đăng ký của doanh nghiệp</h5>
                     <RowInfo
-                        title={"Approval Status"}
+                        title={"Trạng thái"}
                         info={ApprovalTypeDescriptions[dataDetail.appoved]}
                     />
-                    <RowInfo title={"Business Name"} info={dataDetail.businessName} />
-                    <RowInfo title={"Address"} info={dataDetail.address} />
-                    <Textarea
+                    <RowInfo title={"Tên doanh nghiệp"} info={dataDetail.businessName} />
+                    <RowInfo title={"Địa chỉ"} info={dataDetail.address} />
+                    {/* <Textarea
                         disabled={true}
                         value={dataDetail.businessServiceProperties.length ? dataDetail.businessServiceProperties.join(', ') : 'No services provided'}
                         label={"Business Description"}
-                    />
-                    <RowInfo title={"Owner"} info={dataDetail.ownerProperty?.fullName} />
+                    /> */}
+                    <RowInfo title={"Chủ sở hữu"} info={dataDetail.ownerProperty?.fullName} />
                     <RowInfo title={"Email"} info={dataDetail.ownerProperty?.email} />
+                    <hr />
                     <MapCustom
                         latitude={dataDetail.latitude}
                         longitude={dataDetail.longitude}
                         pin={true}
-                        label={"Location"}
+                        label={"Vị trí"}
                     />
-
+                    <hr className="mt-5" />
                     <div className="mt-3">
                         <label className="fw-bold">Thông tin người dùng liên hệ</label>
                     </div>
-                    <RowInfo title={"Contact Name"} info={dataDetail.businessContactProperty?.name} />
-                    <RowInfo title={"Contact Email"} info={dataDetail.businessContactProperty?.email} />
-                    <RowInfo title={"Contact Phone"} info={dataDetail.businessContactProperty?.phoneNumber} />
-                    <RowInfo title={"Contact Avatar"} info={<img src={dataDetail.businessContactProperty?.avatar} alt="Avatar" width="50" height="50" />} />
+                    <RowInfo title={"Tên người liên hệ"} info={dataDetail.businessContactProperty?.name} />
+                    <RowInfo title={"Email người liên hệ"} info={dataDetail.businessContactProperty?.email} />
+                    <RowInfo title={"Số điện thoại người liên hệ"} info={dataDetail.businessContactProperty?.phoneNumber} />
+                    <RowInfo title={"Ảnh người liên hệ"} info={<img src={dataDetail.businessContactProperty?.avatar} alt="Avatar" width="50" height="50" />} />
 
-                    <RowInfo title={"Province"} info={dataDetail.provinceName} />
-
+                    <RowInfo title={"Tỉnh"} info={dataDetail.provinceName} />
+                    
                     <div className="mt-3">
                         <Row className="mt-3 justify-content-end">
                             <Col xs="auto">

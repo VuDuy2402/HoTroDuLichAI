@@ -79,6 +79,51 @@ namespace HoTroDuLichAI.API.Controllers
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
+        #region Business Services
+        [HttpPost("services/getall")]
+        [Authorize(Roles = $"{RoleDescription.Admin}, {RoleDescription.Business}")]
+        public async Task<IActionResult> GetAllBusinessService([FromBody]Guid businessId)
+        {
+            var result = await _businessService.GetAllBusinessServicesAsync(businessId: businessId);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpPost("services/getbyid")]
+        // [Authorize(Roles = $"{RoleDescription.Admin}, {RoleDescription.Business}")]
+        public async Task<IActionResult> GetBusinessServiceById(GetOrDeleteBusinessServiceRequestDto requestDto)
+        {
+            var result = await _businessService.GetBusinessServiceByBusinessIdAndServiceIdAsync(requestDto: requestDto);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+
+        [HttpPost("services/create")]
+        [Authorize(Roles = $"{RoleDescription.Admin}, {RoleDescription.Business}")]
+        public async Task<IActionResult> CreateBusinessService(CreateBusinessServiceRequestDto requestDto)
+        {
+            var result = await _businessService.CreateBusinessServiceAsync(requestDto: requestDto, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+
+        [HttpPost("services/updatebyid")]
+        [Authorize(Roles = $"{RoleDescription.Admin}, {RoleDescription.Business}")]
+        public async Task<IActionResult> UpdateBusinessServiceByID(UpdateBusinessServiceRequestDto serviceProperty)
+        {
+            var result = await _businessService.UpdateBusinessServiceByIdAsync(serviceProperty: serviceProperty, modelState: ModelState);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        [HttpPost("services/deletebyid")]
+        [Authorize(Roles = $"{RoleDescription.Admin}, {RoleDescription.Business}")]
+        public async Task<IActionResult> DeleteBusinessServiceById(GetOrDeleteBusinessServiceRequestDto requestDto)
+        {
+            var result = await _businessService.DeleteBusinessServiceByIdAsync(requestDto: requestDto);
+            return StatusCode(statusCode: result.StatusCode, value: result.Result);
+        }
+
+        #endregion Business Services
+
         #region report
         [HttpPost("report/viewcontact")]
         [Authorize(Roles = RoleDescription.Business)]

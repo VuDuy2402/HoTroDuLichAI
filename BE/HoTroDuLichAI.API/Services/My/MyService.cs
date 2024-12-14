@@ -9,17 +9,20 @@ namespace HoTroDuLichAI.API
         private readonly HoTroDuLichAIDbContext _dbContext;
         private readonly UserManager<UserEntity> _userManager;
         private readonly IImageKitIOService _imageKitIOService;
+        private readonly IBusinessService _businessService;
         private readonly ILogger<MyService> _logger;
 
         public MyService(HoTroDuLichAIDbContext dbContex,
             UserManager<UserEntity> userManager,
             ILogger<MyService> logger,
-            IImageKitIOService imageKitIOService)
+            IImageKitIOService imageKitIOService,
+            IBusinessService businessService)
         {
             _dbContext = dbContex;
             _userManager = userManager;
             _imageKitIOService = imageKitIOService;
             _logger = logger;
+            _businessService = businessService;
         }
 
         #region Get myprofile
@@ -181,6 +184,34 @@ namespace HoTroDuLichAI.API
             }
         }
         #endregion update my profile
+
+        #region my business
+        public async Task<ApiResponse<BusinessMoreInfoResponseDto>> GetMyBusinessAsync()
+        {
+            var errors = new List<ErrorDetail>();
+            var response = new ApiResponse<BusinessMoreInfoResponseDto>();
+            try
+            {
+                var currentUser = RuntimeContext.CurrentUser;
+                if (currentUser == null)
+                {
+                    return await ResponseHelper.UnauthenticationResponseAsync(errors: errors, response: response);
+                }
+                var businessEntity = await _dbContext.Businesses.Where(b => b.UserId == currentUser.Id).FirstOrDefaultAsync();
+                if (businessEntity == null)
+                {
+                    return await ResponseHelper.NotFoundErrorAsync(errors: errors, response: response);
+                }
+                var result = await _businessService.GetBusinessDetailByIdAsync(businessId: businessEntity.Id);
+                return result;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+            }
+        }
+        #endregion my business
 
         #region  update my image
         public async Task<ApiResponse<MyProfileDetailResponseDto>> UpdateMyImagesAsync(UpdateMyImageRequestDto requestDto,
