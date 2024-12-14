@@ -1,0 +1,16 @@
+.contentArticle {
+  background-color: rgba(0, 0, 0, 0.539);
+}
+
+.card {
+  &:hover {
+    box-shadow: 0rem 0.5rem 1rem rgb(142, 142, 142);
+  }
+  .moreDetail {
+    height: 0;
+    transition: height 0.3s ease-in-out;
+  }
+  &:hover .moreDetail {
+    height: 90px;
+  }
+}

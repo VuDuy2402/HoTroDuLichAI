@@ -376,6 +376,7 @@ namespace HoTroDuLichAI.API
                     ApprovalType = pl.Approved,
                     CreatedDate = pl.CreatedDate,
                     Thumbnail = pl.Thumbnail,
+                    ViewCount = pl.ViewCount,
                     OwnerProperty = new OwnerProperty()
                     {
                         Avatar = pl.User.Avatar,

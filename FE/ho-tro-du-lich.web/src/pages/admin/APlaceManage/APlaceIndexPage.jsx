@@ -334,6 +334,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
         <td>{renderOwner(data.ownerProperty)}</td>
         <td>
           <Button
+            className="me-2"
             variant="outline-info"
             size="sm"
             onClick={() => onOpenDetail(data.placeId)}
@@ -342,6 +343,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
             <FaInfoCircle />
           </Button>
           <Button
+            className="me-2"
             variant="outline-warning"
             size="sm"
             onClick={() => onEdit(data.placeId)}

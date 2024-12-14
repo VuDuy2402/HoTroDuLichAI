@@ -97,8 +97,8 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
             Address: e.target.address.value,
             BusinessServiceType: selectedServiceType,
             Appoved: selectedApprovalType,
-            Longitude: positionMap?.longitude,
-            Latitude: positionMap?.latitude,
+            Longitude: positionMap[1],
+            Latitude: positionMap[0],
             ProvinceId: e.target.provinceId.value,
             BusinessContactProperty: businessContact,
             FileId: e.target.fileId?.value

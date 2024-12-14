@@ -263,7 +263,9 @@ const Home = () => {
                     month={new Date(news.createdDate).getMonth() + 1}
                     year={new Date(news.createdDate).getFullYear()}
                     title={news.title}
-                    description={news.content}
+                    author={news.author}
+                    createdDate={news.createdDate}
+                    viewCount={news.viewCount}
                   />
                 </SwiperSlide>
               ))}
@@ -324,7 +326,7 @@ const StepIntroduce = ({ number, title, description }) => {
 const FamousLocation = ({ img, title, placeId }) => {
   return (
     <div className="famous-location__item position-relative overflow-hidden h-100 w-100">
-      <Link style={{textDecoration: "none"}} to={`/diadiem/${placeId}`} className="d-block w-100 h-100">
+      <Link style={{ textDecoration: "none" }} to={`/diadiem/${placeId}`} className="d-block w-100 h-100">
         <img
           className="w-100 h-100"
           src={img}
@@ -347,20 +349,20 @@ const FamousLocation = ({ img, title, placeId }) => {
 
 const NewHotPlace = ({ place }) => {
   return (
-    <Link style={{textDecoration: "none"}} to={`/diadiem/${place.placeId}`} className="d-block w-100 h-100">
+    <Link style={{ textDecoration: "none" }} to={`/diadiem/${place.placeId}`} className="d-block w-100 h-100">
       <div
-        className="new-place-frame d-flex flex-column p-2"
+        className="new-place-frame d-flex flex-column border p-2 shadow rounded"
         style={{
           height: "400px",
           backgroundImage: `url(${place.thumbnail})`,
-          background: "#80808080",
+          // background: "#80808080",
           backgroundPosition: "center",
           backgroundSize: "cover",
           cursor: "pointer",
         }}
       >
         <div className="new-place-frame__content w-100 h-100 d-flex justify-content-center align-items-end">
-          <div className="content-place w-100 p-2 d-flex align-items-center justify-content-center">
+          <div className="content-place w-100 p-2 d-flex align-items-center justify-content-center rounded border">
             <p className="text-center text-white fw-bold fs-4 m-0">
               {place.name}
             </p>
@@ -371,54 +373,51 @@ const NewHotPlace = ({ place }) => {
   );
 };
 
-const NewsTravel = ({ img, month, year, title, description, articleId }) => {
+const NewsTravel = ({ img, month, year, title, articleId, author, createdDate, viewCount }) => {
+  const formattedDate = new Date(createdDate).toLocaleString("vi-VN", {
+    // weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
+  
+
   return (
     <div
-      className="news-travel__frame position-relative d-flex flex-column w-100 shadow border"
+      className="news-travel__frame position-relative d-flex flex-column w-100 shadow border rounded"
       style={{ height: "400px" }}
     >
-      <Link to={`/baiviet/chitiet/${articleId}`}>
-        <img className="h-50" src={img} alt={title}></img>
-      </Link>
+      <div className="image" style={{ height: "200px" }}>
+        <Link to={`/baiviet/chitiet/${articleId}`}>
+          <img className="h-100 w-100" src={img} alt={title} />
+        </Link>
+      </div>
 
-      <div className="news-travel__content h-50 p-2">
+      <div className="news-travel__times position-absolute d-flex flex-column p-2" style={{
+        width: "70px",
+        height: "120px",
+        top: "-20px",
+        right: "10px",
+        background: "#424242b8",
+      }}>
+        <p className="text-white fs-2 h-50 m-0 text-center border-1 border-bottom">{month}</p>
+        <p className="text-white fs-5 h-50 m-0 text-center d-flex align-items-center justify-content-center">{year}</p>
+      </div>
+
+      <div className="p-2" style={{ height: "calc(100% - 200px)" }}>
         <Link to={`/baiviet/chitiet/${articleId}`} className="text-decoration-none">
-          <h5
-            className="fw-bold w-100 overflow-hidden"
-            style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}
-          >
+          <h5 className="fw-bold w-100 overflow-hidden" style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
             {title}
           </h5>
         </Link>
 
-        <p
-          className="w-100 overflow-hidden"
-          style={{
-            textOverflow: "ellipsis",
-            height: "7.5em",
-            overflow: "hidden",
-          }}
-        >
-          {description}
-        </p>
-      </div>
+        <p className="text-muted small mb-1">Tác giả: {author || "Chưa có thông tin"}</p>
+        <p className="text-muted small mb-1">Ngày đăng: {formattedDate}</p>
 
-      <div
-        className="news-travel__times position-absolute d-flex flex-column p-2"
-        style={{
-          width: "70px",
-          height: "120px",
-          top: "-20px",
-          right: "10px",
-          background: "#424242b8",
-        }}
-      >
-        <p className="text-white fs-2 h-50 m-0 text-center border-1 border-bottom">
-          {month}
-        </p>
-        <p className="text-white fs-5 h-50 m-0 text-center d-flex align-items-center justify-content-center">
-          {year}
-        </p>
+        <p className="text-muted small mb-2">Lượt xem: {viewCount}</p>
       </div>
     </div>
   );

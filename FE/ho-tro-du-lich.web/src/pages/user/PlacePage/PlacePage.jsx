@@ -157,6 +157,8 @@ const ItemPlace = ({ data }) => {
         height: "400px",
         backgroundImage: `url(${data.thumbnail})`,
         backgroundPosition: "center",
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
         cursor: "pointer",
       }}
     >

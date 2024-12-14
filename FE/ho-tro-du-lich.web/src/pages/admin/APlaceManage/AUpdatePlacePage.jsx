@@ -1,5 +1,4 @@
-import { Button, Form, Modal, Row, Col, Table } from "react-bootstrap";
-import { FaTrashAlt } from "react-icons/fa";
+import { Button, Form, Modal, Row, Col } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
@@ -7,16 +6,21 @@ import { placeService } from "../../../services/placeService";
 import { toast } from "react-toastify";
 import { systemAction } from "../../../redux/slices/systemSlice";
 import { CPlaceType, PlaceTypeDescriptions } from "../../../enum/placeTypeEnum";
+import ImageUploadGallery from "../../../common/components/UpImage/ImageUploadGallery";
+import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
+import ErrorField from "@/common/components/ErrorField/ErrorField";
+import MapCustom from "../../../common/components/MapCustom/MapCustom";
 
 const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
     const [placeDetail, setPlaceDetail] = useState(null);
-    const [imageFiles, setImageFiles] = useState([]);
+    const [positionMap, setPositionMap] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { handleSubmit, setValue, formState: { errors } } = useForm();
     const [selectedPlaceType, setSelectedPlaceType] = useState(CPlaceType.None);
     const [errorMessages, setErrorMessages] = useState([]);
-    const [selectedFiles, setSelectedFiles] = useState([]);
-    const [selectAll, setSelectAll] = useState(false);
+    const [imageFiles, setImageFiles] = useState([]);
+    const [defaultImageId, setDefaultImageId] = useState(null);
+    const [selectedImagesForDeletion, setSelectedImagesForDeletion] = useState([]);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -33,12 +37,21 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                 setPlaceDetail(result.data);
                 setValue("name", result.data.name);
                 setValue("address", result.data.address);
-                setValue("latitude", result.data.latitude);
-                setValue("longitude", result.data.longitude);
                 setValue("description", result.data.description);
+                setPositionMap({
+                    latitude: result.data.latitude,
+                    longitude: result.data.longitude
+                });
                 setSelectedPlaceType(result.data.placeType || CPlaceType.None);
                 setValue("isNew", result.data.isNew);
-                setImageFiles(result.data.imageDetailProperties || []);
+                const updatedImageFiles = (result.data.imageDetailProperties || []).map(img => ({
+                    fileId: img.fileId,
+                    url: img.url,
+                    isDefault: img.isDefault || false
+                }));
+                setImageFiles(updatedImageFiles);
+                const defaultImage = result.data.imageDetailProperties.find(img => img.isDefault);
+                setDefaultImageId(defaultImage ? defaultImage.fileId : null);
             } else if (result && result.errors) {
                 setErrorMessages(result.errors);
             }
@@ -49,95 +62,58 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
         }
     };
 
-    const handleImageUpload = (event) => {
-        const files = Array.from(event.target.files);
-        const updatedImageFiles = [...imageFiles];
-        files.forEach(file => {
-            const fileId = file.name;
-            updatedImageFiles.push({ FileId: fileId, IsDefault: false });
-        });
-        setImageFiles(updatedImageFiles);
+    const handleImagesUploaded = (uploadedImages) => {   
+        if (Array.isArray(uploadedImages)) {
+            const updatedImages = uploadedImages.map(img => ({
+                fileId: img.fileId,
+                url: img.url,
+                isDefault: false,
+            }));
+            setImageFiles((prev) => [...prev, ...updatedImages]);
+        } else if (uploadedImages && uploadedImages.fileId) {
+            setImageFiles((prev) => [
+                ...prev,
+                { fileId: uploadedImages.fileId, url: uploadedImages.url, isDefault: false },
+            ]);
+        } else {
+            toast.error("Dữ liệu trả về từ ImageUploadGallery không hợp lệ:", uploadedImages);
+        }
     };
 
-    const handleImageDefault = (fileId) => {
-        setImageFiles(prevImages =>
-            prevImages.map(img =>
-                img.FileId === fileId ? { ...img, IsDefault: true } : { ...img, IsDefault: false }
-            )
+    const handleImagesRemove = (fileId) => {
+        setImageFiles((prev) => prev.filter((img) => img.fileId !== fileId));
+    };
+
+    const handleSetDefaultImage = (fileId) => {
+        setDefaultImageId(fileId);
+    };
+
+    const handleSelectImageForDeletion = (fileId) => {
+        setSelectedImagesForDeletion(prev =>
+            prev.includes(fileId) ? prev.filter(id => id !== fileId) : [...prev, fileId]
         );
     };
 
-    useEffect(() => {
-        if (selectedFiles.length === imageFiles.length) {
-            setSelectAll(true);
-        } else {
-            setSelectAll(false);
-        }
-    }, [selectedFiles, imageFiles.length]);
-
-    const handleImageDelete = async (fileId, placeId) => {
-        dispatch(systemAction.enableLoading());
-        try {
-            const requestData = {
-                placeId: placeId,
-                fileIds: [fileId]
-            }
-            const response = await placeService.deletePlaceImagesAdmin(requestData);
-            if (response && response.success) {
-                toast.success(response.data.message);
-                setImageFiles(prevImages => prevImages.filter(img => img.FileId !== fileId));
-            }
-            else if (response && response.errors) {
-                setErrorMessages(response.errors);
-            }
-        }
-        catch {
-            toast.error("Đã có lỗi xảy ra khi thực hiện việc xóa hình ảnh của địa điểm.");
-        }
-        finally {
-            dispatch(systemAction.disableLoading());
-        }
-    };
-
-    const handleSelectFile = (fileId) => {
-        setSelectedFiles((prevSelected) => {
-            if (prevSelected.includes(fileId)) {
-                return prevSelected.filter(id => id !== fileId);
-            } else {
-                return [...prevSelected, fileId];
-            }
-        });
-    };
-
-    const handleSelectAll = () => {
-        if (selectAll) {
-            setSelectedFiles([]);
-        } else {
-            setSelectedFiles(imageFiles.map(img => img.FileId));
-        }
-        setSelectAll(!selectAll);
-    };
-
-    const handleDeleteSelected = async () => {
-        if (selectedFiles.length === 0) {
+    const handleDeleteSelectedImages = async () => {
+        if (selectedImagesForDeletion.length === 0) {
             toast.warning("Vui lòng chọn ít nhất một hình ảnh để xóa.");
             return;
         }
 
         try {
-            const response = await placeService.deletePlaceImagesAdmin({
-                placeId,
-                fileIds: selectedFiles
+            const result = await placeApi.deletePlaceImagesAdmin({
+                PlaceId: placeId,
+                FileIds: selectedImagesForDeletion
             });
-
-            if (response && response.success) {
-                toast.success(response.data.message);
-                setSelectedFiles([]);
+            if (result && result.success) {
+                toast.success("Xóa hình ảnh thành công.");
+                setImageFiles(prev => prev.filter(img => !selectedImagesForDeletion.includes(img.fileId)));
+                setSelectedImagesForDeletion([]);
             } else {
-                toast.error(response.errors || "Lỗi khi xóa hình ảnh.");
+                toast.error("Xóa hình ảnh thất bại.");
             }
         } catch (error) {
-            toast.error("Đã có lỗi xảy ra khi xóa hình ảnh.");
+            toast.error("Lỗi khi xóa hình ảnh.", error);
         }
     };
 
@@ -151,12 +127,15 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
             PlaceId: placeId,
             Address: data.address,
             IsNew: data.isNew,
-            Latitude: data.latitude,
-            Longitude: data.longitude,
+            Longitude: positionMap[1],
+            Latitude: positionMap[0],
             Description: data.description,
             Name: data.name,
             PlaceType: selectedPlaceType,
-            ImageFiles: imageFiles
+            ImageFiles: imageFiles.map(img => ({
+                FileId: img.fileId,
+                IsDefault: img.fileId === defaultImageId
+            }))
         };
 
         try {
@@ -184,6 +163,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
             <Modal.Body>
                 {placeDetail ? (
                     <Form onSubmit={handleSubmit(handleSubmitUpdate)}>
+                        <FormErrorAlert errors={errorMessages} />
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
@@ -191,8 +171,8 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     <Form.Control
                                         type="text"
                                         defaultValue={placeDetail.name}
-                                        isInvalid={!!errors.name}
                                     />
+                                    <ErrorField errorList={errorMessages} field={"Name_Error"} />
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
@@ -201,35 +181,22 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     <Form.Control
                                         type="text"
                                         defaultValue={placeDetail.address}
-                                        isInvalid={!!errors.address}
                                     />
+                                    <ErrorField errorList={errorMessages} field={"Address_Error"} />
                                 </Form.Group>
                             </Col>
                         </Row>
 
                         <Row>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Latitude</Form.Label>
-                                    <Form.Control
-                                        type="number"
-                                        step="0.0001"
-                                        defaultValue={placeDetail.latitude}
-                                        isInvalid={!!errors.latitude}
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Longitude</Form.Label>
-                                    <Form.Control
-                                        type="number"
-                                        step="0.0001"
-                                        defaultValue={placeDetail.longitude}
-                                        isInvalid={!!errors.longitude}
-                                    />
-                                </Form.Group>
-                            </Col>
+                            <MapCustom
+                                latitude={positionMap?.latitude}
+                                longitude={positionMap?.longitude}
+                                label="Location"
+                                pin={false}
+                                onChangePosition={(data) => setPositionMap(data)}
+                            />
+                            <ErrorField errorList={errorMessages} field={"Longitude_Error"} />
+                            <ErrorField errorList={errorMessages} field={"Latitude_Error"} />
                         </Row>
 
                         <Row>
@@ -241,6 +208,7 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                         rows={3}
                                         defaultValue={placeDetail.description}
                                     />
+                                    <ErrorField errorList={errorMessages} field={"Description_Error"} />
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
@@ -274,88 +242,37 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                                     />
                                 </Form.Group>
                             </Col>
-                            <Col md={6}>
+                        </Row>
+
+                        <Row>
+                            <Col md={12}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Hình ảnh</Form.Label>
-                                    <Form.Control
-                                        type="file"
-                                        multiple
-                                        onChange={handleImageUpload}
+                                    <ImageUploadGallery
+                                        onImagesUploaded={handleImagesUploaded}
+                                        onImagesRemove={handleImagesRemove}
+                                        multiple={true}
+                                        returnUrl={true}
                                     />
+                                    <div className="d-flex flex-wrap gap-2 mt-2">
+                                        {imageFiles.map((img, index) => (
+                                            <div key={index} className="position-relative">
+                                                <img src={img.url} alt={img.fileName} width={100} />
+                                                <Button
+                                                    variant={img.fileId === defaultImageId ? "success" : "outline-secondary"}
+                                                    className="position-absolute top-0 end-0"
+                                                    size="sm"
+                                                    onClick={() => handleSetDefaultImage(img.fileId)}
+                                                >
+                                                    {img.fileId === defaultImageId ? "Mặc định" : "Chọn làm mặc định"}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+
                                 </Form.Group>
                             </Col>
                         </Row>
-
-                        <div className="mt-3">
-                            <h6>Hình ảnh</h6>
-                            <Table striped bordered hover>
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <Form.Check
-                                                type="checkbox"
-                                                label="Chọn tất cả"
-                                                checked={selectAll}
-                                                onChange={handleSelectAll}
-                                            />
-                                        </th>
-                                        <th>Hình ảnh</th>
-                                        <th>Đặt làm mặc định</th>
-                                        <th>
-                                            <Button variant="link" onClick={handleDeleteSelected} disabled={selectedFiles.length === 0}>
-                                                Xóa tất cả
-                                            </Button>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {imageFiles.map((image, idx) => (
-                                        <tr key={image.FileId}>
-                                            <td>
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    checked={selectedFiles.includes(image.FileId)}
-                                                    onChange={() => handleSelectFile(image.FileId)}
-                                                />
-                                            </td>
-                                            <td>
-                                                <img
-                                                    src={image.url}
-                                                    alt={`image-${idx}`}
-                                                    style={{
-                                                        objectFit: "cover",
-                                                        height: "100px",
-                                                        width: "100px",
-                                                        borderRadius: "8px",
-                                                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
-                                                    }}
-                                                />
-                                            </td>
-                                            <td>
-                                                <Form.Check
-                                                    type="radio"
-                                                    name="defaultImage"
-                                                    checked={image.IsDefault}
-                                                    onChange={() => handleImageDefault(image.FileId)}
-                                                    aria-label="Đặt làm mặc định"
-                                                />
-                                            </td>
-                                            <td>
-                                                <Button
-                                                    variant="link"
-                                                    onClick={() => {
-                                                        handleImageDelete(image.fileId, placeDetail.placeId);
-                                                    }}
-                                                    title="Xóa hình ảnh"
-                                                >
-                                                    <FaTrashAlt />
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </div>
 
                         <div className="d-flex justify-content-end mt-3">
                             <Button variant="secondary" onClick={onClose} className="me-2">Hủy bỏ</Button>

@@ -2,11 +2,9 @@ import React, { useState, useRef } from "react";
 import { IKUpload } from "imagekitio-react";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { systemAction } from "@/redux/slices/systemSlice";
 import { FaFileUpload, FaTimes } from "react-icons/fa";
 import styles from "./ImageUploadGallery.module.scss";
 import { Button } from "react-bootstrap";
-import { MdOutlineUploadFile } from "react-icons/md";
 
 const ImageUploadGallery = ({
   onImagesUploaded,
@@ -35,11 +33,10 @@ const ImageUploadGallery = ({
 
     setUploadedImages((prevImages) => [...prevImages, newImage]);
 
-    // Pass fileId and optionally url based on returnUrl
     if (returnUrl) {
-      onImagesUploaded && onImagesUploaded(newImage); // Sends both fileId and url
+      onImagesUploaded && onImagesUploaded(newImage);
     } else {
-      onImagesUploaded && onImagesUploaded(newImage.fileId); // Sends only fileId
+      onImagesUploaded && onImagesUploaded(newImage.fileId);
     }
   };
 

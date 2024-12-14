@@ -23,6 +23,7 @@ import MenuSideLayout from "../layouts/MenuSideLayout";
 import { IoInformationCircleOutline, IoLocateOutline, IoNotificationsOffCircleOutline } from "react-icons/io5";
 import UArticleIndexPage from "../pages/user/ArticleDetailPage/UArticleIndexPage";
 import UPlaceIndexPlace from "../pages/user/PlaceDetailPage/UPlaceIndexPage";
+import ArticlePage from "../pages/user/ArticleDetailPage/ArticlePage";
 
 export const routes = [
   {
@@ -104,6 +105,14 @@ export const routes = [
   {
     path: "/doanhnghiep/dangky",
     component: <RegisterNewBusinessPage />,
+    checkAuth: true,
+    roles: [Role.NormalUser],
+    layout: <NavbarLayout />,
+    errorElement: <Navigate to="/error" />,
+  },
+  {
+    path: "/tintuc",
+    component: <ArticlePage />,
     checkAuth: true,
     roles: [Role.NormalUser],
     layout: <NavbarLayout />,
