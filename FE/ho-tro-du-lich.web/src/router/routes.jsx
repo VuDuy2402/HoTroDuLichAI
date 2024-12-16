@@ -24,6 +24,7 @@ import { IoInformationCircleOutline, IoLocateOutline, IoNotificationsOffCircleOu
 import UArticleIndexPage from "../pages/user/ArticleDetailPage/UArticleIndexPage";
 import UPlaceIndexPlace from "../pages/user/PlaceDetailPage/UPlaceIndexPage";
 import ArticlePage from "../pages/user/ArticleDetailPage/ArticlePage";
+import ItineraryCreatePage from "../pages/user/ItineraryDetailPage/ItineraryCreatePage";
 
 export const routes = [
   {
@@ -91,6 +92,14 @@ export const routes = [
     component: <PlaceDetailPage />,
     checkAuth: false,
     roles: [],
+    layout: <NavbarLayout />,
+    errorElement: <Navigate to="/error" />,
+  },
+  {
+    path: "/diadiem/hanhtrinh/:itineraryId/taomoichuyendi",
+    component: <ItineraryCreatePage />,
+    checkAuth: false,
+    roles: [Role.NormalUser],
     layout: <NavbarLayout />,
     errorElement: <Navigate to="/error" />,
   },

@@ -144,8 +144,8 @@ const AUpdatePlacePage = ({ show, onClose, placeId, onPlaceUpdated }) => {
                 toast.success("Place updated successfully.");
                 onPlaceUpdated();
                 onClose();
-            } else {
-                toast.error("Failed to update place.");
+            } else if (result && result.errors){
+                setErrorMessages(result.errors);
             }
         } catch (error) {
             toast.error("Error updating place:", error);

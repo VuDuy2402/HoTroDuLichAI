@@ -7,7 +7,7 @@ namespace HoTroDuLichAI.API
     public class BusinessEntity
     {
         [Key]
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         [Column("TenDoanhNghiep")]
         public string BusinessName { get; set; } = string.Empty;
         [Column("DiaChiDoanhNghiep")]
@@ -24,8 +24,6 @@ namespace HoTroDuLichAI.API
         public CBusinessServiceType BusinessServiceType { get; set; }
         [Column("LoaiPheDuyet")]
         public CApprovalType Appoved { get; set; }
-        // [Column("CoPhaiDiaDiemMoi")]
-        // public bool IsNew { get; set; }
         [Column("KinhDo")]
         public float Longitude { get; set; }
         [Column("ViDo")]

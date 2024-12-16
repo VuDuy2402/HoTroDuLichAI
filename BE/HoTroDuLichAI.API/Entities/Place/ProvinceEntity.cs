@@ -12,6 +12,10 @@ namespace HoTroDuLichAI.API
         [StringLength(maximumLength: 150)]
         [Column("TenTinh")]
         public string Name { get; set; } = string.Empty;
+        [Column("KinhDo")]
+        public float Longitude { get; set; }
+        [Column("ViDo")]
+        public float Latitude { get; set; }
         [Column("MaTinh")]
         public int Code { get; set; }
         [StringLength(maximumLength: 150)]

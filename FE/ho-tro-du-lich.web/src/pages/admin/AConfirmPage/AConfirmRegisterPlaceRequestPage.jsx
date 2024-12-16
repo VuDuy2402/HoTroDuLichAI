@@ -52,7 +52,7 @@ const AConfirmRegisterPlaceRequestPage = () => {
     <div className="frame-new-place-detail p-2">
       {dataDetail && (
         <div className="container">
-          <FormErrorAlert errorList={errors} />
+          <FormErrorAlert errors={errors} />
           <h5 className="mb-3">Yêu cầu chấp thuận địa điểm mới</h5>
           <RowInfo
             title={"Trạng thái"}

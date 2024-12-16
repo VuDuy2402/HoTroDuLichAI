@@ -8,17 +8,23 @@ import RateStar from "../../../common/components/RateStar/RateStar";
 import { IoEyeSharp } from "react-icons/io5";
 import { IoChatboxEllipses } from "react-icons/io5";
 import { LiaRouteSolid } from "react-icons/lia";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import TabCustom from "../../../common/components/TabCustom/TabCustom";
 import { itineraryService } from "../../../services/itineraryService";
 import { toast } from "react-toastify";
 import Paging from "../../../common/components/Paging/Paging";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import ReviewTab from "../../../common/components/Review/ReviewTab";
+import MapCustom from "../../../common/components/MapCustom/MapCustom";
+import useDocumentTitle from "../../../common/js/useDocumentTitle";
+import styles from './PlaceDetailPage.module.scss';
+import { FaPlusCircle } from "react-icons/fa";
+import { Button } from "react-bootstrap";
+
 const PlaceDetailPage = () => {
   const { placeId } = useParams();
   const [dataPlace, setDataPlace] = useState(null);
   const [errors, setErrors] = useState([]);
+  useDocumentTitle('Chi tiết địa điểm');
   const [pagingData, setPagingData] = useState({
     currentPage: 1,
     total: 1,
@@ -37,6 +43,7 @@ const PlaceDetailPage = () => {
     const result = await placeService.getPlaceById(placeId);
     if (result) {
       if (result.success) {
+        useDocumentTitle(`Du lịch ${result.data.name}`);
         setDataPlace(result.data);
       }
       else if (result.errors) {
@@ -87,8 +94,8 @@ const PlaceDetailPage = () => {
             spaceBetween={20}
             slidesPerView={1}
             centeredSlides
-            // autoplay
-            loop
+            autoplay={true}
+            loop={true}
             breakpoints={{
               0: {
                 slidesPerView: 1,
@@ -113,9 +120,7 @@ const PlaceDetailPage = () => {
                   >
                     <img
                       className="h-100"
-                      src={
-                        "	https://th.bing.com/th/id/R.b8f2aa68aec55912820cbf343660c563?rik=Ar1ZzL0N5cZG4g&pid=ImgRaw&r=0"
-                      }
+                      src={imgInfo.url}
                     ></img>
                   </div>
                 </SwiperSlide>
@@ -134,7 +139,6 @@ const PlaceDetailPage = () => {
             </div>
             <div className="d-flex align-items-center gap-1">
               <RateStar rate={dataPlace.rating} maxRate={5} color={"F1B600"} />
-              {/* <p className="m-0">{dataPlace.rating}</p> */}
             </div>
 
             <div className="frame-analys d-flex flex-wrap justify-content-center align-items-center gap-2">
@@ -173,20 +177,13 @@ const PlaceDetailPage = () => {
           )}
           <div className="place-detail mt-3 p-1">
             <h5 className="">Chi tiết địa điểm</h5>
-            <div style={{ height: "350px", marginBottom: "20px" }}>
-              <MapContainer
-                center={[dataPlace.latitude, dataPlace.longitude]}
-                zoom={13}
-                style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <Marker position={[dataPlace.latitude, dataPlace.longitude]}>
-                  <Popup>{dataPlace.name}</Popup>
-                </Marker>
-              </MapContainer>
+            <div style={{ maxHeight: "450px", marginBottom: "20px" }}>
+              <MapCustom
+                longitude={dataPlace.longitude}
+                latitude={dataPlace.latitude}
+                pin={true}
+                zoom={30}
+              />
             </div>
             <div className="more-detail-place">
               <TabCustom
@@ -200,6 +197,7 @@ const PlaceDetailPage = () => {
               <div className="content-tab pt-2" style={{ height: "450px" }}>
                 {tab === 1 && (
                   <ItineraryTab
+                    placeId={placeId}
                     data={itineraryData}
                     paging={pagingData}
                     handleChangePage={(page) =>
@@ -236,7 +234,7 @@ const BoxIconInfo = ({ icon, title, value, style }) => {
   );
 };
 
-const ItineraryTab = ({ data, paging, handleChangePage }) => {
+const ItineraryTab = ({ data, paging, handleChangePage, placeId }) => {
   return (
     <div className="w-100 p-2 pt-0 h-100 overflow-auto">
       <div
@@ -249,9 +247,20 @@ const ItineraryTab = ({ data, paging, handleChangePage }) => {
           onChange={(page) => handleChangePage(page)}
         />
       </div>
-      {data &&
-        data.map((item) => <ItineraryRow key={item.itineraryId} data={item} />)}
-    </div>
+      <Button
+        variant="primary"
+        className={`${styles.createItineraryBtn} w-100`}
+        onClick={() => window.location.href = `/diadiem/hanhtrinh/${placeId}/taomoichuyendi`}
+      >
+        <FaPlusCircle size={40} className={styles.iconCreate} />
+        <span className="ms-2">Tạo mới chuyến đi</span>
+      </Button>
+      <hr />
+      {
+        data &&
+        data.map((item) => <ItineraryRow key={item.itineraryId} data={item} />)
+      }
+    </div >
   );
 };
 

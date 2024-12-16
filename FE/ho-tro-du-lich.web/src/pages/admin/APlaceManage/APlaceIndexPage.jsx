@@ -49,7 +49,6 @@ const APlaceIndexPlace = () => {
     toDate: null,
   });
 
-  // Fetch data
   const fetchData = useCallback(async (paging = 1, query = "", filter = {}, sort = {}) => {
     dispatch(systemAction.enableLoading());
     try {
@@ -84,7 +83,7 @@ const APlaceIndexPlace = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleDeletePlaceById = (placeId) => {    
+  const handleDeletePlaceById = (placeId) => {
     setDataPlaces((prevPlaces) => prevPlaces.filter((place) => place.placeId !== placeId));
   };
 
@@ -95,6 +94,7 @@ const APlaceIndexPlace = () => {
 
   const handlePlaceUpdated = () => {
     fetchData();
+    setShowUpdateModal(false);
   };
 
   const handlePlaceCreated = () => {
@@ -181,7 +181,10 @@ const APlaceIndexPlace = () => {
 
       <AUpdatePlacePage
         show={showUpdateModal}
-        onClose={() => setShowUpdateModal(false)}
+        onClose={() => {
+          setShowUpdateModal(false);
+          setSelectedPlaceId(null);
+        }}
         placeId={selectedPlaceId}
         onPlaceUpdated={handlePlaceUpdated}
       />
@@ -212,14 +215,15 @@ const APlaceIndexPlace = () => {
 
 const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
   const [showModal, setShowConfirmDeleteModal] = useState(false);
+  const [errors, setErrors] = useState([]);
 
   const handleDelete = async (placeId) => {
     const result = await placeService.deletePlaceById(placeId);
     if (result && result.success) {
       toast.success(result.data.message);
       onDelete(placeId);
-    } else {
-      toast.error(result.errors || "Error deleting place");
+    } else if (result && result.errors) {
+      setErrors(result.errors)
     }
     setShowConfirmDeleteModal(false);
   };
@@ -300,6 +304,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
 
   return (
     <>
+      <FormErrorAlert errors={errors} />
       <tr>
         <td>
           {data.thumbnail ? (
@@ -390,96 +395,75 @@ const FilterSidebar = ({ show, onClose, onApplyFilters, onClearFilters }) => {
 
   const handleApplyFilters = () => {
     onApplyFilters(filters);
-    onClose();
   };
 
   const handleClearFilters = () => {
+    onClearFilters();
     setFilters({
       approvalType: null,
       placeType: null,
       fromDate: null,
       toDate: null,
     });
-    onClearFilters();
-    onClose();
   };
 
   return (
-    <Offcanvas show={show} onHide={onClose} placement="end">
-      <Offcanvas.Header closeButton>
-        <Offcanvas.Title>Bộ lọc</Offcanvas.Title>
-      </Offcanvas.Header>
-      <Offcanvas.Body>
-        <Form>
-          <Form.Group className="mb-3" controlId="approvalType">
-            <Form.Control
-              as="select"
-              name="approvalType"
-              value={filters.approvalType || null}
-              onChange={handleChange}
-            >
-              <option value="">Chọn trạng thái duyệt</option>
-              {Object.keys(CApprovalType).map((key) => {
-                const value = CApprovalType[key];
-                return (
-                  <option key={value} value={value}>
-                    {ApprovalTypeDescriptions[value]}
-                  </option>
-                );
-              })}
-            </Form.Control>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="placeType">
-            <Form.Label>Loại địa điểm</Form.Label>
-            <Form.Control
-              as="select"
-              name="placeType"
-              value={filters.placeType || ""}
-              onChange={handleChange}
-            >
-              <option value="">Chọn loại địa điểm</option>
-              {Object.keys(CPlaceType).map((key) => {
-                const value = CPlaceType[key];
-                return (
-                  <option key={value} value={value}>
-                    {PlaceTypeDescriptions[value]}
-                  </option>
-                );
-              })}
-            </Form.Control>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="fromDate">
-            <Form.Label>Từ ngày</Form.Label>
-            <Form.Control
-              type="date"
-              name="fromDate"
-              value={filters.fromDate || ""}
-              onChange={handleChange}
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="toDate">
-            <Form.Label>Đến ngày</Form.Label>
-            <Form.Control
-              type="date"
-              name="toDate"
-              value={filters.toDate || ""}
-              onChange={handleChange}
-            />
-          </Form.Group>
-
-          <div className="d-flex justify-content-between">
-            <Button variant="primary" onClick={handleApplyFilters}>
-              Áp dụng
-            </Button>
-            <Button variant="outline-danger" onClick={handleClearFilters}>
-              Xóa bộ lọc
-            </Button>
-          </div>
-        </Form>
-      </Offcanvas.Body>
+    <Offcanvas show={show} onHide={onClose} placement="end" className="p-3">
+      <h4>Lọc</h4>
+      <Form>
+        <Form.Group controlId="approvalType">
+          <Form.Label>Trạng thái duyệt</Form.Label>
+          <Form.Control as="select" name="approvalType" onChange={handleChange}>
+            <option value="">Tất cả</option>
+            {Object.entries(ApprovalTypeDescriptions).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Form.Control>
+        </Form.Group>
+        <Form.Group controlId="placeType">
+          <Form.Label>Loại địa điểm</Form.Label>
+          <Form.Control as="select" name="placeType" onChange={handleChange}>
+            <option value="">Tất cả</option>
+            {Object.entries(PlaceTypeDescriptions).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Form.Control>
+        </Form.Group>
+        <Form.Group controlId="fromDate">
+          <Form.Label>Từ ngày</Form.Label>
+          <Form.Control
+            type="date"
+            name="fromDate"
+            value={filters.fromDate || ""}
+            onChange={handleChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="toDate">
+          <Form.Label>Đến ngày</Form.Label>
+          <Form.Control
+            type="date"
+            name="toDate"
+            value={filters.toDate || ""}
+            onChange={handleChange}
+          />
+        </Form.Group>
+      </Form>
+      <div className="mt-3">
+        <Button variant="secondary" onClick={handleClearFilters}>
+          Xóa lọc
+        </Button>
+        <Button
+          variant="success"
+          className="ms-2"
+          onClick={handleApplyFilters}
+        >
+          Áp dụng
+        </Button>
+      </div>
     </Offcanvas>
   );
 };

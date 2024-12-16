@@ -521,6 +521,18 @@ namespace HoTroDuLichAI.API
             {
                 return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
             }
+            if (!(await PlaceHelper.IsPlaceOfVietNam(requestDto.Longitude, requestDto.Latitude)))
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Hiện tại hệ thống chỉ hỗ trợ các địa điểm thuộc đất nước Việt Nam.",
+                    ErrorScope = CErrorScope.PageSumarry
+                });
+                response.Result.Success = false;
+                response.Result.Errors.AddRange(errors);
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
             try
             {
                 var currentUser = RuntimeContext.CurrentUser;
@@ -1042,6 +1054,18 @@ namespace HoTroDuLichAI.API
             {
                 return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
             }
+            if (!(await PlaceHelper.IsPlaceOfVietNam(requestDto.Longitude, requestDto.Latitude)))
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Hiện tại hệ thống chỉ hỗ trợ các địa điểm thuộc đất nước Việt Nam.",
+                    ErrorScope = CErrorScope.PageSumarry
+                });
+                response.Result.Success = false;
+                response.Result.Errors.AddRange(errors);
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
+            }
             try
             {
                 var currentUser = RuntimeContext.CurrentUser;
@@ -1207,6 +1231,7 @@ namespace HoTroDuLichAI.API
                     Id = businessEntity.BusinessContactProperty.Id,
                     FileId = businessEntity.BusinessContactProperty.ImageProperty.BlobId
                 };
+                response.Result.Data.ServiceProperties = businessEntity.ServiceProperties;
                 response.Result.Success = true;
                 response.StatusCode = StatusCodes.Status200OK;
                 return response;
@@ -1240,6 +1265,18 @@ namespace HoTroDuLichAI.API
             if (!errors.IsNullOrEmpty())
             {
                 return await ResponseHelper.BadRequestErrorAsync(errors: errors, response: response);
+            }
+            if (!(await PlaceHelper.IsPlaceOfVietNam(requestDto.Longitude, requestDto.Latitude)))
+            {
+                errors.Add(new ErrorDetail()
+                {
+                    Error = $"Hiện tại hệ thống chỉ hỗ trợ các địa điểm thuộc đất nước Việt Nam.",
+                    ErrorScope = CErrorScope.PageSumarry
+                });
+                response.Result.Success = false;
+                response.Result.Errors.AddRange(errors);
+                response.StatusCode = StatusCodes.Status400BadRequest;
+                return response;
             }
             try
             {

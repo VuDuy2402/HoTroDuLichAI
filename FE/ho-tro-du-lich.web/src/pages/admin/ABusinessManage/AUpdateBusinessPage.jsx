@@ -10,7 +10,7 @@ import { itineraryService } from "../../../services/itineraryService";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import ErrorField from "@/common/components/ErrorField/ErrorField";
 import { FaSyncAlt } from "react-icons/fa"
-import { CStatusType, CStatusTypeDescription } from "../../../enum/statusTypeEnum";
+import { CStatusTypeDescription } from "../../../enum/statusTypeEnum";
 
 const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) => {
     const [positionMap, setPositionMap] = useState(null);
@@ -212,7 +212,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                             </option>
                                         ))}
                                     </Form.Select>
-                                    <ErrorField errorList={errors} field={"approved_Error"} />
+                                    <ErrorField errorList={errors} field={"Appoved_Error"} />
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -241,7 +241,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                             onChange={(e) => setBusinessContact({ ...businessContact, name: e.target.value })}
                                         />
                                     </Form.Group>
-                                    <ErrorField errorList={errors} field={"ContactName_Error"} />
+                                    <ErrorField errorList={errors} field={"BusinessContactProperty.ContactName_Error"} />
                                 </Col>
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
@@ -252,7 +252,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                             onChange={(e) => setBusinessContact({ ...businessContact, email: e.target.value })}
                                         />
                                     </Form.Group>
-                                    <ErrorField errorList={errors} field={"Email_Error"} />
+                                    <ErrorField errorList={errors} field={"BusinessContactProperty.Email_Error"} />
                                 </Col>
                             </Row>
                             <Row>
@@ -265,7 +265,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                             onChange={(e) => setBusinessContact({ ...businessContact, phoneNumber: e.target.value })}
                                         />
                                     </Form.Group>
-                                    <ErrorField errorList={errors} field={"PhoneNumber_Error"} />
+                                    <ErrorField errorList={errors} field={"BusinessContactProperty.PhoneNumber_Error"} />
                                 </Col>
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
@@ -276,7 +276,7 @@ const AUpdateBusinessPage = ({ show, onClose, businessId, onBusinessUpdated }) =
                                             onChange={(e) => setBusinessContact({ ...businessContact, avatar: e.target.value })}
                                         />
                                     </Form.Group>
-                                    <ErrorField errorList={errors} field={"Avatar_Error"} />
+                                    <ErrorField errorList={errors} field={"BusinessContactProperty.Avatar_Error"} />
                                 </Col>
                             </Row>
                         </div>
@@ -430,7 +430,6 @@ const BusinessServiceItem = ({ service, onClick }) => {
                 <Row className="mt-3">
                     <Col>
                         <Card.Title style={{ fontSize: "12px" }}>{service.name}</Card.Title>
-                        {/* <Card.Subtitle className="text-muted small" style={{ fontSize: "10px" }}>Mã dịch vụ: {service.serviceId}</Card.Subtitle> */}
                         <Row className="mb-2" style={{ fontSize: "10px" }}>
                             <Col>
                                 <span>Trạng thái : </span>

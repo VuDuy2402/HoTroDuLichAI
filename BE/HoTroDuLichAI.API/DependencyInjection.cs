@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.ML;
 
 namespace HoTroDuLichAI.API
 {
@@ -26,6 +27,10 @@ namespace HoTroDuLichAI.API
             services.AddScoped<IImageKitIOService, ImageKitIOService>();
 
             services.AddScoped<IChatService, ChatService>();
+
+            
+            services.AddScoped<IAIService, AIService>();
+            // services.AddSingleton<MLContext>();
             return services;
         }
 
