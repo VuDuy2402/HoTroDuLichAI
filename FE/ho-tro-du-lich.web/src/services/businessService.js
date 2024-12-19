@@ -114,6 +114,17 @@ export const businessService = {
     }
   },
 
+  deleteBusinessAdmin: async (data) => {
+    const token = localStorageService.getToken();
+    if (token) {
+      const response = await reqApi.delete(`${businessApi.Business_Admin_DeleteBusiness}/${data}`);
+      if (response) {
+        return response;
+      }
+      return null;
+    }
+  },
+
   deleteBusinessImagesAdmin: async (data) => {
     const token = localStorageService.getToken();
     if (token) {

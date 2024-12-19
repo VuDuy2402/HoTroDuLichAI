@@ -1386,7 +1386,7 @@ namespace HoTroDuLichAI.API
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex);
+                return await ResponseHelper.InternalServerErrorAsync(errors: errors, response: response, ex: ex, customMessage: "Bạn không thể xóa vì doanh nghiệp đã được sử dụng trong các chuyến đi.");
             }
         }
 

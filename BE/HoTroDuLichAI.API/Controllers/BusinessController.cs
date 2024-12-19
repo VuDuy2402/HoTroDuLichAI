@@ -71,7 +71,7 @@ namespace HoTroDuLichAI.API.Controllers
             return StatusCode(statusCode: result.StatusCode, value: result.Result);
         }
 
-        [HttpDelete("{businessId}")]
+        [HttpDelete("manage/{businessId}")]
         [Authorize(Roles = RoleDescription.Admin)]
         public async Task<IActionResult> DeleteBusiness(Guid businessId)
         {

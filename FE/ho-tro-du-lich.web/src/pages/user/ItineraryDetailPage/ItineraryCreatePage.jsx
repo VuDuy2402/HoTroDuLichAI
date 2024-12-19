@@ -7,10 +7,10 @@ import Stepper from "react-stepper-horizontal";
 import FormErrorAlert from "@/common/components/FormErrorAlert/FormErrorAlert";
 import { itineraryService } from "../../../services/itineraryService";
 import { useParams } from 'react-router-dom';
-import { aiService, articleService } from "../../../services/aiService";
+import { aiService } from "../../../services/aiService";
 
 const ItineraryCreatePage = () => {
-    const { placeId } = useParams();
+    const { placeId } = useParams();    
     const [provinces, setProvinces] = useState([]);
     const [selectedProvince, setSelectedProvince] = useState("");
     const [selectedNumPeople, setSelectedNumPeople] = useState("");
@@ -58,13 +58,15 @@ const ItineraryCreatePage = () => {
 
     const getBusinessSuggestion = async () => 
     {
-        var response = await aiService.getBusinessSuggestion({
+        const requestData = {
             placeId: placeId,
             provinceId: selectedProvince,
             peopleCount: Number(selectedNumPeople),
             amount: Number(selectedBudget),
             totalDay: Number(selectedNumDays)
-        });
+        };
+        
+        var response = await aiService.getBusinessSuggestion();        
 
         if (response)
         {

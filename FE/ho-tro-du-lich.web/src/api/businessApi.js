@@ -9,6 +9,7 @@ export const businessApi = {
 
   Business_Admin_CreateBusiness: "api/v1/admin/business/manage",
   Business_Admin_UpdateBusiness: "api/v1/admin/business/manage",
+  Business_Admin_DeleteBusiness: "api/v1/admin/business/manage",
   Business_Admin_DeleteBusinessImages:
     "api/v1/admin/business/manage/images/delete",
   // admin

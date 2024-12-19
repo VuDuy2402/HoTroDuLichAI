@@ -165,6 +165,7 @@ const APlaceIndexPlace = () => {
         items={dataPlaces}
         template={
           <TableRowTemplate
+            data={dataPlaces}
             onDelete={handleDeletePlaceById}
             onEdit={handleOpenUpdateModal}
             onOpenDetail={handleOpenDetailModal}

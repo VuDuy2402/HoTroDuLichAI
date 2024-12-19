@@ -165,7 +165,7 @@ const ABusinessIndexPage = () => {
             <Table
                 columns={initColumn}
                 items={dataBusinesses}
-                template={<TableRowTemplate onDelete={handleDeleteBusiness} onEdit={handleOpenUpdateModal} onOpenDetail={handleOpenDetailModal} />}
+                template={<TableRowTemplate data={dataBusinesses} onDelete={handleDeleteBusiness} onEdit={handleOpenUpdateModal} onOpenDetail={handleOpenDetailModal} />}
                 onSort={handleSort}
             />
 
@@ -212,7 +212,7 @@ const TableRowTemplate = ({ data, onDelete, onEdit, onOpenDetail }) => {
     };
 
     const handleDelete = async (businessId) => {
-        const result = await businessService.deleteBusiness(businessId);
+        const result = await businessService.deleteBusinessAdmin(businessId);
         if (result && result.success) {
             toast.success(result.data.message);
             onDelete(businessId);

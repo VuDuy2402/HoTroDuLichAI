@@ -26,26 +26,20 @@ namespace HoTroDuLichAI.API
 
             var businessPredictions = new List<BusinessRoutePrediction>();
             var businesses = await _dbContext.Businesses.ToListAsync();
-
-            // Tính khoảng cách trực tiếp giữa điểm xuất phát và điểm đích
             double directDistance = DistanceCalculator.GetDistanceInKm(startLat, startLon, endLat, endLon);
 
             foreach (var business in businesses)
             {
-                // Tính khoảng cách giữa điểm xuất phát và doanh nghiệp
                 double distanceToBusiness = DistanceCalculator.GetDistanceInKm(startLat, startLon, business.Latitude, business.Longitude);
-                // Tính khoảng cách giữa doanh nghiệp và điểm đích
                 double businessToDestination = DistanceCalculator.GetDistanceInKm(business.Latitude, business.Longitude, endLat, endLon);
-
-                // Tính tổng khoảng cách (Xuất phát -> Doanh nghiệp -> Đích)
                 double totalRouteDistance = distanceToBusiness + businessToDestination;
 
-                // Kiểm tra xem tổng khoảng cách có nhỏ hơn khoảng cách trực tiếp hay không
-                if (totalRouteDistance <= directDistance * 1.1) // 10% sai số cho phép
+                if (totalRouteDistance <= directDistance * 1.1)
                 {
                     businessPredictions.Add(new BusinessRoutePrediction
                     {
                         BusinessId = business.Id,
+                        BusinessServiceProperties = business.ServiceProperties,
                         BusinessName = business.BusinessName,
                         BusinessLatitude = business.Latitude,
                         BusinessLongitude = business.Longitude,
@@ -53,8 +47,6 @@ namespace HoTroDuLichAI.API
                     });
                 }
             }
-
-            // Sắp xếp doanh nghiệp theo khoảng cách
             return businessPredictions
                 .OrderBy(p => p.Distance)
                 .ToList();
@@ -87,5 +79,6 @@ namespace HoTroDuLichAI.API
         public float BusinessLatitude { get; set; }
         public float BusinessLongitude { get; set; }
         public float Distance { get; set; }
+        public List<BusinessServiceProperty> BusinessServiceProperties { get; set; } = new();
     }
 }

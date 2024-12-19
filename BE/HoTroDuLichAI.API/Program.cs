@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.ML;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
@@ -114,6 +115,14 @@ builder.Services.Configure<ApiBehaviorOptions>(opt =>
 });
 
 builder.Services.AddSignalR();
+
+builder.Services.AddSingleton<MLContext>();
+builder.Services.AddSingleton(serviceProvider =>
+{
+    var mlContext = serviceProvider.GetRequiredService<MLContext>();
+    var modelPath = Path.Combine($"{Directory.GetCurrentDirectory()}", "AITraining\\Data\\TrainingData.zip");
+    return mlContext.Model.Load(modelPath, out var modelInputSchema);
+});
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

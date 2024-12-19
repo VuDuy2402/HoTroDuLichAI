@@ -96,7 +96,7 @@ export const routes = [
     errorElement: <Navigate to="/error" />,
   },
   {
-    path: "/diadiem/hanhtrinh/:itineraryId/taomoichuyendi",
+    path: "/diadiem/hanhtrinh/:placeId/taomoichuyendi",
     component: <ItineraryCreatePage />,
     checkAuth: false,
     roles: [Role.NormalUser],
